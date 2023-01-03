@@ -14,8 +14,7 @@ public class Bed : SpriteObject, IOccupied
             highlight.flipX = false;
             highlight.sprite = Graphics.Instance.BedSprite;
             highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(MapAlignment.Center, position);
-            highlight.sortingOrder = 2 * position.z;
-            highlight.transform.parent = Graphics.Instance[position.x, position.y].transform;
+            highlight.sortingOrder = Graphics.GetSortOrder(position);
         }
         else
             highlight.enabled = false;
@@ -121,8 +120,7 @@ public class Chair : DirectionalSpriteObject, IOccupied
                     break;
             };
             highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(MapAlignment.Center, position);
-            highlight.sortingOrder = 2 * position.z;
-            highlight.transform.parent = Graphics.Instance[position.x, position.y].transform;
+            highlight.sortingOrder = Graphics.GetSortOrder(position);
         }
         else
             highlight.enabled = false;
@@ -236,8 +234,7 @@ public class Stool : SpriteObject, IOccupied
             highlight.enabled = true;
             highlight.sprite = Graphics.Instance.Stool;
             highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(MapAlignment.Center, position);
-            highlight.sortingOrder = 2 * position.z;
-            highlight.transform.parent = Graphics.Instance[position.x, position.y].transform;
+            highlight.sortingOrder = Graphics.GetSortOrder(position);
         }
         else
             highlight.enabled = false;
@@ -315,8 +312,7 @@ public class TableRound : SpriteObject
             highlight.enabled = true;
             highlight.sprite = Graphics.Instance.TableRound;
             highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(MapAlignment.Center, position);
-            highlight.sortingOrder = 2 * position.z;
-            highlight.transform.parent = Graphics.Instance[position.x, position.y].transform;
+            highlight.sortingOrder = Graphics.GetSortOrder(position);
         }
         else
             highlight.enabled = false;
@@ -357,8 +353,7 @@ public class TableSquare : SpriteObject
             highlight.enabled = true;
             highlight.sprite = Graphics.Instance.TableSquare;
             highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(MapAlignment.Center, position);
-            highlight.sortingOrder = 2 * position.z;
-            highlight.transform.parent = Graphics.Instance[position.x, position.y].transform;
+            highlight.sortingOrder = Graphics.GetSortOrder(position);
         }
         else
             highlight.enabled = false;
@@ -395,8 +390,7 @@ public class Bar : LinearSpriteObject, IInteractable
             highlight.enabled = true;
             highlight.sprite = alignment == MapAlignment.XEdge ? Graphics.Instance.BarX : Graphics.Instance.BarY;
             highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(MapAlignment.Center, position);
-            highlight.sortingOrder = 2 * position.z;
-            highlight.transform.parent = Graphics.Instance[position.x, position.y].transform;
+            highlight.sortingOrder = Graphics.GetSortOrder(position);
         }
         else
             highlight.enabled = false;
@@ -486,6 +480,5 @@ public class Bar : LinearSpriteObject, IInteractable
     public Bar(MapAlignment alignment ,Vector3Int worldPosition)
         : base(1, Graphics.Instance.BarX, Graphics.Instance.BarY, worldPosition, alignment, "Bar", alignment == MapAlignment.XEdge ? ObjectDimensions : new Vector3Int(2,1,2), true)
     {
-        Transform.parent = Graphics.Instance[worldPosition.x + (alignment == MapAlignment.YEdge ? -1 : 0), worldPosition.y + (alignment == MapAlignment.XEdge ? -1 : 0)].transform;
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using UnityEngine;
 using System.Linq;
 using UnityEngine.Rendering;
+using UnityEditor;
 
 public class Wall : INode
 {
@@ -105,13 +106,12 @@ public class WallSprite : LinearSpriteObject
 
 
         Transform.position = Map.MapCoordinatesToSceneCoordinates(alignment, position);
-        Transform.SetParent(Graphics.Instance[position.x + (alignment == MapAlignment.YEdge ? -1 : 0), position.y + (alignment == MapAlignment.XEdge ? -1 : 0)].transform);
 
 
         _sortingGroup = GameObject.AddComponent<SortingGroup>();
-        _sortingGroup.sortingOrder = position.z * 2;
-        _sortingGroup.sortingLayerName = "Wall";
+        _sortingGroup.sortingOrder = Graphics.GetSortOrder(position) + 1;
         SpriteRenderer.color = Graphics.Instance.HighlightColor;
+        SpriteRenderer.sortingLayerName = "Wall";
 
 
         for (int i = 1; i < _height; i++)
@@ -123,6 +123,7 @@ public class WallSprite : LinearSpriteObject
             current.transform.localPosition = Vector3Int.up * i * 2;
             current.name = "Wall";
             current.sortingOrder = i;
+            SpriteRenderer.sortingLayerName = "Wall";
             current.sprite = Graphics.WallSprites[GetSpriteType(position, i, alignment), wallMaterial];
             current.color = Graphics.Instance.HighlightColor;
         }
@@ -186,7 +187,6 @@ public class WallSprite : LinearSpriteObject
             {
                 _doorSprite = Object.Instantiate(Graphics.Instance.SpriteObject, Transform).GetComponent<SpriteRenderer>();
                 _doorSprite.name = "Door";
-                _doorSprite.sortingLayerName = "WallAccent";
                 _doorSprite.maskInteraction = SpriteMaskInteraction.None;
             }
 
@@ -237,7 +237,7 @@ public class WallSprite : LinearSpriteObject
             highlight.enabled = true;
             highlight.sprite = Graphics.WallSprites[alignment == MapAlignment.XEdge ? WallSpriteType.X11 : WallSpriteType.Y11, WallMaterial];
             highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(alignment, position);
-            highlight.transform.parent = Graphics.Instance[position.x, position.y].transform;
+            highlight.sortingOrder = Graphics.GetSortOrder(position) + 1;
         }
         else
             highlight.enabled = false;

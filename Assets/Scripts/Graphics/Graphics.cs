@@ -116,8 +116,6 @@ public class Graphics : MonoBehaviour
 
     public Texture2D PawnGradientSkin;
 
-    public SpriteMask PawnMask;
-
     public Texture2D PawnTextureBeard;
 
     public Texture2D PawnTextureBodyHairMuscular;
@@ -188,7 +186,6 @@ public class Graphics : MonoBehaviour
             (22, 48, 1, false), (22, 49, 1, false), (22, 48, 1, false), (22, 49, 1, false),
             (22, 47, 1, false), (26, 47, 1, true), (26, 39, 1, false), (22, 39, 1, true) };
 
-    List<Vector3Int> _cornersToBeConfigured;
 
     int _lineEnd;
 
@@ -270,9 +267,9 @@ public class Graphics : MonoBehaviour
         }
     }
 
-    public static int GetSortOrder(int x, int y)
+    public static int GetSortOrder(Vector3Int position)
     {
-        return 1 - 2 * x - 2 * y;
+        return 1 - 2 * position.x - 2 * position.y + 2 * position.z;
     }
 
     public Sprite[] BuildSprites(int skinColor, int hairColor, int hornsColor, bool narrow, bool thick, int ears, bool orc, int hairType, int beardType, int horns, int bodyHair)
@@ -673,30 +670,11 @@ public class Graphics : MonoBehaviour
             Destroy(this);
     }
 
-    SortingGroup[,] _sortingObjectsMap;
-
-    public SortingGroup this[int x, int y]
-    {
-        get => _sortingObjectsMap[x, y];
-    }
-
     IEnumerator Startup()
     {
         yield return new WaitUntil(() => Map.Instance != null);
 
         _map = Map.Instance;
-
-        _sortingObjectsMap = new SortingGroup[_map.MapWidth, _map.MapLength];
-        for(int i = 0; i < _map.MapWidth; i++)
-        {
-            for(int j = 0; j < _map.MapLength; j++)
-            {
-                _sortingObjectsMap[i, j] = Instantiate(SortingObject);
-                _sortingObjectsMap[i, j].sortingOrder = GetSortOrder(i, j);
-                _sortingObjectsMap[i, j].name = $"({i},{j})";
-
-            }
-        }
 
         _highlight = Instantiate(SpriteObject).GetComponent<SpriteRenderer>();
 
@@ -705,7 +683,6 @@ public class Graphics : MonoBehaviour
         CornerSprites = new SpriteSheet(9, 1);
         WallSprites = new SpriteSheet2(14, 1);
         DoorSprites = new SpriteSheet(8, 1);
-        _cornersToBeConfigured = new List<Vector3Int>();
 
         for (int i = 0; i < 9; i++)
         {
@@ -836,10 +813,7 @@ public class Graphics : MonoBehaviour
             _wallMaterial = wallMaterial;
 
             transform.position = Map.MapCoordinatesToSceneCoordinates(MapAlignment.Corner, position);
-
-            transform.parent = Instance[position.x, position.y].transform;
-            _spriteRenderer.sortingLayerName = "Wall";
-            _spriteRenderer.sortingOrder = position.z * 2 + 1;
+            _spriteRenderer.sortingOrder = GetSortOrder(position) + 3;
 
             if (!_configuring)
             {

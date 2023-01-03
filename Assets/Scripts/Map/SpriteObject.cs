@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
+using UnityEditor;
 
 public interface IInteractable
 {
@@ -79,11 +80,11 @@ public abstract class SpriteObject : IDataPersistence
         _blocking = blocking;
 
         _spriteRenderer = new SpriteRenderer[spriteCount];
-        _spriteRenderer[0] = Object.Instantiate(Graphics.Instance.SpriteObject, Graphics.Instance[position.x,position.y].transform).GetComponent<SpriteRenderer>();
+        _spriteRenderer[0] = Object.Instantiate(Graphics.Instance.SpriteObject).GetComponent<SpriteRenderer>();
         Transform.position = Map.MapCoordinatesToSceneCoordinates(MapAlignment.Center, position);
         SpriteRenderer.sprite = sprite;
         SpriteRenderer.name = name;
-        SpriteRenderer.sortingOrder = position.z * 2;
+        SpriteRenderer.sortingOrder = Graphics.GetSortOrder(position);
 
         SpriteRenderer.enabled = GameManager.Instance.IsOnLevel(WorldPosition.z) <= 0;
 

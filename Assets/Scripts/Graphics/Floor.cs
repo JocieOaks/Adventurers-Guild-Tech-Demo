@@ -58,9 +58,7 @@ public class Floor : AreaSpriteObject
         if (position == Vector3Int.back)
             return;
 
-        Transform.SetParent(null);
-        SpriteRenderer.sortingLayerName = "Floor";
-        SpriteRenderer.sortingOrder = Graphics.GetSortOrder(position.x, position.y);
+        SpriteRenderer.sortingOrder = Graphics.GetSortOrder(position) - 4;
         SpriteRenderer.color = Color.white;
 
         Graphics.CheckingAreaConstraints -= DestroyIfOutOfRange;

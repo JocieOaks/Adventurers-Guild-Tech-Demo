@@ -17,10 +17,6 @@ public class Pawn : MonoBehaviour
     SpriteRenderer _speechBubble;
     SpriteRenderer _emoji;
 
-    SpriteRenderer _frontSprite;
-    SpriteMask _frontMask;
-    SpriteMask _backMask;
-
     RoomNode _currentNode;
     public RoomNode CurrentNode
     {
@@ -102,16 +98,6 @@ public class Pawn : MonoBehaviour
         _emoji = _speechBubble.transform.GetComponentsInChildren<SpriteRenderer>()[1];
 
         _speechBubble.gameObject.SetActive(false);
-
-        _backMask = Instantiate(Graphics.Instance.PawnMask);
-        _backMask.transform.position = transform.position;
-        transform.SetParent(_backMask.transform);
-        _frontMask = Instantiate(Graphics.Instance.PawnMask, _backMask.transform);
-        _frontMask.transform.localPosition = Vector3.zero;
-        _frontSprite = new GameObject().AddComponent<SpriteRenderer>();
-        _frontSprite.transform.SetParent(transform);
-        _frontSprite.transform.localPosition = Vector3.zero;
-        _frontSprite.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
 
         CurrentNode = Map.GetNodeFromSceneCoordinates(transform.position, 0);
 
@@ -246,7 +232,6 @@ public class Pawn : MonoBehaviour
     public void SetSprite(int spriteIndex)
     {
         _spriteRenderer.sprite = _animationSprites[spriteIndex];
-        _frontSprite.sprite = _spriteRenderer.sprite;
     }
 
     Vector3 _worldPosition;
@@ -261,16 +246,7 @@ public class Pawn : MonoBehaviour
             if ( nearest != CurrentPosition)
             {
                 CurrentNode = Map.Instance[nearest];
-                int sortingOrder =  Graphics.GetSortOrder(CurrentPosition.x - 1, CurrentPosition.y);
-                _spriteRenderer.sortingOrder = sortingOrder;
-                _frontSprite.sortingOrder = sortingOrder + 2;
-                _backMask.frontSortingOrder = sortingOrder;
-                _backMask.backSortingOrder = sortingOrder - 1;
-                _frontMask.frontSortingOrder = sortingOrder + 2;
-                _frontMask.backSortingOrder = sortingOrder + 1;
-
-                _backMask.transform.position = Map.MapCoordinatesToSceneCoordinates(MapAlignment.Center, CurrentPosition);
-
+                _spriteRenderer.sortingOrder =  Graphics.GetSortOrder(CurrentPosition);
             }
             transform.position = Map.MapCoordinatesToSceneCoordinates(MapAlignment.Center, value);
         }
