@@ -307,7 +307,7 @@
       "Alignment": 1,
 	  "ObjectType": "Bar",
       "WorldPosition": {
-        "x": 24,
+        "x": 23,
         "y": 18,
         "z": 0,
         "magnitude": 30.0,
@@ -318,7 +318,7 @@
       "Alignment": 1,
 	  "ObjectType": "Bar",
       "WorldPosition": {
-        "x": 24,
+        "x": 23,
         "y": 17,
         "z": 0,
         "magnitude": 29.4108829,
@@ -329,7 +329,7 @@
       "Alignment": 1,
 	  "ObjectType": "Bar",
       "WorldPosition": {
-        "x": 24,
+        "x": 23,
         "y": 16,
         "z": 0,
         "magnitude": 28.84441,
@@ -340,7 +340,7 @@
       "Alignment": 1,
 	  "ObjectType": "Bar",
       "WorldPosition": {
-        "x": 24,
+        "x": 23,
         "y": 19,
         "z": 0,
         "magnitude": 30.6104565,

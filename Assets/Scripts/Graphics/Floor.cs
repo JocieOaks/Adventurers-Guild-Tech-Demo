@@ -53,7 +53,7 @@ public class Floor : AreaSpriteObject
         }
     }
 
-    public Floor(Vector3Int position) : base(1,null,position, "Floor", Vector3Int.zero, false)
+    public Floor(Vector3Int position) : base(1,null,position, "Floor", new Vector3Int(1, 1, 0), false)
     {
         if (position == Vector3Int.back)
             return;

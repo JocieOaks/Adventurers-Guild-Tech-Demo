@@ -1,6 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using Unity.Burst.CompilerServices;
 using UnityEngine;
+using UnityEngine.Rendering;
+using System.Linq;
+using UnityEngine.UIElements;
 
 public enum Stance
 {
@@ -12,7 +17,8 @@ public enum Stance
 public class Pawn : MonoBehaviour
 {
     public float Speed { get; } = 2.5f;
-    public SpriteRenderer _spriteRenderer;
+    SpriteRenderer _spriteRenderer;
+    public PolygonCollider2D Collider;
 
     SpriteRenderer _speechBubble;
     SpriteRenderer _emoji;
@@ -76,7 +82,7 @@ public class Pawn : MonoBehaviour
     {
         set
         {
-            if (_animationSprites == null)
+            if (_animationSprites == null || _animationSprites.Count() == 0)
                 _animationSprites = value;
         }
     }
@@ -99,11 +105,18 @@ public class Pawn : MonoBehaviour
 
         _speechBubble.gameObject.SetActive(false);
 
+        _sortingGroup = Instantiate(Graphics.Instance.SortingObject);
+        _sortingGroup.sortingLayerName = "Pawn";
+        _sortingGroup.transform.position = Vector3.zero;
+        transform.SetParent(_sortingGroup.transform);
+
         CurrentNode = Map.GetNodeFromSceneCoordinates(transform.position, 0);
 
         WorldPosition = CurrentPosition;
 
         Graphics.LevelChanging += SetLevel;
+        Graphics.UpdatedGraphics += BuildSpriteMasks;
+        Graphics.LevelChanged += BuildSpriteMasks;
 
         Social = new Social(this);
 
@@ -236,6 +249,7 @@ public class Pawn : MonoBehaviour
 
     Vector3 _worldPosition;
 
+
     public Vector3 WorldPosition
     {
         get => _worldPosition;
@@ -246,9 +260,55 @@ public class Pawn : MonoBehaviour
             if ( nearest != CurrentPosition)
             {
                 CurrentNode = Map.Instance[nearest];
-                _spriteRenderer.sortingOrder =  Graphics.GetSortOrder(CurrentPosition);
+                _sortingGroup.sortingOrder =  Graphics.GetSortOrder(CurrentPosition);
+                BuildSpriteMasks();
             }
             transform.position = Map.MapCoordinatesToSceneCoordinates(MapAlignment.Center, value);
+        }
+    }
+
+    List<Collider2D> _overlappingColliders = new List<Collider2D>();
+    SortingGroup _sortingGroup;
+    Dictionary<SpriteObject, SpriteMask[]> _spriteMasks = new Dictionary<SpriteObject, SpriteMask[]>();
+    readonly static Vector3Int _alignmentVector = new Vector3Int(1, 1);
+
+    void BuildSpriteMasks()
+    {
+        int colliderCount = Collider.OverlapCollider(new ContactFilter2D().NoFilter(), _overlappingColliders);
+
+        for (int i = 0; i < colliderCount; i++)
+        {
+            if (_overlappingColliders[i].TryGetComponent(out SpriteObject.SpriteCollider collider))
+            {
+                SpriteObject spriteObject = collider.SpriteObject;
+                Vector3Int relPosition;
+
+                if(spriteObject is WallSprite wall)
+                {
+                    relPosition = CurrentPosition - spriteObject.WorldPosition - (wall.Alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left);
+                }
+                else
+                    relPosition = CurrentPosition - spriteObject.WorldPosition;
+
+                if(relPosition.z - spriteObject.Dimensions.z < 0 && Vector3.Dot(relPosition,_alignmentVector) > 0)
+                {
+                    if (!_spriteMasks.ContainsKey(spriteObject))
+                    {
+                        _spriteMasks[spriteObject] = spriteObject.GetSpriteMask(_sortingGroup.transform);
+                    }
+                }
+                else
+                {
+                    if (_spriteMasks.ContainsKey(spriteObject))
+                    {
+                        foreach(SpriteMask mask in _spriteMasks[spriteObject])
+                        {
+                            Destroy(mask.gameObject);
+                        }
+                        _spriteMasks.Remove(spriteObject);
+                    }
+                }
+            }
         }
     }
 

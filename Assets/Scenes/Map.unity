@@ -134,6 +134,7 @@ GameObject:
   - component: {fileID: 318307014}
   - component: {fileID: 318307013}
   - component: {fileID: 318307015}
+  - component: {fileID: 318307016}
   m_Layer: 0
   m_Name: Queltocn
   m_TagString: Untagged
@@ -220,7 +221,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3fe037ba8a251d4eaa16868cc662b8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _spriteRenderer: {fileID: 0}
+  Collider: {fileID: 318307016}
   _animationSprites:
   - {fileID: 21300000, guid: 06b16774d24a6d74181ba804af4477b1, type: 3}
   - {fileID: 21300000, guid: ce5f31bacf4edb244a49b04d1ebf5bcb, type: 3}
@@ -277,6 +278,37 @@ MonoBehaviour:
   dexterity: 12
   charisma: 15
   intelligence: 17
+--- !u!60 &318307016
+PolygonCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 318307011}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.078125}
+    oldSize: {x: 10.666667, y: 10.666667}
+    newSize: {x: 0.64, y: 0.64}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Points:
+    m_Paths:
+    - - {x: 0, y: -2}
+      - {x: 5.1666665, y: 1}
+      - {x: 5.1666665, y: 9.166667}
+      - {x: 0, y: 12.166667}
+      - {x: -5.1666665, y: 9.166667}
+      - {x: -5.166667, y: 1}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -390,9 +422,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _highlight: {fileID: 0}
-  BarX: {fileID: 21300000, guid: 680aa03799f03854a933353f263a5da1, type: 3}
-  BarY: {fileID: 21300000, guid: 79f5cc873aef24d4880d2e08af733a64, type: 3}
-  BedSprite: {fileID: 21300000, guid: 42143133dcfddc14db98f7ed801d88b6, type: 3}
+  BarX:
+  - {fileID: 21300000, guid: 2bc8754eb007a844cb3f971fb70cf68d, type: 3}
+  - {fileID: 21300000, guid: e0fd36680f25e2044ab13b405f5cfc42, type: 3}
+  BarY:
+  - {fileID: 21300000, guid: a23d3e1aea2fa8540b82982d64a7476c, type: 3}
+  - {fileID: 21300000, guid: 6c48dbaa1be0406469123443b600a43f, type: 3}
+  BedSprite:
+  - {fileID: 21300000, guid: 775f4884008227848a7b2ec0f396dbdb, type: 3}
+  - {fileID: 21300000, guid: 77a6e31d97d9a5e42819b3d9e794d525, type: 3}
+  - {fileID: 21300000, guid: ca69cdea41ca6e44a932620461298379, type: 3}
+  - {fileID: 21300000, guid: 222711d3fd2426e4da69ae813760b89c, type: 3}
+  - {fileID: 21300000, guid: 54d1e321f0400ea4097cd0755b5e9a03, type: 3}
   ChairNegative: {fileID: 21300000, guid: 22be4d52979636e43a802cfc7829899f, type: 3}
   ChairPositive: {fileID: 21300000, guid: a77ff1b95a402a24e88e51fa88f8d3a8, type: 3}
   Commentary:
@@ -414,11 +455,11 @@ MonoBehaviour:
   FloorSprites:
   - {fileID: 21300000, guid: 10df58eb1326a4f4a92fdcbcafcffb9b, type: 3}
   - {fileID: 21300000, guid: 45d9d81e3e884884a9a05deccaa96e68, type: 3}
+  PawnPrefab: {fileID: 5285737382828733189, guid: fbd87704f06da184aa285e39a530ff21, type: 3}
   PawnGradientGreyscale: {fileID: 2800000, guid: 03dcff08e7dae364e84e8bda10eca590, type: 3}
   PawnGradientHair: {fileID: 2800000, guid: 5bb8b62fb550662469fc326cff56afb9, type: 3}
   PawnGradientHorns: {fileID: 2800000, guid: cbad70d5e4d1c454b916296e96e60796, type: 3}
   PawnGradientSkin: {fileID: 2800000, guid: 064d4b077e1b959459973d05afb126f7, type: 3}
-  PawnMask: {fileID: 1914186443021746628, guid: 29573ec7f8d8ee04383961f4c07dd529, type: 3}
   PawnTextureBeard: {fileID: 2800000, guid: 916492a93b142314690c9fd6c7f6a488, type: 3}
   PawnTextureBodyHairMuscular: {fileID: 2800000, guid: 4fb56d019bf4f214e8b02983930f1a23, type: 3}
   PawnTextureBodyHairThick: {fileID: 2800000, guid: 7ca6e955b16cae14b98ed687415b6b24, type: 3}
@@ -434,12 +475,18 @@ MonoBehaviour:
   PawnTextureHornsFront: {fileID: 2800000, guid: 5291d485f470dfd4f9173d57fa66126c, type: 3}
   PawnTextureOrcTeeth: {fileID: 2800000, guid: 703013f469c9b8548a314c4f3157d0bc, type: 3}
   SpeechBubble: {fileID: 6450863367998771783, guid: 0ec6ebe32cf222940a474f522cbaa6aa, type: 3}
-  SpriteObject: {fileID: 4334146755354440016, guid: 2e79435de366dcf47b0ed05833b85dbe, type: 3}
+  SpritePrefab: {fileID: 4334146755354440016, guid: 2e79435de366dcf47b0ed05833b85dbe, type: 3}
   StaircaseNegative: {fileID: 21300000, guid: 0677ba88a8ff1f048b0d409d4e8ab36a, type: 3}
   StaircasePositive: {fileID: 21300000, guid: ebe2049b3b763694fa4ab31dc29ebec9, type: 3}
   Stool: {fileID: 21300000, guid: bd8823a404095b94da113cfd0e96bc32, type: 3}
-  TableRound: {fileID: 21300000, guid: 4064be14fd530714aa141140e5e36652, type: 3}
-  TableSquare: {fileID: 21300000, guid: f310a56593596a743855e61ffaa4fb5b, type: 3}
+  TableRound:
+  - {fileID: 21300000, guid: f84cd110dcaaf274c94f6abf62d3b4e2, type: 3}
+  - {fileID: 21300000, guid: 0f671ad47d68b884baec15b62c0cf7f8, type: 3}
+  - {fileID: 21300000, guid: c64a5a6cb586a3e419feb358a6157f04, type: 3}
+  TableSquare:
+  - {fileID: 21300000, guid: e15b857c093fa8745af69d0b10c08cf8, type: 3}
+  - {fileID: 21300000, guid: 8d9686faefc880840ac93f43d903d12d, type: 3}
+  - {fileID: 21300000, guid: 952b1aae14ab175408113ae2347c0767, type: 3}
   UnsortedCornerSprites:
   - {fileID: 21300000, guid: b09cfe8e6ea45f240a67727be5c2aee0, type: 3}
   - {fileID: 21300000, guid: 96f51fee2ee151740a9ac84d3650c538, type: 3}

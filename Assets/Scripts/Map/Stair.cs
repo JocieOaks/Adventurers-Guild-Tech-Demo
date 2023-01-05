@@ -98,7 +98,7 @@ public class StairSprite : AreaSpriteObject
 
         for (int i = 1; i < z + 1; i++)
         {
-            _spriteRenderer[i] = Object.Instantiate(Graphics.Instance.SpriteObject, Transform).GetComponent<SpriteRenderer>();
+            _spriteRenderer[i] = Object.Instantiate(Graphics.Instance.SpritePrefab, Transform).GetComponent<SpriteRenderer>();
             SpriteRenderer current = _spriteRenderer[i];
 
             current.transform.localPosition = Vector3Int.down * i * 2;
@@ -140,6 +140,9 @@ public class Stair : RoomNode
     public Direction Direction { get; }
 
     StairSprite stairSprite;
+
+    public override Vector3Int SurfacePosition => WorldPosition + Vector3Int.up;
+
     public Stair(Vector3Int position, Direction direction) : base(Map.Instance[position])
     {
         Direction = direction;

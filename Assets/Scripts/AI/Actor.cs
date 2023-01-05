@@ -125,7 +125,7 @@ public class Actor
         if (Pawn != null)
             return;
 
-        Pawn = Object.Instantiate(Graphics.Instance.SpriteObject).AddComponent<Pawn>();
+        Pawn = Object.Instantiate(Graphics.Instance.PawnPrefab);
         Pawn.Sprites = _spritesList;
         Pawn.transform.position = position;
         Pawn.name = "Actor";

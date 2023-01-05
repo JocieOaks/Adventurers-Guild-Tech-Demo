@@ -1,10 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Specialized;
 using UnityEngine;
-using System.Linq;
 using UnityEngine.Rendering;
-using UnityEditor;
+using UnityEngine.UI;
 
 public class Wall : INode
 {
@@ -77,7 +73,159 @@ public class WallSprite : LinearSpriteObject
             new Vector2(-2f/3, 13.5f/6 + 12 * 5f/6)
     };
 
-    SpriteRenderer _accent;
+    Sprite _fullDoorMask;
+    Sprite _baseDoorMask;
+    
+
+    void MakeDoorMask()
+    {
+        Texture2D fullTexture = new Texture2D(17, 9 + _height * 12, TextureFormat.ARGB32, false);
+        fullTexture.filterMode = FilterMode.Point;
+        fullTexture.wrapMode = TextureWrapMode.Clamp;
+
+        for (int i = 0; i < 17; i++)
+        {
+            for(int j = 0; j < 9 + _height * 12; j++)
+            {
+                fullTexture.SetPixel(i, j, Color.clear);
+            }
+        }
+        Texture2D baseTexture = new Texture2D(17,21, TextureFormat.ARGB32, false);
+        baseTexture.filterMode = FilterMode.Point;
+        baseTexture.wrapMode = TextureWrapMode.Clamp;
+        for (int i = 0; i < 17; i++)
+        {
+            for (int j = 0; j < 21; j++)
+            {
+                baseTexture.SetPixel(i, j, Color.clear);
+            }
+        }
+        Vector2 pivot = SpriteRenderer.sprite.pivot;
+
+        for (int i = 0; i < _height; i++)
+        {
+            for (int j = 0; j < 17; j++)
+            {
+                for (int k = 0; k < 21; k++)
+                {
+                    if (_spriteRenderer[i].sprite.texture.GetPixel(j,k).a > 0.5f)
+                    {
+                        fullTexture.SetPixel(j, k + i * 12, Color.black);
+                    }
+                }
+            }
+        }
+
+        for (int j = 0; j < 17; j++)
+        {
+            for (int k = 0; k < 21; k++)
+            {
+                if (SpriteRenderer.sprite.texture.GetPixel(j, k).a > 0.5f)
+                {
+                    baseTexture.SetPixel(j, k, Color.black);
+                }
+            }
+        }
+
+        Vector3 maskPosition = _doorMask.transform.localPosition;
+        int xOffsetMask = (int)(pivot.x + maskPosition.x * 6 - _doorMask.sprite.pivot.x);
+        int yOffsetMask = (int)(pivot.y + maskPosition.y * 6 - _doorMask.sprite.pivot.y);
+
+        Sprite doorFull = Graphics.DoorSprites[_doorSpriteType, _doorMaterial, true];
+        Sprite doorBase = Graphics.DoorSprites[_doorSpriteType, _doorMaterial, false];
+
+        int xOffsetDoor = (int)(pivot.x - doorFull.pivot.x);
+        int yOffsetDoor = (int)(pivot.y - doorFull.pivot.y);
+
+
+
+        for (int i = Mathf.Max(0, xOffsetMask); i < fullTexture.width; i++)
+        {
+            for(int j = Mathf.Max(0, yOffsetMask); j < fullTexture.height; j++)
+            {
+                if (i - xOffsetMask < _doorMask.sprite.texture.width && j - yOffsetMask < _doorMask.sprite.texture.height && _doorMask.sprite.texture.GetPixel(i - xOffsetMask, j - yOffsetMask).a > 0.5f)
+                {
+                    if (doorFull.texture.GetPixel(i - xOffsetDoor, j - yOffsetDoor).a < 0.5f)
+                    {
+                        fullTexture.SetPixel(i, j, Color.clear);
+                    }
+                    if(doorBase == null || doorBase.texture.GetPixel(i - xOffsetDoor, j - yOffsetDoor).a < 0.5f)
+                    { 
+                        if (j < baseTexture.height)
+                        {
+                            baseTexture.SetPixel(i, j, Color.clear);
+                        }
+                    }
+                }
+            }
+        }
+
+        fullTexture.Apply();
+        baseTexture.Apply();
+        Vector2 fullPivot = new Vector2(pivot.x / 17, pivot.y / fullTexture.height);
+        Vector2 basePivot = new Vector2(pivot.x / 17, pivot.y / 21);
+
+        _fullDoorMask = Sprite.Create(fullTexture, new Rect(0, 0, 17, fullTexture.height), fullPivot, 6);
+        _baseDoorMask = Sprite.Create(baseTexture, new Rect(0, 0, 17, 21), basePivot, 6);
+
+    }
+
+    class DoorMask : MonoBehaviour
+    {
+        SpriteMask _mask;
+        WallSprite _wallSprite;
+
+        public void SetMask(WallSprite wallSprite)
+        {
+            _mask = gameObject.AddComponent<SpriteMask>();
+            _wallSprite = wallSprite;
+
+            OnGraphicsUpdated();
+
+            transform.position = wallSprite.SpriteRenderer.transform.position;
+
+            Graphics.UpdatedGraphics += OnGraphicsUpdated;
+            Graphics.LevelChanged += OnGraphicsUpdated;
+        }
+
+        void OnGraphicsUpdated()
+        {
+            if (_wallSprite.IsFullWall)
+            {
+                _mask.sprite = _wallSprite._fullDoorMask;
+            }
+            else
+            {
+                _mask.sprite = _wallSprite._baseDoorMask;
+            }
+
+            _mask.enabled = _wallSprite.SpriteRenderer.enabled;
+        }
+
+        private void OnDestroy()
+        {
+            Graphics.UpdatedGraphics -= OnGraphicsUpdated;
+            Graphics.LevelChanged -= OnGraphicsUpdated;
+        }
+    }
+
+    public override SpriteMask[] GetSpriteMask(Transform parent)
+    {
+
+        if(IsDoor)
+        {
+            SpriteMask[] masks = new SpriteMask[1];
+            DoorMask mask = new GameObject("Door Mask").AddComponent<DoorMask>();
+            mask.transform.SetParent(parent);
+            mask.SetMask(this);
+            masks[0] = mask.GetComponent<SpriteMask>();
+            
+            return masks;
+        }
+
+        return base.GetSpriteMask(parent);
+    }
+
     SpriteMask _cornerMask;
     SpriteMask _doorMask;
     AccentMaterial _doorMaterial;
@@ -98,7 +246,7 @@ public class WallSprite : LinearSpriteObject
     /// <param name="height">Height of the wall.</param>
     /// <param name="wallMaterial"><see cref="WallMaterial"/> of the wall.</param>
     public WallSprite(Vector3Int position, MapAlignment alignment, int height, WallMaterial wallMaterial) :
-        base(height, Graphics.WallSprites[GetSpriteType(position, 0, alignment), wallMaterial], Graphics.WallSprites[GetSpriteType(position, 0, alignment), wallMaterial], position, alignment, "Wall", Vector3Int.zero, false)
+        base(height, Graphics.WallSprites[GetSpriteType(position, 0, alignment), wallMaterial], Graphics.WallSprites[GetSpriteType(position, 0, alignment), wallMaterial], position, alignment, "Wall", new Vector3Int(alignment == MapAlignment.XEdge ? 1: 0, alignment == MapAlignment.YEdge ? 1 : 0, height), false)
     {
         _wallMaterial = wallMaterial;
 
@@ -116,14 +264,12 @@ public class WallSprite : LinearSpriteObject
 
         for (int i = 1; i < _height; i++)
         {
-
-            _spriteRenderer[i] = Object.Instantiate(Graphics.Instance.SpriteObject, Transform).GetComponent<SpriteRenderer>();
             SpriteRenderer current = _spriteRenderer[i];
 
             current.transform.localPosition = Vector3Int.up * i * 2;
             current.name = "Wall";
             current.sortingOrder = i;
-            SpriteRenderer.sortingLayerName = "Wall";
+            current.sortingLayerName = "Wall";
             current.sprite = Graphics.WallSprites[GetSpriteType(position, i, alignment), wallMaterial];
             current.color = Graphics.Instance.HighlightColor;
         }
@@ -185,7 +331,7 @@ public class WallSprite : LinearSpriteObject
         {
             if (_doorSprite == null)
             {
-                _doorSprite = Object.Instantiate(Graphics.Instance.SpriteObject, Transform).GetComponent<SpriteRenderer>();
+                _doorSprite = Object.Instantiate(Graphics.Instance.SpritePrefab, Transform).GetComponent<SpriteRenderer>();
                 _doorSprite.name = "Door";
                 _doorSprite.maskInteraction = SpriteMaskInteraction.None;
             }
@@ -279,7 +425,6 @@ public class WallSprite : LinearSpriteObject
     {
         Graphics.UpdatingGraphics -= SetWallMode;
         Graphics.ResetingSprite -= ResetSprite;
-        Graphics.EnablingCollider -= EnableCollider;
         Graphics.LevelChanging -= SetLevel;
         if (Alignment == MapAlignment.XEdge)
         {
@@ -295,12 +440,6 @@ public class WallSprite : LinearSpriteObject
         Object.Destroy(GameObject);
 
         Map.Instance.RemoveWall(WorldPosition, Alignment);
-    }
-
-    public void EnableCollider(bool enabled)
-    {
-        if(GameManager.Instance.IsOnLevel(Z) == 0)
-            Collider.enabled = enabled;
     }
 
     /// <summary>
@@ -370,8 +509,6 @@ public class WallSprite : LinearSpriteObject
     {
         if (_wall == null)
             _wall = new Wall(this, WorldPosition, Alignment);
-
-        Graphics.EnablingCollider += EnableCollider;
 
         for (int i = 0; i < _height; i++)
         {
@@ -443,12 +580,9 @@ public class WallSprite : LinearSpriteObject
                 Collider.SetPath(0, _isFullWall ?
                     (Alignment == MapAlignment.XEdge ? _colliderXFull : _colliderYFull) :
                     (Alignment == MapAlignment.XEdge ? _colliderXBase : _colliderYBase));
+                Collider.enabled = true;
             }
         }
-
-        if (Collider != null)
-            Collider.enabled = level == 0;
-
     }
 
     static int GetSpriteType(Vector3Int _position, int height, MapAlignment alignment)
@@ -486,6 +620,8 @@ public class WallSprite : LinearSpriteObject
             DoorSprite.color = Color.white;
             _highlightDoor = false;
         }
+
+        MakeDoorMask();
     }
     void HighlightDoor(Color color)
     {
@@ -526,6 +662,7 @@ public class WallSprite : LinearSpriteObject
             Collider.SetPath(0, _isFullWall ?
                 (Alignment == MapAlignment.XEdge ? _colliderXFull : _colliderYFull) :
                 (Alignment == MapAlignment.XEdge ? _colliderXBase : _colliderYBase));
+            Collider.enabled = true;
         }
     }
 }

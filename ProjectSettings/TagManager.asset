@@ -44,15 +44,12 @@ TagManager:
   - name: Background
     uniqueID: 1343280989
     locked: 0
-  - name: Floor
-    uniqueID: 1411767069
-    locked: 0
   - name: Wall
     uniqueID: 1992545039
     locked: 0
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: WallAccent
+  - name: Pawn
     uniqueID: 2195108885
     locked: 0

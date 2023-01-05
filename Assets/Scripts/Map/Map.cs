@@ -1096,7 +1096,7 @@ public class Map : MonoBehaviour, IDataPersistence
 
         for (int i = 0; i < 5; i++)
         {
-            Pawn actor = Instantiate(Graphics.Instance.SpriteObject).AddComponent<Pawn>();
+            Pawn actor = Instantiate(Graphics.Instance.SpritePrefab).AddComponent<Pawn>();
             actor.transform.position = transform.position + Vector3.forward * 10;
             actor.name = "ActorPawn" + i;
         }

@@ -84,15 +84,19 @@ public class Graphics : MonoBehaviour
 {
     public SpriteRenderer _highlight;
 
-    public Sprite BarX;
+    public Sprite[] BarX;
 
-    public Sprite BarY;
+    public Sprite[] BarY;
 
-    public Sprite BedSprite;
+    public Sprite[] BedSprite;
 
-    public Sprite ChairNegative;
+    public Sprite ChairEast;
 
-    public Sprite ChairPositive;
+    public Sprite ChairNorth;
+
+    public Sprite ChairSouth;
+
+    public Sprite ChairWest;
 
     public Sprite[] Commentary;
 
@@ -107,6 +111,8 @@ public class Graphics : MonoBehaviour
     public SpriteMask DoorMaskY;
 
     public Sprite[] FloorSprites;
+
+    public Pawn PawnPrefab;
 
     public Texture2D PawnGradientGreyscale;
 
@@ -146,7 +152,7 @@ public class Graphics : MonoBehaviour
 
     public SpriteRenderer SpeechBubble;
 
-    public GameObject SpriteObject;
+    public GameObject SpritePrefab;
 
     public Sprite StaircaseNegative;
 
@@ -154,9 +160,9 @@ public class Graphics : MonoBehaviour
 
     public Sprite Stool;
 
-    public Sprite TableRound;
+    public Sprite[] TableRound;
 
-    public Sprite TableSquare;
+    public Sprite[] TableSquare;
 
     public Sprite[] UnsortedCornerSprites;
 
@@ -237,8 +243,6 @@ public class Graphics : MonoBehaviour
 
     public static event Action<int, int> CheckingLineConstraints;
     public static event Action ConfirmingObject;
-
-    public static event Action<bool> EnablingCollider;
 
     public static event Action LevelChanged;
 
@@ -499,11 +503,6 @@ public class Graphics : MonoBehaviour
         }
     }
 
-    public void EnableColliders(bool enable)
-    {
-        EnablingCollider?.Invoke(enable);
-    }
-
     public void HideHighlight()
     {
         _highlight.enabled = false;
@@ -640,8 +639,6 @@ public class Graphics : MonoBehaviour
     {
         UpdatingGraphics?.Invoke();
         UpdatedGraphics?.Invoke();
-        if (GameManager.Instance.GameMode == GameMode.Build)
-            EnablingCollider?.Invoke(true);
     }
     /*void ConfigureCorners()
     {
@@ -676,7 +673,7 @@ public class Graphics : MonoBehaviour
 
         _map = Map.Instance;
 
-        _highlight = Instantiate(SpriteObject).GetComponent<SpriteRenderer>();
+        _highlight = Instantiate(SpritePrefab).GetComponent<SpriteRenderer>();
 
         _highlight.color = HighlightColor;
 

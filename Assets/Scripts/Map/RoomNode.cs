@@ -28,7 +28,7 @@ public class RoomNode : INode
         {
             if(_corner == null)
             {
-                _corner = Object.Instantiate(Graphics.Instance.SpriteObject).AddComponent<Graphics.Corner>();
+                _corner = Object.Instantiate(Graphics.Instance.SpritePrefab).AddComponent<Graphics.Corner>();
                 _corner.gameObject.name = "Corner";
                 _corner.enabled = false;
             }
@@ -39,6 +39,8 @@ public class RoomNode : INode
     public Floor Floor{ get; }
 
     public Vector3Int RoomPosition { get; protected set; }
+
+    public virtual Vector3Int SurfacePosition => WorldPosition;
 
     /// <summary>
     /// Initializes a new instance of the <see cref ="RoomNode"/> class.

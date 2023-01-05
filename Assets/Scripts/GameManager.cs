@@ -456,9 +456,12 @@ public class GameManager : MonoBehaviour, IDataPersistence
         SpriteObject nearest = null;
         foreach (RaycastHit2D hit in hits)
         {
-            SpriteObject spriteObject = hit.collider.GetComponent<SpriteObject.MouseOver>().SpriteObject;
-            if ((nearest?.SpriteRenderer.sortingOrder ?? -1000) < spriteObject.SpriteRenderer.sortingOrder)
-                nearest = spriteObject;
+            if (hit.collider.TryGetComponent(out SpriteObject.SpriteCollider collider))
+            {
+                SpriteObject spriteObject = collider.SpriteObject;
+                if ((nearest?.SpriteRenderer.sortingOrder ?? -1000) < spriteObject.SpriteRenderer.sortingOrder)
+                    nearest = spriteObject;
+            }
         }
 
         return nearest;
@@ -473,9 +476,12 @@ public class GameManager : MonoBehaviour, IDataPersistence
         SpriteObject nearest = null;
         foreach (RaycastHit2D hit in hits)
         {
-            SpriteObject spriteObject = hit.collider.GetComponent<SpriteObject.MouseOver>().SpriteObject;
-            if (spriteObject is T && (nearest?.SpriteRenderer.sortingOrder ?? -1000) < spriteObject.SpriteRenderer.sortingOrder)
-                nearest = spriteObject;
+            if (hit.collider.TryGetComponent(out SpriteObject.SpriteCollider collider))
+            {
+                SpriteObject spriteObject = collider.SpriteObject;
+                if (spriteObject is T && (nearest?.SpriteRenderer.sortingOrder ?? -1000) < spriteObject.SpriteRenderer.sortingOrder)
+                    nearest = spriteObject;
+            }
         }
 
         return nearest as T;
@@ -593,10 +599,6 @@ public class GameManager : MonoBehaviour, IDataPersistence
         if (Input.GetKeyDown(KeyCode.Space))
         {
             _graphics.CycleMode();
-            if (_gameMode == GameMode.Build)
-            {
-                Graphics.Instance.EnableColliders(true);
-            }
         }
 
         if (Input.GetKeyDown(KeyCode.B))
@@ -606,7 +608,6 @@ public class GameManager : MonoBehaviour, IDataPersistence
                 _gameMode = GameMode.Build;
                 BuildFunctions.BuildMode = BuildMode.None;
                 Paused = true;
-                Graphics.Instance.EnableColliders(true);
                 GUI.Instance.SwitchMode(true);
                 _playWallMode = Graphics.Instance.Mode;
             }
@@ -616,7 +617,6 @@ public class GameManager : MonoBehaviour, IDataPersistence
                 _graphics.HideHighlight();
                 Paused = false;
                 Graphics.Instance.ResetSprite();
-                Graphics.Instance.EnableColliders(false);
                 GUI.Instance.SwitchMode(false);
                 Graphics.Instance.Mode = _playWallMode;
                 MapChanging?.Invoke();
