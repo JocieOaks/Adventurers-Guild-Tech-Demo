@@ -199,7 +199,7 @@ public class Traveling : TaskAction
             INode node = WalkingPath.Dequeue();
             if (node is RoomNode roomNode)
             {
-                pawn.CurrentStep = new Walk(node.WorldPosition, pawn, pawn.CurrentStep);
+                pawn.CurrentStep = new Walk(roomNode.SurfacePosition, pawn, pawn.CurrentStep);
             }
             else if(node is ConnectionNode connection)
             {

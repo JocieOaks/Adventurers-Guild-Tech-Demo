@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
@@ -73,59 +74,34 @@ public class WallSprite : LinearSpriteObject
             new Vector2(-2f/3, 13.5f/6 + 12 * 5f/6)
     };
 
-    Sprite _fullDoorMask;
-    Sprite _baseDoorMask;
+    bool[,] _fullDoorMask;
+    bool[,] _baseDoorMask;
     
 
     void MakeDoorMask()
     {
-        Texture2D fullTexture = new Texture2D(17, 9 + _height * 12, TextureFormat.ARGB32, false);
-        fullTexture.filterMode = FilterMode.Point;
-        fullTexture.wrapMode = TextureWrapMode.Clamp;
+        _fullDoorMask = new bool[9 + _height * 12, 17];
 
-        for (int i = 0; i < 17; i++)
-        {
-            for(int j = 0; j < 9 + _height * 12; j++)
-            {
-                fullTexture.SetPixel(i, j, Color.clear);
-            }
-        }
-        Texture2D baseTexture = new Texture2D(17,21, TextureFormat.ARGB32, false);
-        baseTexture.filterMode = FilterMode.Point;
-        baseTexture.wrapMode = TextureWrapMode.Clamp;
-        for (int i = 0; i < 17; i++)
-        {
-            for (int j = 0; j < 21; j++)
-            {
-                baseTexture.SetPixel(i, j, Color.clear);
-            }
-        }
         Vector2 pivot = SpriteRenderer.sprite.pivot;
 
         for (int i = 0; i < _height; i++)
         {
-            for (int j = 0; j < 17; j++)
+            for (int j = 0; j < 21; j++)
             {
-                for (int k = 0; k < 21; k++)
+                for (int k = 0; k < 17; k++)
                 {
-                    if (_spriteRenderer[i].sprite.texture.GetPixel(j,k).a > 0.5f)
+                    if (Alignment == MapAlignment.XEdge ? PixelsX[j, k] : PixelsY[j, k])
                     {
-                        fullTexture.SetPixel(j, k + i * 12, Color.black);
+                        _fullDoorMask[j + i * 12, k] = true;
                     }
                 }
             }
         }
 
-        for (int j = 0; j < 17; j++)
-        {
-            for (int k = 0; k < 21; k++)
-            {
-                if (SpriteRenderer.sprite.texture.GetPixel(j, k).a > 0.5f)
-                {
-                    baseTexture.SetPixel(j, k, Color.black);
-                }
-            }
-        }
+        if (Alignment == MapAlignment.XEdge)
+            _baseDoorMask = PixelsX.Clone() as bool[,];
+        else
+            _baseDoorMask = PixelsY.Clone() as bool[,];
 
         Vector3 maskPosition = _doorMask.transform.localPosition;
         int xOffsetMask = (int)(pivot.x + maskPosition.x * 6 - _doorMask.sprite.pivot.x);
@@ -139,91 +115,26 @@ public class WallSprite : LinearSpriteObject
 
 
 
-        for (int i = Mathf.Max(0, xOffsetMask); i < fullTexture.width; i++)
+        for (int i = Mathf.Max(0, yOffsetMask); i < 9 + _height * 12; i++)
         {
-            for(int j = Mathf.Max(0, yOffsetMask); j < fullTexture.height; j++)
+            for(int j = Mathf.Max(0, xOffsetMask); j < 17; j++)
             {
-                if (i - xOffsetMask < _doorMask.sprite.texture.width && j - yOffsetMask < _doorMask.sprite.texture.height && _doorMask.sprite.texture.GetPixel(i - xOffsetMask, j - yOffsetMask).a > 0.5f)
+                if (j - xOffsetMask < _doorMask.sprite.texture.width && i - yOffsetMask < _doorMask.sprite.texture.height && _doorMask.sprite.texture.GetPixel(j - xOffsetMask, i - yOffsetMask).a > 0.5f)
                 {
-                    if (doorFull.texture.GetPixel(i - xOffsetDoor, j - yOffsetDoor).a < 0.5f)
+                    if (doorFull.texture.GetPixel(j - xOffsetDoor, i - yOffsetDoor).a < 0.5f)
                     {
-                        fullTexture.SetPixel(i, j, Color.clear);
+                        _fullDoorMask[i,j] = false;
                     }
-                    if(doorBase == null || doorBase.texture.GetPixel(i - xOffsetDoor, j - yOffsetDoor).a < 0.5f)
+                    if(doorBase == null || doorBase.texture.GetPixel(j - xOffsetDoor, i - yOffsetDoor).a < 0.5f)
                     { 
-                        if (j < baseTexture.height)
+                        if (i < 21)
                         {
-                            baseTexture.SetPixel(i, j, Color.clear);
+                            _baseDoorMask[i,j] = false;
                         }
                     }
                 }
             }
         }
-
-        fullTexture.Apply();
-        baseTexture.Apply();
-        Vector2 fullPivot = new Vector2(pivot.x / 17, pivot.y / fullTexture.height);
-        Vector2 basePivot = new Vector2(pivot.x / 17, pivot.y / 21);
-
-        _fullDoorMask = Sprite.Create(fullTexture, new Rect(0, 0, 17, fullTexture.height), fullPivot, 6);
-        _baseDoorMask = Sprite.Create(baseTexture, new Rect(0, 0, 17, 21), basePivot, 6);
-
-    }
-
-    class DoorMask : MonoBehaviour
-    {
-        SpriteMask _mask;
-        WallSprite _wallSprite;
-
-        public void SetMask(WallSprite wallSprite)
-        {
-            _mask = gameObject.AddComponent<SpriteMask>();
-            _wallSprite = wallSprite;
-
-            OnGraphicsUpdated();
-
-            transform.position = wallSprite.SpriteRenderer.transform.position;
-
-            Graphics.UpdatedGraphics += OnGraphicsUpdated;
-            Graphics.LevelChanged += OnGraphicsUpdated;
-        }
-
-        void OnGraphicsUpdated()
-        {
-            if (_wallSprite.IsFullWall)
-            {
-                _mask.sprite = _wallSprite._fullDoorMask;
-            }
-            else
-            {
-                _mask.sprite = _wallSprite._baseDoorMask;
-            }
-
-            _mask.enabled = _wallSprite.SpriteRenderer.enabled;
-        }
-
-        private void OnDestroy()
-        {
-            Graphics.UpdatedGraphics -= OnGraphicsUpdated;
-            Graphics.LevelChanged -= OnGraphicsUpdated;
-        }
-    }
-
-    public override SpriteMask[] GetSpriteMask(Transform parent)
-    {
-
-        if(IsDoor)
-        {
-            SpriteMask[] masks = new SpriteMask[1];
-            DoorMask mask = new GameObject("Door Mask").AddComponent<DoorMask>();
-            mask.transform.SetParent(parent);
-            mask.SetMask(this);
-            masks[0] = mask.GetComponent<SpriteMask>();
-            
-            return masks;
-        }
-
-        return base.GetSpriteMask(parent);
     }
 
     SpriteMask _cornerMask;
@@ -345,6 +256,57 @@ public class WallSprite : LinearSpriteObject
     int Y => WorldPosition.y;
 
     int Z => WorldPosition.z;
+
+    static bool[,] _pixelsX;
+    static bool[,] _pixelsY;
+
+    static bool[,] PixelsX
+    {
+        get
+        {
+            if (_pixelsX == null)
+                BuildPixelArray(Graphics.WallSprites[0, WallMaterial.Brick], ref _pixelsX);
+            return _pixelsX;
+        }
+    }
+    static bool[,] PixelsY
+    {
+        get
+        {
+            if (_pixelsY == null)
+                BuildPixelArray(Graphics.WallSprites[6, WallMaterial.Brick], ref _pixelsY);
+            return _pixelsY;
+        }
+    }
+
+    public override Vector3 OffsetVector => 2 * Vector3.up;
+    public override IEnumerable<bool[,]> GetMaskPixels
+    {
+        get
+        {
+            if(IsDoor)
+            {
+                if (_isFullWall)
+                {
+                    yield return _fullDoorMask;
+                }
+                else
+                {
+                    yield return _baseDoorMask;
+                }
+            }
+            else if(Alignment == MapAlignment.XEdge)
+            {
+                for(int i = 0; i < (_isFullWall ? _height : 1); i++)
+                    yield return PixelsX;
+            }
+            else
+            {
+                for (int i = 0; i < (_isFullWall ? _height : 1); i++)
+                    yield return PixelsY;
+            }
+        }
+    }
 
     public static bool CheckDoor(Vector3Int position, MapAlignment alignment)
     {

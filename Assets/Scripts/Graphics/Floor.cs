@@ -143,4 +143,21 @@ public class Floor : AreaSpriteObject
             }
         }
     }
+
+    static bool[,] _pixels;
+
+    public override IEnumerable<bool[,]> GetMaskPixels
+    {
+        get
+        {
+            if(_pixels == null )
+            {
+                BuildPixelArray(Graphics.Instance.FloorSprites[0], ref _pixels);
+            }
+            if (Enabled)
+                yield return _pixels;
+            else
+                yield break;
+        }
+    }
 }

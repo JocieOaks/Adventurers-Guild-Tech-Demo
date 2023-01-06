@@ -11,7 +11,8 @@ GameObject:
   - component: {fileID: 6950945065136019684}
   - component: {fileID: 5824294579052192529}
   - component: {fileID: 5285737382828733189}
-  - component: {fileID: 6300164111105462554}
+  - component: {fileID: -5207509725947692550}
+  - component: {fileID: -4510925741537775956}
   m_Layer: 0
   m_Name: Pawn
   m_TagString: Untagged
@@ -98,9 +99,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b46f4d2e44367c749be0f55d5b1f6b71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Collider: {fileID: 6300164111105462554}
+  Collider: {fileID: 0}
   _animationSprites: []
---- !u!60 &6300164111105462554
+--- !u!210 &-5207509725947692550
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6002525718488635788}
+  m_Enabled: 1
+  m_SortingLayerID: -2099858411
+  m_SortingLayer: 1
+  m_SortingOrder: 0
+--- !u!60 &-4510925741537775956
 PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -116,18 +128,16 @@ PolygonCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
+    pivot: {x: 0.5, y: 0.078125}
+    oldSize: {x: 10.666667, y: 10.666667}
+    newSize: {x: 0.64, y: 0.64}
+    adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 0, y: -2}
-      - {x: 5.1666665, y: 1}
-      - {x: 5.1666665, y: 9.166667}
-      - {x: 0, y: 12.166667}
-      - {x: -5.1666665, y: 9.166667}
-      - {x: -5.166667, y: 1}
+    - - {x: -6, y: -3}
+      - {x: 6, y: -3}
+      - {x: 6, y: 13}
+      - {x: -6, y: 13}

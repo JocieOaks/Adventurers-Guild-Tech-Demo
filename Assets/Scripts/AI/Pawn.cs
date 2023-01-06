@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System.Linq;
 using UnityEngine.UIElements;
+using Unity.Profiling;
 
 public enum Stance
 {
@@ -34,9 +35,9 @@ public class Pawn : MonoBehaviour
         }
     }
 
-    public int CurrentLevel => CurrentNode.WorldPosition.z;
+    public int CurrentLevel => CurrentNode.SurfacePosition.z;
 
-    public Vector3Int CurrentPosition => CurrentNode.WorldPosition;
+    public Vector3Int CurrentPosition => CurrentNode.SurfacePosition;
 
     public Room CurrentRoom => CurrentNode.Room;
 
@@ -97,7 +98,7 @@ public class Pawn : MonoBehaviour
 
     IEnumerator Startup()
     {
-        yield return new WaitUntil(() => Map.Ready);
+        yield return new WaitUntil(() => GameManager.GameReady);
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _speechBubble = Instantiate(Graphics.Instance.SpeechBubble, transform);
 
@@ -106,17 +107,26 @@ public class Pawn : MonoBehaviour
         _speechBubble.gameObject.SetActive(false);
 
         _sortingGroup = Instantiate(Graphics.Instance.SortingObject);
-        _sortingGroup.sortingLayerName = "Pawn";
         _sortingGroup.transform.position = Vector3.zero;
+        _sortingGroup.sortingLayerName = "Pawn";
         transform.SetParent(_sortingGroup.transform);
+
+        _maskTexture = new Texture2D(72, 96, TextureFormat.ARGB32, false);
+        _maskTexture.filterMode = FilterMode.Point;
+        _maskTexture.wrapMode = TextureWrapMode.Clamp;
+
+        _mask = new GameObject(Actor.Name + " Mask").AddComponent<SpriteMask>();
+        _mask.transform.SetParent(_sortingGroup.transform);
+
+        _maskArray = new Color32[_maskTexture.width* _maskTexture.height];
 
         CurrentNode = Map.GetNodeFromSceneCoordinates(transform.position, 0);
 
         WorldPosition = CurrentPosition;
 
         Graphics.LevelChanging += SetLevel;
-        Graphics.UpdatedGraphics += BuildSpriteMasks;
-        Graphics.LevelChanged += BuildSpriteMasks;
+        Graphics.UpdatedGraphics += BuildSpriteMask;
+        Graphics.LevelChanged += BuildSpriteMask;
 
         Social = new Social(this);
 
@@ -261,7 +271,7 @@ public class Pawn : MonoBehaviour
             {
                 CurrentNode = Map.Instance[nearest];
                 _sortingGroup.sortingOrder =  Graphics.GetSortOrder(CurrentPosition);
-                BuildSpriteMasks();
+                BuildSpriteMask();
             }
             transform.position = Map.MapCoordinatesToSceneCoordinates(MapAlignment.Center, value);
         }
@@ -269,46 +279,86 @@ public class Pawn : MonoBehaviour
 
     List<Collider2D> _overlappingColliders = new List<Collider2D>();
     SortingGroup _sortingGroup;
-    Dictionary<SpriteObject, SpriteMask[]> _spriteMasks = new Dictionary<SpriteObject, SpriteMask[]>();
+
+    Texture2D _maskTexture;
+    SpriteMask _mask;
+    static Vector2 _maskPivot = new Vector2(36, 18);
+    Color32[] _maskArray;
+
     readonly static Vector3Int _alignmentVector = new Vector3Int(1, 1);
+    static readonly ProfilerMarker s_MaskMarker = new ProfilerMarker("Pawn.BuildSpriteMask");
 
-    void BuildSpriteMasks()
+    void BuildSpriteMask()
     {
-        int colliderCount = Collider.OverlapCollider(new ContactFilter2D().NoFilter(), _overlappingColliders);
-
-        for (int i = 0; i < colliderCount; i++)
+        using (s_MaskMarker.Auto())
         {
-            if (_overlappingColliders[i].TryGetComponent(out SpriteObject.SpriteCollider collider))
+            int colliderCount = Collider.OverlapCollider(new ContactFilter2D().NoFilter(), _overlappingColliders);
+            for (int i = 0; i < _maskArray.Length; i++)
             {
-                SpriteObject spriteObject = collider.SpriteObject;
-                Vector3Int relPosition;
+                _maskArray[i] = Color.clear;
+            }
 
-                if(spriteObject is WallSprite wall)
+            for (int i = 0; i < colliderCount; i++)
+            {
+                if (_overlappingColliders[i].TryGetComponent(out SpriteObject.SpriteCollider collider))
                 {
-                    relPosition = CurrentPosition - spriteObject.WorldPosition - (wall.Alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left);
-                }
-                else
-                    relPosition = CurrentPosition - spriteObject.WorldPosition;
+                    SpriteObject spriteObject = collider.SpriteObject;
+                    Vector3Int relPosition;
 
-                if(relPosition.z - spriteObject.Dimensions.z < 0 && Vector3.Dot(relPosition,_alignmentVector) > 0)
-                {
-                    if (!_spriteMasks.ContainsKey(spriteObject))
+                    if (spriteObject.SpriteRenderer.enabled)
                     {
-                        _spriteMasks[spriteObject] = spriteObject.GetSpriteMask(_sortingGroup.transform);
-                    }
-                }
-                else
-                {
-                    if (_spriteMasks.ContainsKey(spriteObject))
-                    {
-                        foreach(SpriteMask mask in _spriteMasks[spriteObject])
+                        if (spriteObject is WallSprite wall)
                         {
-                            Destroy(mask.gameObject);
+                            relPosition = CurrentPosition - spriteObject.WorldPosition - (wall.Alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left);
                         }
-                        _spriteMasks.Remove(spriteObject);
+                        else if(spriteObject is StairSprite stair)
+                        {
+                            relPosition = CurrentPosition - spriteObject.WorldPosition;
+                            if(stair.Direction == Direction.North)
+                            {
+                                relPosition -= Vector3Int.forward * relPosition.y;
+                            }
+                            else if(stair.Direction == Direction.East)
+                            {
+                                relPosition -= Vector3Int.forward * relPosition.x;
+                            }
+                        }
+                        else
+                            relPosition = CurrentPosition - spriteObject.WorldPosition;
+
+                        if (relPosition.z - spriteObject.Dimensions.z < 0 && Vector3.Dot(relPosition, _alignmentVector) > 0)
+                        {
+                            int transformOffset = 0;
+                            foreach (bool[,] pixelArray in spriteObject.GetMaskPixels)
+                            {
+                                Vector2 pivot = spriteObject.SpriteRenderer.sprite.pivot;
+                                Vector3 relScenePosition = Map.MapCoordinatesToSceneCoordinates(MapAlignment.Center, CurrentPosition) - (spriteObject.SpriteRenderer.transform.position + transformOffset * spriteObject.OffsetVector);
+
+                                int xOffset = (int)(pivot.x + relScenePosition.x * 6 - _maskPivot.x);
+                                int yOffset = (int)(pivot.y + relScenePosition.y * 6 - _maskPivot.y);
+
+                                for (int j = Mathf.Max(0, yOffset); j < Mathf.Min(pixelArray.GetLength(0), yOffset + _maskTexture.height); j++)
+                                {
+                                    for (int k = Mathf.Max(0, xOffset); k < Mathf.Min(pixelArray.GetLength(1), xOffset + _maskTexture.width); k++)
+                                    {
+                                        if (pixelArray[j, k])
+                                        {
+                                            _maskArray[(j - yOffset) * _maskTexture.width + k - xOffset] = Color.black;
+                                        }
+                                    }
+                                }
+                                transformOffset++;
+                            }
+                        }
                     }
                 }
             }
+
+            _maskTexture.SetPixels32(_maskArray);
+            _maskTexture.Apply();
+
+            _mask.sprite = Sprite.Create(_maskTexture, new Rect(0, 0, _maskTexture.width, _maskTexture.height), new Vector2(_maskPivot.x / _maskTexture.width, _maskPivot.y / _maskTexture.height), 6);
+            _mask.transform.position = Map.MapCoordinatesToSceneCoordinates(MapAlignment.Center, CurrentPosition);
         }
     }
 

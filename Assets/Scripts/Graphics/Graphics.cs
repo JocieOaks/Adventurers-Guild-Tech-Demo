@@ -154,9 +154,13 @@ public class Graphics : MonoBehaviour
 
     public GameObject SpritePrefab;
 
-    public Sprite StaircaseNegative;
+    public Sprite StairsNorth;
 
-    public Sprite StaircasePositive;
+    public Sprite StairsSouth;
+
+    public Sprite StairsEast;
+
+    public Sprite StairsWest;
 
     public Sprite Stool;
 

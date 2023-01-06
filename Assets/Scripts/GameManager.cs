@@ -82,6 +82,8 @@ public class GameManager : MonoBehaviour, IDataPersistence
     public List<Actor> NPCs { get; } = new List<Actor>();
     public bool Paused { get; set; } = true;
 
+    public int ObjectsReady { get; set; }
+
     public List<QuestData> Quests
     {
         set
@@ -459,7 +461,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
             if (hit.collider.TryGetComponent(out SpriteObject.SpriteCollider collider))
             {
                 SpriteObject spriteObject = collider.SpriteObject;
-                if ((nearest?.SpriteRenderer.sortingOrder ?? -1000) < spriteObject.SpriteRenderer.sortingOrder)
+                if (spriteObject.SpriteRenderer.enabled && (nearest?.SpriteRenderer.sortingOrder ?? -1000) < spriteObject.SpriteRenderer.sortingOrder)
                     nearest = spriteObject;
             }
         }
@@ -479,7 +481,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
             if (hit.collider.TryGetComponent(out SpriteObject.SpriteCollider collider))
             {
                 SpriteObject spriteObject = collider.SpriteObject;
-                if (spriteObject is T && (nearest?.SpriteRenderer.sortingOrder ?? -1000) < spriteObject.SpriteRenderer.sortingOrder)
+                if (spriteObject is T && spriteObject.SpriteRenderer.enabled && (nearest?.SpriteRenderer.sortingOrder ?? -1000) < spriteObject.SpriteRenderer.sortingOrder)
                     nearest = spriteObject;
             }
         }
@@ -504,9 +506,11 @@ public class GameManager : MonoBehaviour, IDataPersistence
         StartCoroutine(Startup());
     }
 
+    public static bool GameReady { get; private set; } = false;
+
     IEnumerator Startup()
     {
-        yield return new WaitUntil(() => Map.Ready);
+        yield return new WaitUntil(() => Map.Ready && ObjectsReady <= 0);
 
         MapChanging?.Invoke();
 
@@ -529,6 +533,8 @@ public class GameManager : MonoBehaviour, IDataPersistence
             _lastAdventurerTick = Tick;
         }
         GUI.Instance.BuildHires(_availableHires);
+
+        GameReady = true;
     }
     void Tock()
     {

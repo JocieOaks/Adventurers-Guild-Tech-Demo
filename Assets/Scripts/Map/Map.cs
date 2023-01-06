@@ -168,76 +168,13 @@ public class Map : MonoBehaviour, IDataPersistence
         }
     }
 
-    public static Direction VectorToDir(Vector3 vector)
-    {
-        Vector2 gameVector = new Vector2(vector.x, vector.y);
-        int best = 0;
-        float best_product = Vector2.Dot(gameVector, new Vector2(1, 1).normalized);
-
-        for (int i = 1; i < 8; i++)
-        {
-            float value;
-
-            switch (i)
-            {
-                case 1:
-                    value = Vector2.Dot(gameVector, new Vector2(1, 0).normalized);
-                    break;
-                case 2:
-                    value = Vector2.Dot(gameVector, new Vector2(1, -1).normalized);
-                    break;
-                case 3:
-                    value = Vector2.Dot(gameVector, new Vector2(0, -1).normalized);
-                    break;
-                case 4:
-                    value = Vector2.Dot(gameVector, new Vector2(-1, -1).normalized);
-                    break;
-                case 5:
-                    value = Vector2.Dot(gameVector, new Vector2(-1, 0).normalized);
-                    break;
-                case 6:
-                    value = Vector2.Dot(gameVector, new Vector2(-1, 1).normalized);
-                    break;
-                default:
-                    value = Vector2.Dot(gameVector, new Vector2(0, 1).normalized);
-                    break;
-            }
-
-            if (value > best_product)
-            {
-                best_product = value;
-                best = i;
-            }
-        }
-
-        switch (best)
-        {
-            case 0:
-                return Direction.NorthEast;
-            case 1:
-                return Direction.East;
-            case 2:
-                return Direction.SouthEast;
-            case 3:
-                return Direction.South;
-            case 4:
-                return Direction.SouthWest;
-            case 5:
-                return Direction.West;
-            case 6:
-                return Direction.NorthWest;
-            case 7:
-                return Direction.North;
-        }
-        return Direction.Undirected;
-    }
-
     public static Vector3Int Floor(Vector3Int position)
     {
         Layer layer = Instance[position.z];
         position.z = layer.Origin.z;
         return position;
     }
+
     public static (Vector3Int, MapAlignment alignment) GetEdgeFromSceneCoordinates(Vector3 position, int level)
     {
         float x = (position.x - 154 + 2 * (position.y - 2 * level)) / 4f + 0.5f;
@@ -318,6 +255,69 @@ public class Map : MonoBehaviour, IDataPersistence
         return new Vector3Int(Mathf.RoundToInt(x), Mathf.RoundToInt(y), level);
     }
 
+    public static Direction VectorToDir(Vector3 vector)
+    {
+        Vector2 gameVector = new Vector2(vector.x, vector.y);
+        int best = 0;
+        float best_product = Vector2.Dot(gameVector, new Vector2(1, 1).normalized);
+
+        for (int i = 1; i < 8; i++)
+        {
+            float value;
+
+            switch (i)
+            {
+                case 1:
+                    value = Vector2.Dot(gameVector, new Vector2(1, 0).normalized);
+                    break;
+                case 2:
+                    value = Vector2.Dot(gameVector, new Vector2(1, -1).normalized);
+                    break;
+                case 3:
+                    value = Vector2.Dot(gameVector, new Vector2(0, -1).normalized);
+                    break;
+                case 4:
+                    value = Vector2.Dot(gameVector, new Vector2(-1, -1).normalized);
+                    break;
+                case 5:
+                    value = Vector2.Dot(gameVector, new Vector2(-1, 0).normalized);
+                    break;
+                case 6:
+                    value = Vector2.Dot(gameVector, new Vector2(-1, 1).normalized);
+                    break;
+                default:
+                    value = Vector2.Dot(gameVector, new Vector2(0, 1).normalized);
+                    break;
+            }
+
+            if (value > best_product)
+            {
+                best_product = value;
+                best = i;
+            }
+        }
+
+        switch (best)
+        {
+            case 0:
+                return Direction.NorthEast;
+            case 1:
+                return Direction.East;
+            case 2:
+                return Direction.SouthEast;
+            case 3:
+                return Direction.South;
+            case 4:
+                return Direction.SouthWest;
+            case 5:
+                return Direction.West;
+            case 6:
+                return Direction.NorthWest;
+            case 7:
+                return Direction.North;
+        }
+        return Direction.Undirected;
+    }
     public void AddRooms(Room room)
     {
         _rooms.Add(room);
@@ -368,6 +368,76 @@ public class Map : MonoBehaviour, IDataPersistence
                 Instance[z].InstantiateRoomNode(position.x - 1, position.y + 1);
             }
         }
+    }
+
+    public float ApproximateDistance(Vector3Int startPosition, Vector3Int endPosition)
+    {
+        RoomNode end = Instance[endPosition];
+        Room startingRoom = Instance[startPosition].Room;
+        Room endingRoom = end.Room;
+
+        Dictionary<INode, float> g_score = new Dictionary<INode, float>();
+
+        PriorityQueue<INode, float> nodeQueue = new PriorityQueue<INode, float>(false);
+
+        List<ConnectionNode> endingConnections = endingRoom.Doors;
+
+        if (startingRoom == endingRoom)
+        {
+            float score = Vector3Int.Distance(startPosition, endPosition);
+            g_score[end] = score;
+
+            nodeQueue.Push(end, score);
+        }
+
+        foreach (ConnectionNode node in startingRoom.Doors)
+        {
+            float score = Vector3Int.Distance(startPosition, node.WorldPosition);
+            g_score[node] = score;
+            nodeQueue.Push(node, score + Vector3Int.Distance(node.WorldPosition, endPosition));
+        }
+
+        while (!nodeQueue.Empty && nodeQueue.Count < 50)
+        {
+            INode currentNode = nodeQueue.Pop();
+            if (currentNode == end)
+            {
+                return g_score[end];
+            }
+
+            if (!currentNode.Traversible)
+                continue;
+            ConnectionNode current = currentNode as ConnectionNode;
+
+            float currentScore = g_score[current];
+
+            if (endingConnections.Contains(current))
+            {
+                float nextScore = currentScore + Vector3Int.Distance(current.WorldPosition, endPosition);
+                if (g_score.TryGetValue(end, out var score) && score < nextScore)
+                {
+                    continue;
+                }
+
+                g_score[end] = nextScore;
+                nodeQueue.Push(end, nextScore, true);
+            }
+
+            List<ConnectionNode> nextNodes = current.ConnectionNodes;
+
+            foreach (ConnectionNode next in nextNodes)
+            {
+                float nextScore = current.GetDistance(next) + currentScore;
+                if (g_score.TryGetValue(next, out var score) && score < nextScore)
+                {
+                    continue;
+                }
+                g_score[next] = nextScore;
+                nodeQueue.Push(next, nextScore + Vector3.Distance(endPosition, next.WorldPosition), true);
+            }
+        }
+
+        return float.PositiveInfinity;
     }
 
     public bool CanPlaceDoor(Vector3Int position, MapAlignment alignment)
@@ -606,80 +676,10 @@ public class Map : MonoBehaviour, IDataPersistence
 
         Graphics.Instance.UpdateGraphics();
         Graphics.Instance.SetLevel();
+        Graphics.Instance.Confirm();
 
         Ready = true;
     }
-
-    public float ApproximateDistance(Vector3Int startPosition, Vector3Int endPosition)
-    {
-        RoomNode end = Instance[endPosition];
-        Room startingRoom = Instance[startPosition].Room;
-        Room endingRoom = end.Room;
-
-        Dictionary<INode, float> g_score = new Dictionary<INode, float>();
-
-        PriorityQueue<INode, float> nodeQueue = new PriorityQueue<INode, float>(false);
-
-        List<ConnectionNode> endingConnections = endingRoom.Doors;
-
-        if (startingRoom == endingRoom)
-        {
-            float score = Vector3Int.Distance(startPosition, endPosition);
-            g_score[end] = score;
-
-            nodeQueue.Push(end, score);
-        }
-
-        foreach (ConnectionNode node in startingRoom.Doors)
-        {
-            float score = Vector3Int.Distance(startPosition, node.WorldPosition);
-            g_score[node] = score;
-            nodeQueue.Push( node, score + Vector3Int.Distance(node.WorldPosition, endPosition));
-        }
-
-        while (!nodeQueue.Empty && nodeQueue.Count < 50)
-        {
-            INode currentNode = nodeQueue.Pop();
-            if (currentNode == end)
-            {
-                return g_score[end];
-            }
-
-            if (!currentNode.Traversible)
-                continue;
-            ConnectionNode current = currentNode as ConnectionNode;
-
-            float currentScore = g_score[current];
-
-            if (endingConnections.Contains(current))
-            {
-                float nextScore = currentScore + Vector3Int.Distance(current.WorldPosition, endPosition);
-                if (g_score.TryGetValue(end, out var score) && score < nextScore)
-                {
-                    continue;
-                }
-
-                g_score[end] = nextScore;
-                nodeQueue.Push(end, nextScore, true);
-            }
-
-            List<ConnectionNode> nextNodes = current.ConnectionNodes;
-
-            foreach (ConnectionNode next in nextNodes)
-            {
-                float nextScore = current.GetDistance(next) + currentScore;
-                if (g_score.TryGetValue(next, out var score) && score < nextScore)
-                {
-                    continue;
-                }
-                g_score[next] = nextScore;
-                nodeQueue.Push(next, nextScore + Vector3.Distance(endPosition, next.WorldPosition), true);
-            }
-        }
-
-        return float.PositiveInfinity;
-    }
-
     /// <summary>
     /// Finds the shortest path for an <see cref="Pawn"/> to take to travel from one <see cref="RoomNode"/> to another.
     /// Assumes that the <see cref="RoomNode"/>s are in differnt <see cref="Room"/>s.

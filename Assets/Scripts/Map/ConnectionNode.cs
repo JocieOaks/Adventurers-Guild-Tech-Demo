@@ -110,7 +110,7 @@ public abstract class ConnectionNode : INode
     /// <param name="entrance"><see cref="RoomNode"/> that is where an <see cref="Pawn"/> is entering.</param>
     /// <returns>Returns the <see cref="RoomNode"/> that the <see cref="Pawn"/> exits when entering the <see cref="ConnectionNode"/> from entrance.</returns>
     /// <exception cref="System.ArgumentException">Throws this error if the given <see cref="RoomNode"/> is not one of the two <see cref="RoomNode"/>s connected by the <see cref="ConnectionNode"/>.</exception>
-    public RoomNode GetRoomNode(RoomNode entrance)
+    public virtual RoomNode GetRoomNode(RoomNode entrance)
     {
         if (entrance == _connection1)
             return _connection2;
@@ -285,5 +285,17 @@ public class Landing : ConnectionNode
     {
         _connection1.SetNode(Direction, _connection2);
         _connection2.SetNode(~Direction, _connection1);
+    }
+
+    public override RoomNode GetRoomNode(RoomNode entrance)
+    {
+        if (entrance == _connection1 || entrance.SurfacePosition == _connection1.SurfacePosition)
+            return _connection2;
+        else if (entrance == _connection2 || entrance.SurfacePosition == _connection1.SurfacePosition)
+            return _connection1;
+        else
+        {
+            throw new System.ArgumentException();
+        }
     }
 }

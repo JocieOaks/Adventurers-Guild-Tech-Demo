@@ -34,20 +34,16 @@ public class StairSprite : AreaSpriteObject
             switch (BuildFunctions.Direction)
             {
                 case Direction.North:
-                    highlight.sprite = Graphics.Instance.StaircasePositive;
-                    highlight.flipX = true;
+                    highlight.sprite = Graphics.Instance.StairsNorth;
                     break;
                 case Direction.South:
-                    highlight.sprite = Graphics.Instance.StaircaseNegative;
-                    highlight.flipX = false;
+                    highlight.sprite = Graphics.Instance.StairsSouth;
                     break;
                 case Direction.East:
-                    highlight.sprite = Graphics.Instance.StaircasePositive;
-                    highlight.flipX = false;
+                    highlight.sprite = Graphics.Instance.StairsEast;
                     break;
                 case Direction.West:
-                    highlight.sprite = Graphics.Instance.StaircaseNegative;
-                    highlight.flipX = true;
+                    highlight.sprite = Graphics.Instance.StairsWest;
                     break;
             };
             highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(MapAlignment.Center, position);
@@ -67,6 +63,70 @@ public class StairSprite : AreaSpriteObject
 
     public Direction Direction { get; }
 
+    public override Vector3 OffsetVector => Vector3.down * 2;
+
+    static bool[,] _pixelsNorth;
+    static bool[,] _pixelsSouth;
+    static bool[,] _pixelsEast;
+    static bool[,] _pixelsWest;
+    static bool[,] _pixelsCube;
+
+    public override IEnumerable<bool[,]> GetMaskPixels
+    {
+        get
+        {
+            switch(Direction)
+            {
+                case Direction.North:
+
+                    if(_pixelsNorth == null)
+                    {
+                        BuildPixelArray(Graphics.Instance.StairsNorth, ref _pixelsNorth);
+                    }
+
+                    yield return _pixelsNorth;
+                    break;
+                case Direction.South:
+
+                    if (_pixelsSouth == null)
+                    {
+                        BuildPixelArray(Graphics.Instance.StairsSouth, ref _pixelsSouth);
+                    }
+
+                    yield return _pixelsSouth;
+                    break;
+                case Direction.East:
+
+                    if (_pixelsEast == null)
+                    {
+                        BuildPixelArray(Graphics.Instance.StairsEast, ref _pixelsEast);
+                    }
+
+                    yield return _pixelsEast;
+                    break;
+                case Direction.West:
+
+                    if (_pixelsWest == null)
+                    {
+                        BuildPixelArray(Graphics.Instance.StairsWest, ref _pixelsWest);
+                    }
+
+                    yield return _pixelsWest;
+                    break;
+            }
+
+            if (_pixelsCube == null)
+            {
+                BuildPixelArray(Graphics.Instance.Cube, ref _pixelsCube);
+            }
+
+            for (int i = 1; i < _spriteRenderer.Length; i++)
+            {
+                yield return _pixelsCube;
+            }
+        }
+    }
+
     SortingGroup _sortingGroup;
 
     public StairSprite(Vector3Int position, int z, Direction direction) : base(z + 1, null, position, "Stair", ObjectDimensions, false)
@@ -75,18 +135,16 @@ public class StairSprite : AreaSpriteObject
         switch (direction)
         {
             case Direction.North:
-                Sprite = Graphics.Instance.StaircasePositive;
-                SpriteRenderer.flipX = true;
+                Sprite = Graphics.Instance.StairsNorth;
                 break;
             case Direction.South:
-                Sprite = Graphics.Instance.StaircaseNegative;
+                Sprite = Graphics.Instance.StairsSouth;
                 break;
             case Direction.East:
-                Sprite = Graphics.Instance.StaircasePositive;
+                Sprite = Graphics.Instance.StairsEast;
                 break;
             case Direction.West:
-                Sprite = Graphics.Instance.StaircaseNegative;
-                SpriteRenderer.flipX = true;
+                Sprite = Graphics.Instance.StairsWest;
                 break;
         }
 
@@ -98,7 +156,6 @@ public class StairSprite : AreaSpriteObject
 
         for (int i = 1; i < z + 1; i++)
         {
-            _spriteRenderer[i] = Object.Instantiate(Graphics.Instance.SpritePrefab, Transform).GetComponent<SpriteRenderer>();
             SpriteRenderer current = _spriteRenderer[i];
 
             current.transform.localPosition = Vector3Int.down * i * 2;
@@ -141,7 +198,7 @@ public class Stair : RoomNode
 
     StairSprite stairSprite;
 
-    public override Vector3Int SurfacePosition => WorldPosition + Vector3Int.up;
+    public override Vector3Int SurfacePosition => WorldPosition + Vector3Int.forward;
 
     public Stair(Vector3Int position, Direction direction) : base(Map.Instance[position])
     {
