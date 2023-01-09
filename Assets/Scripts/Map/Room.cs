@@ -5,19 +5,6 @@ using System.Linq;
 using Unity.Profiling;
 
 /// <summary>
-/// Base class for locations on a <see cref="Map"/>.
-/// </summary>
-public interface INode
-{
-    /// <summary>
-    /// Determines if the <see cref="INode"/> can be passed through by a navigating <see cref="Pawn"/>.
-    /// </summary>
-    public bool Traversible{ get; set;}
-
-    public Vector3Int WorldPosition { get; }
-}
-
-/// <summary>
 /// Class <c>Room</c> models a closed space within a <see cref="Map"/>.
 /// </summary>
 public class Room

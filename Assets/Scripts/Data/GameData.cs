@@ -44,7 +44,7 @@ public struct SerializableStair
     public Vector3Int Position;
     public Direction Direction;
 
-    public SerializableStair(Stair stair)
+    public SerializableStair(StairNode stair)
     {
         Position = stair.WorldPosition;
         Direction = stair.Direction;
@@ -103,7 +103,7 @@ public struct SerializableNode
             _south = NodeType.Wall;
             checkSouth = true;
         }
-        else if (node.TryGetNodeAs<Wall>(Direction.South))
+        else if (node.TryGetNodeAs<WallNode>(Direction.South))
         {
             _south = NodeType.Wall;
         }
@@ -121,7 +121,7 @@ public struct SerializableNode
             _west = NodeType.Wall;
             checkWest = true;
         }
-        else if (node.TryGetNodeAs<Wall>(Direction.West))
+        else if (node.TryGetNodeAs<WallNode>(Direction.West))
         {
             _west = NodeType.Wall;
         }
@@ -142,7 +142,7 @@ public struct SerializableNode
         switch (_south)
         {
             case NodeType.Wall:
-                Wall wall = new Wall(node.WorldPosition, MapAlignment.XEdge);
+                WallNode wall = new WallNode(node.WorldPosition, MapAlignment.XEdge);
                 node.SetNode(Direction.South, wall);
                 break;
             case NodeType.Null:
@@ -155,7 +155,7 @@ public struct SerializableNode
         switch (_west)
         {
             case NodeType.Wall:
-                Wall wall = new Wall(node.WorldPosition, MapAlignment.YEdge);
+                WallNode wall = new WallNode(node.WorldPosition, MapAlignment.YEdge);
                 node.SetNode(Direction.West,wall);
                 break;
             case NodeType.Null:

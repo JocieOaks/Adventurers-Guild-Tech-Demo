@@ -222,12 +222,12 @@ public class Map : MonoBehaviour, IDataPersistence
 
     }
 
-    public static Vector3 MapCoordinatesToSceneCoordinates(MapAlignment alignment, Vector3 position)
+    public static Vector3 MapCoordinatesToSceneCoordinates(Vector3 position, MapAlignment alignment = MapAlignment.Center)
     {
-        return MapCoordinatesToSceneCoordinates(alignment, position.x, position.y, position.z);
+        return MapCoordinatesToSceneCoordinates(position.x, position.y, position.z, alignment);
     }
 
-    public static Vector3 MapCoordinatesToSceneCoordinates(MapAlignment alignment, float mapX, float mapY, float mapZ)
+    public static Vector3 MapCoordinatesToSceneCoordinates(float mapX, float mapY, float mapZ, MapAlignment alignment = MapAlignment.Center)
     {
         float x = 150 + 2 * mapX - 2 * mapY;
         float y = 2 + mapX + mapY;
@@ -491,7 +491,7 @@ public class Map : MonoBehaviour, IDataPersistence
             for (int j = 0; j < dimensions.y; j++)
             {
                 RoomNode roomNode = Instance[position + Vector3Int.right * i + Vector3Int.up * j];
-                if (!roomNode.Empty || !roomNode.Floor.Enabled || roomNode == RoomNode.Undefined || roomNode is Stair)
+                if (!roomNode.Empty || !roomNode.Floor.Enabled || roomNode == RoomNode.Undefined || roomNode is StairNode)
                     return false;
                 if (j != 0 && i != 0)
                     if (GetWall(MapAlignment.XEdge, position + Vector3Int.right * i + Vector3Int.up * j) != null || GetWall(MapAlignment.YEdge, position + Vector3Int.right * i + Vector3Int.up * j) != null)
@@ -558,23 +558,23 @@ public class Map : MonoBehaviour, IDataPersistence
         return GetCorner(position.x, position.y, position.z);
     }
 
-    public Wall GetWall(MapAlignment alignment, Vector3Int position)
+    public WallNode GetWall(MapAlignment alignment, Vector3Int position)
     {
         return GetWall(alignment, position.x, position.y, position.z);
     }
 
-    public Wall GetWall(MapAlignment alignment, int x, int y, int z)
+    public WallNode GetWall(MapAlignment alignment, int x, int y, int z)
     {
         if (!WithinConstraints(x, y, z, alignment))
             return null;
 
         if (alignment == MapAlignment.XEdge)
         {
-            return Instance[x, y, z].GetNodeAs<Wall>(Direction.South);
+            return Instance[x, y, z].GetNodeAs<WallNode>(Direction.South);
         }
         else
         {
-            return Instance[x, y, z].GetNodeAs<Wall>(Direction.West);
+            return Instance[x, y, z].GetNodeAs<WallNode>(Direction.West);
         }
     }
 
@@ -671,7 +671,7 @@ public class Map : MonoBehaviour, IDataPersistence
 
         foreach (SerializableStair stair in gameData.Stairs)
         {
-            new Stair(stair.Position, stair.Direction);
+            new StairNode(stair.Position, stair.Direction);
         }
 
         Graphics.Instance.UpdateGraphics();
@@ -973,7 +973,7 @@ public class Map : MonoBehaviour, IDataPersistence
                         bool checkWest = false;
                         mapData[i * MapLength * MapWidth + j * MapLength + k] = new SerializableNode(Instance[j, k, 0, i], ref checkSouth, ref checkWest);
 
-                        if (Instance[j, k, 0, i] is Stair stair)
+                        if (Instance[j, k, 0, i] is StairNode stair)
                         {
                             gameData.Stairs.Add(new SerializableStair(stair));
                         }
@@ -1003,11 +1003,11 @@ public class Map : MonoBehaviour, IDataPersistence
         gameData.MapHeight = _layers[0].Height;
         gameData.Layers = layerNumber;
     }
-    public void SetWall(MapAlignment alignment, Vector3Int position, Wall wall)
+    public void SetWall(MapAlignment alignment, Vector3Int position, WallNode wall)
     {
         SetWall(alignment, position.x, position.y, position.z, wall);
     }
-    public void SetWall(MapAlignment alignment, int x, int y, int z, Wall wall)
+    public void SetWall(MapAlignment alignment, int x, int y, int z, WallNode wall)
     {
         if (alignment == MapAlignment.XEdge)
         {
@@ -1091,7 +1091,7 @@ public class Map : MonoBehaviour, IDataPersistence
 
         for (int i = 0; i < 7; i++)
         {
-            new Stair(new Vector3Int(14 + i, 23), Direction.East);
+            new StairNode(new Vector3Int(14 + i, 23), Direction.East);
         }
 
         for (int i = 0; i < 5; i++)

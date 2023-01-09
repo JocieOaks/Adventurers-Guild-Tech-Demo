@@ -21,7 +21,7 @@ public class Conversation
             Vector3Int position = Vector3Int.zero;
             foreach(Pawn pawn in _pawns)
             {
-                position += pawn.CurrentPosition;
+                position += pawn.WorldPosition;
             }
             return position / _pawns.Count;
         }
@@ -56,9 +56,9 @@ public class Conversation
     {
         foreach(Pawn pawn in _pawns)
         {
-            if(pawn.CurrentStep is Wait wait)
+            if(pawn.CurrentStep is WaitStep wait)
             {
-                Direction direction = Map.VectorToDir(Nexus - pawn.CurrentPosition);
+                Direction direction = Map.VectorToDir(Nexus - pawn.WorldPosition);
                 wait.SetDirection(direction);
             }
         }

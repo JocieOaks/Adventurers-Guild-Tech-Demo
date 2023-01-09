@@ -1,20 +1,38 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// The <see cref="NPC"/> class is a child of the <see cref="Pawn"/> class where character data is all predetermined in the inspector panel.
+/// Used for predefined characters that appear in the game.
+/// </summary>
 public class NPC : Pawn
 {
-    [SerializeField]
-    string characterName;
-    [SerializeField]
-    Class characterClass;
-    [SerializeField]
-    Race race;
-    [SerializeField]
-    int strength, dexterity, charisma, intelligence;
+    /// <value>The character's name.</value>
+    [field: SerializeField] public string CharacterName { get; private set; }
+
+    /// <value>The character's class.</value>
+    [field: SerializeField] public Class CharacterClass { get; private set; }
+
+    /// <value>The character's race.</value>
+    [field: SerializeField] public Race Race { get; private set; }
+
+    /// <value>The character's strength stat.</value>
+    [field: SerializeField] public int Strength { get; private set; }
+
+    /// <value>The character's dexterity stat.</value>
+    [field: SerializeField] public int Dexterity { get; private set; }
+
+    /// <value>The character's charisma stat.</value>
+    [field: SerializeField] public int Charisma { get; private set; }
+    
+    /// <value>The character's intelligence stat.</value>
+    [field: SerializeField] public int Intelligence { get; private set; }
+
+    /// <summary>
+    /// Called when the game object is created.
+    /// </summary>
     protected override void Start()
     {
-        Actor = new Actor(this, characterClass, race, name, strength, dexterity, charisma, intelligence);
+        Actor = new Actor(this);
         base.Start();
     }
 }

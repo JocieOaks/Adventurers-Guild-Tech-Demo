@@ -144,7 +144,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
         Adventurers.Add(adventurer);
         _availableHires.RemoveAll(x => x.adventurer == adventurer);
         GUI.Instance.BuildHires(_availableHires);
-        adventurer.InitializePawn(Map.MapCoordinatesToSceneCoordinates(MapAlignment.Center, Vector3Int.one));
+        adventurer.InitializePawn(Vector3Int.one);
     }
 
     public int IsOnLevel(int z)
@@ -291,7 +291,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
         }
     }
 
-    void BuildingDoor(KeyMode mode, WallSprite spriteObject)
+    void BuildingDoor(KeyMode mode, Wall spriteObject)
     {
         switch (mode)
         {
@@ -301,7 +301,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
                     _prevObject = spriteObject;
                     if (spriteObject != null)
                     {
-                        WallSprite.PlaceDoorHighlight(spriteObject);
+                        Wall.PlaceDoorHighlight(spriteObject);
                     }
                     else
                     {
@@ -313,11 +313,11 @@ public class GameManager : MonoBehaviour, IDataPersistence
                 if (spriteObject != null)
                 {
                     (Vector3Int position, MapAlignment alignment) = spriteObject.GetPosition;
-                    if (WallSprite.CheckDoor(position, alignment))
+                    if (Wall.CheckDoor(position, alignment))
                     {
                         _map.PlaceDoor(position, alignment);
 
-                        WallSprite.CreateDoor(position, alignment);
+                        Wall.CreateDoor(position, alignment);
                         _graphics.UpdateGraphics();
                     }
                 }
@@ -536,6 +536,10 @@ public class GameManager : MonoBehaviour, IDataPersistence
 
         GameReady = true;
     }
+
+    //Timescale: 1 FrameTick == 10 seconds.
+    //Time value is measured in frame ticks.
+    //PROBABLY NOT TRUE ANYMORE
     void Tock()
     {
         Tick++;
@@ -709,7 +713,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
                         BuildingLine(mode);
                         break;
                     case BuildMode.Door:
-                        BuildingDoor(mode, GetMouseOver<WallSprite>());
+                        BuildingDoor(mode, GetMouseOver<Wall>());
                         break;
                     case BuildMode.Area:
                         BuildingArea(mode);
