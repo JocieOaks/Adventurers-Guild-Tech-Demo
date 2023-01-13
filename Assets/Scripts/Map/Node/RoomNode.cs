@@ -8,8 +8,8 @@ using UnityEngine;
 public class RoomNode : INode
 {
     //Special RoomNode that serves as a flag.
-    static float rad2 = Mathf.Sqrt(2);
-    static float rad5 = Mathf.Sqrt(5);
+    static readonly float RAD2 = Mathf.Sqrt(2);
+    static readonly float RAD5 = Mathf.Sqrt(5);
 
     ///<value>Static property that returns a special <see cref="RoomNode"/> that serves as a flag.</value>
     public static RoomNode Invalid { get; } = new RoomNode(null, -1, -1);
@@ -21,6 +21,8 @@ public class RoomNode : INode
     Graphics.Corner _corner;
 
     public (int x, int y) Coords => (RoomPosition.x, RoomPosition.y);
+
+    public Sector Sector { get; set; }
 
     public Graphics.Corner Corner
     {
@@ -94,6 +96,7 @@ public class RoomNode : INode
         {
             _occupant = value;
             UpdateNearbyNextNodes();
+            Room.RegisterForUpdate();
         }
     }
 
@@ -115,7 +118,7 @@ public class RoomNode : INode
     /// <value>Property <c>Room</c> respresents the <see cref="Map.Room"/> containing the <see cref="RoomNode"/>.</value>
     public Room Room { get; set; }
 
-   
+    public bool Reserved { get; set; }
 
     public bool Traversible
     {
@@ -258,60 +261,60 @@ public class RoomNode : INode
 
                     if (NE)
                     {
-                        _nextNodes.Add((GetNodeAs<RoomNode>(Direction.North).GetNodeAs<RoomNode>(Direction.East), rad2));
+                        _nextNodes.Add((GetNodeAs<RoomNode>(Direction.North).GetNodeAs<RoomNode>(Direction.East), RAD2));
                     }
                     if (NW)
                     {
-                        _nextNodes.Add((GetNodeAs<RoomNode>(Direction.North).GetNodeAs<RoomNode>(Direction.West), rad2));
+                        _nextNodes.Add((GetNodeAs<RoomNode>(Direction.North).GetNodeAs<RoomNode>(Direction.West), RAD2));
                     }
                     if (SE)
                     {
-                        _nextNodes.Add((GetNodeAs<RoomNode>(Direction.South).GetNodeAs<RoomNode>(Direction.East), rad2));
+                        _nextNodes.Add((GetNodeAs<RoomNode>(Direction.South).GetNodeAs<RoomNode>(Direction.East), RAD2));
                     }
                     if (SW)
                     {
-                        _nextNodes.Add((GetNodeAs<RoomNode>(Direction.South).GetNodeAs<RoomNode>(Direction.West), rad2));
+                        _nextNodes.Add((GetNodeAs<RoomNode>(Direction.South).GetNodeAs<RoomNode>(Direction.West), RAD2));
                     }
 
                     if (north && NE)
                     {
                         if (GetNodeAs<RoomNode>(Direction.North)?.GetNodeAs<RoomNode>(Direction.East)?.GetNodeAs<RoomNode>(Direction.North)?.Traversible ?? false)
-                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.North).GetNodeAs<RoomNode>(Direction.East).GetNodeAs<RoomNode>(Direction.North), rad5));
+                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.North).GetNodeAs<RoomNode>(Direction.East).GetNodeAs<RoomNode>(Direction.North), RAD5));
                     }
                     if (north && NW)
                     {
                         if (GetNodeAs<RoomNode>(Direction.North)?.GetNodeAs<RoomNode>(Direction.West)?.GetNodeAs<RoomNode>(Direction.North)?.Traversible ?? false)
-                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.North).GetNodeAs<RoomNode>(Direction.West).GetNodeAs<RoomNode>(Direction.North), rad5));
+                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.North).GetNodeAs<RoomNode>(Direction.West).GetNodeAs<RoomNode>(Direction.North), RAD5));
                     }
                     if (south && SE)
                     {
                         if (GetNodeAs<RoomNode>(Direction.South)?.GetNodeAs<RoomNode>(Direction.East)?.GetNodeAs<RoomNode>(Direction.South)?.Traversible ?? false)
-                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.South).GetNodeAs<RoomNode>(Direction.East).GetNodeAs<RoomNode>(Direction.South), rad5));
+                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.South).GetNodeAs<RoomNode>(Direction.East).GetNodeAs<RoomNode>(Direction.South), RAD5));
                     }
                     if (south && SW)
                     {
                         if (GetNodeAs<RoomNode>(Direction.South)?.GetNodeAs<RoomNode>(Direction.West)?.GetNodeAs<RoomNode>(Direction.South)?.Traversible ?? false)
-                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.South).GetNodeAs<RoomNode>(Direction.West).GetNodeAs<RoomNode>(Direction.South), rad5));
+                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.South).GetNodeAs<RoomNode>(Direction.West).GetNodeAs<RoomNode>(Direction.South), RAD5));
                     }
                     if (east && NE)
                     {
                         if (GetNodeAs<RoomNode>(Direction.East)?.GetNodeAs<RoomNode>(Direction.North)?.GetNodeAs<RoomNode>(Direction.East)?.Traversible ?? false)
-                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.East).GetNodeAs<RoomNode>(Direction.North).GetNodeAs<RoomNode>(Direction.East), rad5));
+                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.East).GetNodeAs<RoomNode>(Direction.North).GetNodeAs<RoomNode>(Direction.East), RAD5));
                     }
                     if (east && SE)
                     {
                         if (GetNodeAs<RoomNode>(Direction.East)?.GetNodeAs<RoomNode>(Direction.South)?.GetNodeAs<RoomNode>(Direction.East)?.Traversible ?? false)
-                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.East).GetNodeAs<RoomNode>(Direction.South).GetNodeAs<RoomNode>(Direction.East), rad5));
+                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.East).GetNodeAs<RoomNode>(Direction.South).GetNodeAs<RoomNode>(Direction.East), RAD5));
                     }
                     if (west && NW)
                     {
                         if (GetNodeAs<RoomNode>(Direction.West)?.GetNodeAs<RoomNode>(Direction.North)?.GetNodeAs<RoomNode>(Direction.West)?.Traversible ?? false)
-                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.West).GetNodeAs<RoomNode>(Direction.North).GetNodeAs<RoomNode>(Direction.West), rad5));
+                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.West).GetNodeAs<RoomNode>(Direction.North).GetNodeAs<RoomNode>(Direction.West), RAD5));
                     }
                     if (west && SW)
                     {
                         if (GetNodeAs<RoomNode>(Direction.West)?.GetNodeAs<RoomNode>(Direction.South)?.GetNodeAs<RoomNode>(Direction.West)?.Traversible ?? false)
-                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.West).GetNodeAs<RoomNode>(Direction.South).GetNodeAs<RoomNode>(Direction.West), rad5));
+                            _nextNodes.Add((GetNodeAs<RoomNode>(Direction.West).GetNodeAs<RoomNode>(Direction.South).GetNodeAs<RoomNode>(Direction.West), RAD5));
                     }
                 }
             }
@@ -390,16 +393,19 @@ public class RoomNode : INode
                 return (T)node;
             else
             {
-                if(node is StairNode nodeStair && nodeStair.Direction == ~direction)
+                if (node is StairNode stairNode && stairNode.Direction != direction)
                 {
-                    if (nodeStair.WorldPosition.z == WorldPosition.z - 1)
+                    if (stairNode.Direction == ~direction && stairNode.WorldPosition.z == WorldPosition.z - 1)
+                    {
                         return (T)node;
-                    else
-                        return default(T);
+                    }
                 }
-                RoomNode roomNode = (RoomNode)node;
-                if (roomNode != Undefined && roomNode.WorldPosition.z == WorldPosition.z)
-                    return (T)node;
+                else
+                {
+                    RoomNode roomNode = (RoomNode)node;
+                    if (roomNode != Undefined && roomNode.WorldPosition.z == WorldPosition.z)
+                        return (T)node;
+                }
             }
         }
         else if(node is Door && typeof(T) == typeof(WallNode))
@@ -437,6 +443,8 @@ public class RoomNode : INode
         }
     }
 
+    public INode Node => this;
+
     /// <summary>
     /// Notifies all nearby nodes that they will need to update their NearbyNodes lists (including itself)
     /// </summary>
@@ -459,5 +467,10 @@ public class RoomNode : INode
                 Map.Instance[WorldPosition + new Vector3Int(i, j)]?._adjacentNodes.Clear();
             }
         }
+    }
+
+    public bool HasNavigatedTo(RoomNode node)
+    {
+        return node == this;
     }
 }

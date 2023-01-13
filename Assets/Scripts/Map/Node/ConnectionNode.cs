@@ -30,13 +30,20 @@ public abstract class ConnectionNode : INode
         _adjoiningConnectionsDictionary = new Dictionary<ConnectionNode, (float, IEnumerable<RoomNode>)>();
         WorldPosition = worldPosition;
 
-        GameManager.MapChanging += RegisterRooms;
+        GameManager.MapChangingSecond += RegisterRooms;
     }
 
     /// <value>Property <c>ConnectionNodes</c> represents the <see cref="List{ConnectionNode}"/> of <see cref="ConnectionNode"/>s that share an adjacent room with the <see cref="ConnectionNode"/>.</value>
     public List<ConnectionNode> ConnectionNodes => new List<ConnectionNode>(_adjoiningConnectionsDictionary.Keys);
 
-    public (RoomNode, RoomNode) Nodes => (_connection1, _connection2);
+    public IEnumerable<RoomNode> Nodes
+    {
+        get
+        {
+            yield return _connection1;
+            yield return _connection2;
+        }
+    }
 
     public (Room, Room) Rooms => (_connection1.Room, _connection2.Room);
 
@@ -44,6 +51,11 @@ public abstract class ConnectionNode : INode
 
     /// <value>Property <c>WorldPosition</c> represents the coordinates of the <see cref="ConnectionNode"/> within a <see cref="Map"/>.</value>
     public Vector3Int WorldPosition { get; protected set; }
+
+    public Room Room => null;
+
+    public INode Node => this;
+
     public void AddAdjoiningConnection(ConnectionNode connection, float distance, IEnumerable<RoomNode> path)
     {
         if (_adjoiningConnectionsDictionary.TryGetValue(connection, out (float distance, IEnumerable<RoomNode> path) info))
@@ -146,7 +158,7 @@ public abstract class ConnectionNode : INode
         if (_connection2.Room != _connection1.Room)
             _connection2.Room.AddConnection(this);
 
-        GameManager.MapChanging -= RegisterRooms;
+        GameManager.MapChangingSecond -= RegisterRooms;
     }
 
     public void RemoveAdjoiningConnection(ConnectionNode node)
@@ -200,5 +212,10 @@ public abstract class ConnectionNode : INode
             return _connection1.Room;
 
         throw new System.ArgumentException();
+    }
+
+    public bool HasNavigatedTo(RoomNode node)
+    {
+        return node == _connection1 || node == _connection2;
     }
 }

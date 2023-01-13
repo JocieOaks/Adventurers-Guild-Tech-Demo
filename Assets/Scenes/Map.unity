@@ -471,6 +471,7 @@ MonoBehaviour:
   FloorSprites:
   - {fileID: 21300000, guid: 10df58eb1326a4f4a92fdcbcafcffb9b, type: 3}
   - {fileID: 21300000, guid: 45d9d81e3e884884a9a05deccaa96e68, type: 3}
+  Marker: {fileID: 21300000, guid: c4e2123aca855c547899d4e1cbd4312b, type: 3}
   PawnPrefab: {fileID: 5285737382828733189, guid: fbd87704f06da184aa285e39a530ff21, type: 3}
   PawnGradientGreyscale: {fileID: 2800000, guid: 03dcff08e7dae364e84e8bda10eca590, type: 3}
   PawnGradientHair: {fileID: 2800000, guid: 5bb8b62fb550662469fc326cff56afb9, type: 3}

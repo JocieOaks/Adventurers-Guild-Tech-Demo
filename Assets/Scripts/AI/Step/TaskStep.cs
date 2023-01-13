@@ -2,19 +2,22 @@ public abstract class TaskStep
 {
 
     protected Pawn _pawn;
+    bool _finished = false;
 
-    public bool IsComplete
+    public bool IsComplete()
     {
-        get
+        if(_isComplete)
         {
-            if(_isComplete)
+            if (!_finished)
             {
                 Finish();
-                return true;
+                _finished= true;
             }
-            return false;
+            return true;
         }
+        return false;
     }
+
     protected abstract bool _isComplete { get; }
 
     protected static int[] _idleFrames = new int[] { 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0 };

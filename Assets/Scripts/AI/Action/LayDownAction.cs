@@ -26,7 +26,7 @@ public class LayDownAction : TaskAction
 
     public override void Initialize()
     {
-        _actor.Pawn.CurrentStep = new LayStep(_actor.Pawn, _bed);
+        _pawn.CurrentStep = new LayStep(_pawn, _bed);
     }
 
     public override void Perform()

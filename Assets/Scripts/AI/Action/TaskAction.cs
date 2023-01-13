@@ -1,9 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Unity.Collections;
-using Unity.Jobs;
-
 public abstract class TaskAction
 {
     public abstract bool CanSpeak { get; }
@@ -11,9 +5,12 @@ public abstract class TaskAction
     public abstract bool CanListen { get; }
 
     protected Actor _actor;
+
+    protected Pawn _pawn;
     protected TaskAction(Actor actor)
     {
         _actor = actor;
+        _pawn = actor.Pawn;
     }
 
     public abstract void Initialize();

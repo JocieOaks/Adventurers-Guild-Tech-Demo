@@ -14,7 +14,7 @@ public enum Stance
 /// <summary>
 /// The <see cref="Pawn"/> class is the counterpart to the <see cref="Actor"/> class that controls the active functional aspect of an NPC, including the in game sprite representation and overseeing the AI behaviors.
 /// </summary>
-public class Pawn : MonoBehaviour
+public class Pawn : MonoBehaviour, IWorldPosition
 {
     static readonly Vector3Int s_alignmentVector = new Vector3Int(1, 1);
     static readonly Vector2 s_maskPivot = new Vector2(36, 18);
@@ -127,6 +127,7 @@ public class Pawn : MonoBehaviour
 
     ///<value> The nearest <see cref="Vector3Int"/> position of the <see cref="Pawn"/> in the <see cref="Map"/>'s coordinate system, and the position of the nearest <see cref="RoomNode"/>.</value>
     public Vector3Int WorldPosition => CurrentNode.SurfacePosition;
+
     ///<value> Gives the Vector3 representation of the <see cref="Pawn"/>'s actual position in the <see cref="Map"/>'s coordinate system.</value>
     public Vector3 WorldPositionNonDiscrete
     {
@@ -145,6 +146,12 @@ public class Pawn : MonoBehaviour
         }
     }
 
+    /// <inheritdoc/>
+    public Room Room => Node.Room;
+
+    /// <inheritdoc/>
+    public INode Node => CurrentNode;
+
     /// <summary>
     /// Sets the <see cref="Pawn"/> to begin going on a <see cref="Quest"/>
     /// </summary>
@@ -153,6 +160,12 @@ public class Pawn : MonoBehaviour
         Social.EndConversation();
         OverrideTask(new QuestTask());
         Social.Silenced = true;
+    }
+
+    ///<inheritdoc/>
+    public bool HasNavigatedTo(RoomNode node)
+    {
+        return Vector3Int.Distance(node.WorldPosition, WorldPosition) < 5;
     }
 
     /// <summary>
@@ -166,7 +179,7 @@ public class Pawn : MonoBehaviour
         foreach (TaskAction action in _currentTask.GetActions(Actor))
             _taskActions.Enqueue(action);
 
-        CurrentStep = new WaitStep(this, null);
+        CurrentStep = new WaitStep(this, null, false);
 
         CurrentAction = _taskActions.Dequeue();
         CurrentAction.Initialize();
@@ -273,7 +286,7 @@ public class Pawn : MonoBehaviour
 
                         //_alignmentVector is a static vector that points from the camera inward. (1,1,0)
                         //If the dot product of the alignment vector and the relative position of the Pawn to the SpriteObject is positive, it means that the Pawn is further into screen than the SpriteObject
-                        if (relPosition.z - spriteObject.Dimensions.z < 0 && Vector3.Dot(relPosition, s_alignmentVector) > 0)
+                        if (relPosition.z - spriteObject.Dimensions.z < 0 && ( relPosition.z <= -5 || Vector3.Dot(relPosition, s_alignmentVector) > 0))
                         {
 
                             //Builds a flattened 2D array for the SpriteMask by checking the pixels of the SpriteObjects in front of the Pawn.
@@ -329,7 +342,7 @@ public class Pawn : MonoBehaviour
         CurrentAction = _taskActions.Dequeue();
         CurrentAction.Initialize();
 
-        CurrentStep = new WaitStep(this, null);
+        CurrentStep = new WaitStep(this, null, false);
     }
 
     /// <summary>
@@ -406,6 +419,11 @@ public class Pawn : MonoBehaviour
             if (_taskActions.Count > 0)
             {
                 CurrentAction = _taskActions.Dequeue();
+                CurrentAction.Initialize();
+            }
+            else
+            {
+                CurrentAction = new WaitAction(Actor, 2);
                 CurrentAction.Initialize();
             }
         }

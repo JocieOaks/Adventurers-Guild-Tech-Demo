@@ -22,7 +22,7 @@ public class AcquireFoodAction : TaskAction
     public override void Initialize()
     {
         _actor.HasFood = true;
-        _actor.Pawn.CurrentStep = new WaitStep(_actor.Pawn, Map.VectorToDir(_interactable.WorldPosition - _actor.Pawn.WorldPosition));
+        _actor.Pawn.CurrentStep = new WaitStep(_actor.Pawn, Map.VectorToDir(_interactable.WorldPosition - _actor.Pawn.WorldPosition), true);
     }
 
     public override void Perform() 

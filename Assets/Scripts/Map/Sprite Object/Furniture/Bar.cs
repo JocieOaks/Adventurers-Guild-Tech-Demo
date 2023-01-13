@@ -81,54 +81,69 @@ public class Bar : LinearSpriteObject, IInteractable
         AcquireFoodTask.FoodSources.Remove(this);
         base.Destroy();
     }
+    List<RoomNode> _interactionPoints;
 
-    public List<RoomNode> GetInteractionPoints()
+    public IEnumerable<RoomNode> InteractionPoints
     {
-        List<RoomNode> interactionPoints = new List<RoomNode>();
-
-        if (Alignment == MapAlignment.XEdge)
+        get
         {
-
-            int i = 0;
-            while (Map.Instance[WorldPosition + Vector3Int.right * i].Occupant is Bar)
+            if (_interactionPoints == null)
             {
-                RoomNode roomNode = Map.Instance[WorldPosition + Vector3Int.right * i + 2 * Vector3Int.down];
-                if (roomNode.Traversible)
-                    interactionPoints.Add(roomNode);
-                i++;
-            }
-            i = 1;
-            while (Map.Instance[WorldPosition + Vector3Int.left * i].Occupant is Bar)
-            {
-                RoomNode roomNode = Map.Instance[WorldPosition + Vector3Int.left * i + 2 * Vector3Int.down];
-                if (roomNode.Traversible)
-                    interactionPoints.Add(roomNode);
-                i++;
+                _interactionPoints = new List<RoomNode>();
+
+                if (Alignment == MapAlignment.XEdge)
+                {
+
+                    int i = 0;
+                    while (Map.Instance[WorldPosition + Vector3Int.right * i].Occupant is Bar)
+                    {
+                        RoomNode roomNode = Map.Instance[WorldPosition + Vector3Int.right * i + 2 * Vector3Int.down];
+                        if (roomNode.Traversible)
+                            _interactionPoints.Add(roomNode);
+                        i++;
+                    }
+                    i = 1;
+                    while (Map.Instance[WorldPosition + Vector3Int.left * i].Occupant is Bar)
+                    {
+                        RoomNode roomNode = Map.Instance[WorldPosition + Vector3Int.left * i + 2 * Vector3Int.down];
+                        if (roomNode.Traversible)
+                            _interactionPoints.Add(roomNode);
+                        i++;
+                    }
+
+                }
+                else
+                {
+                    int i = 0;
+                    while (Map.Instance[WorldPosition + Vector3Int.up * i].Occupant is Bar)
+                    {
+                        RoomNode roomNode = Map.Instance[WorldPosition + Vector3Int.up * i + 2 * Vector3Int.left];
+                        if (roomNode.Traversible)
+                            _interactionPoints.Add(roomNode);
+                        i++;
+                    }
+                    i = 1;
+                    while (Map.Instance[WorldPosition + Vector3Int.down * i].Occupant is Bar)
+                    {
+                        RoomNode roomNode = Map.Instance[WorldPosition + Vector3Int.down * i + 2 * Vector3Int.left];
+                        if (roomNode.Traversible)
+                            _interactionPoints.Add(roomNode);
+                        i++;
+                    }
+                }
             }
 
+            return _interactionPoints;
         }
-        else
-        {
-            int i = 0;
-            while (Map.Instance[WorldPosition + Vector3Int.up * i].Occupant is Bar)
-            {
-                RoomNode roomNode = Map.Instance[WorldPosition + Vector3Int.up * i + 2 * Vector3Int.left];
-                if (roomNode.Traversible)
-                    interactionPoints.Add(roomNode);
-                i++;
-            }
-            i = 1;
-            while (Map.Instance[WorldPosition + Vector3Int.down * i].Occupant is Bar)
-            {
-                RoomNode roomNode = Map.Instance[WorldPosition + Vector3Int.down * i + 2 * Vector3Int.left];
-                if (roomNode.Traversible)
-                    interactionPoints.Add(roomNode);
-                i++;
-            }
-        }
-
-        return interactionPoints;
     }
+
+    protected override void OnMapChanging()
+    {
+        _interactionPoints = null;
+    }
+
+    public void Reserve() { }
+
     protected override void Confirm()
     {
         AcquireFoodTask.FoodSources.Add(this);

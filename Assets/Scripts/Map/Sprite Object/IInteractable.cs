@@ -1,9 +1,12 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public interface IInteractable
+/// <summary>
+/// Interface for <see cref="SpriteObject"/>s that can be interacted with by <see cref="Pawn"/>s.
+/// </summary>
+public interface IInteractable : IWorldPosition
 {
-    public Vector3Int WorldPosition { get; }
+    public IEnumerable<RoomNode> InteractionPoints { get; }
 
-    public List<RoomNode> GetInteractionPoints();
+    public void Reserve();
 }

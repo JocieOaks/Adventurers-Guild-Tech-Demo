@@ -13,7 +13,7 @@
 
     public override void Initialize()
     {
-        _actor.Pawn.gameObject.SetActive(false);
+        _pawn.gameObject.SetActive(false);
     }
 
     public override void Perform()

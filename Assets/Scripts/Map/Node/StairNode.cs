@@ -38,23 +38,27 @@ public class StairNode : RoomNode
 
     public override T GetNodeAs<T>(Direction direction, bool traversible = true)
     {
-        if (typeof(T) == typeof(RoomNode) && direction == Direction && traversible)
+        if (typeof(T) == typeof(RoomNode) && traversible && direction != ~Direction)
         {
             if (GetNode(direction) is T node)
             {
-                if (node.WorldPosition.z == WorldPosition.z + 1)
+                if (direction == Direction)
+                {
+                    if (node.WorldPosition.z == WorldPosition.z + 1)
+                    {
+                        return node;
+                    }
+                }
+                else if (node is StairNode && node.WorldPosition.z == WorldPosition.z)
                 {
                     return node;
                 }
-                else
-                    return default(T);
             }
-            else
-                return default(T);
         }
         else
         {
             return base.GetNodeAs<T>(direction, traversible);
         }
+        return default(T);
     }
 }

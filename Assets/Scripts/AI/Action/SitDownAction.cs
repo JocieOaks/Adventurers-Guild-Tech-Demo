@@ -25,7 +25,7 @@ public class SitDownAction : TaskAction
 
     public override void Initialize()
     {
-        _actor.Pawn.CurrentStep = new SitStep(_actor.Pawn, _seat);
+        _pawn.CurrentStep = new SitStep(_pawn, _seat);
     }
 
     public override void Perform()

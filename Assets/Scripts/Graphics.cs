@@ -112,6 +112,8 @@ public class Graphics : MonoBehaviour
 
     public Sprite[] FloorSprites;
 
+    public Sprite Marker;
+
     public Pawn PawnPrefab;
 
     public Texture2D PawnGradientGreyscale;
@@ -580,7 +582,7 @@ public class Graphics : MonoBehaviour
 
     public void PlaceFloor(Room room, int floorType, bool overrideFloor)
     {
-        foreach (RoomNode node in room.RoomNodeIterator())
+        foreach (RoomNode node in room.Nodes)
         {
             Vector3Int position = room.GetWorldPosition(node);
             if (_map.IsSupported(position, MapAlignment.Center))

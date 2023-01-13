@@ -18,7 +18,7 @@ public class StandUpAction : TaskAction
 
     public override void Initialize()
     {
-        _actor.Pawn.Stance = Stance.Stand;
+        _pawn.Stance = Stance.Stand;
     }
 
     public override void Perform()

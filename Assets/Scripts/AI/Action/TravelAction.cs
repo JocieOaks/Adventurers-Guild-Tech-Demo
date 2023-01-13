@@ -37,7 +37,7 @@ public class TravelAction : TaskAction
             }
         }
 
-        if (!_ready || WalkingPath.Count > 0 || !_actor.Pawn.CurrentStep.IsComplete)
+        if (!_ready || WalkingPath.Count > 0 || !_pawn.CurrentStep.IsComplete())
             return 0;
         else if (_actor.Stats.Position == Destination)
         {
@@ -46,7 +46,7 @@ public class TravelAction : TaskAction
         }
         else if(Map.Instance[Destination].Occupant is IInteractable interactable)
         {
-            foreach(RoomNode node in interactable.GetInteractionPoints())
+            foreach(RoomNode node in interactable.InteractionPoints)
             {
                 if (_actor.Stats.Position == node.WorldPosition)
                 {
@@ -64,18 +64,18 @@ public class TravelAction : TaskAction
         GameManager.MapChanged += OnMapEdited;
         if(_actor.Stats.Stance != Stance.Stand)
         {
-            _actor.Pawn.Stance = Stance.Stand;
+            _pawn.Stance = Stance.Stand;
         }
-        if(_actor.Pawn.CurrentStep.IsComplete)
-            _actor.Pawn.CurrentStep = new WaitStep(_actor.Pawn, _actor.Pawn.CurrentStep);
-        _actor.Pawn.StartCoroutine(Pathfind());
+        if(_pawn.CurrentStep.IsComplete())
+            _pawn.CurrentStep = new WaitStep(_pawn, _pawn.CurrentStep, false);
+        _pawn.StartCoroutine(Pathfind());
     }
 
     void OnMapEdited()
     {
         _ready = false;
         WalkingPath.Clear();
-        _actor.Pawn.StartCoroutine(Pathfind());
+        _pawn.StartCoroutine(Pathfind());
     }
 
     IEnumerator Pathfind()
@@ -102,8 +102,8 @@ public class TravelAction : TaskAction
 
     public override void Perform()
     {
-        Pawn pawn = _actor.Pawn;
-        if(_ready && pawn.CurrentStep.IsComplete)
+        Pawn pawn = _pawn;
+        if(_ready && pawn.CurrentStep.IsComplete())
         {
             INode node = WalkingPath.Dequeue();
             if (node is RoomNode roomNode)
@@ -115,7 +115,7 @@ public class TravelAction : TaskAction
                 pawn.CurrentStep = new TraverseStep(pawn.CurrentNode, connection, pawn, pawn.CurrentStep);
             }
         }
-        else if(_actor.Pawn.CurrentStep is WalkStep && pawn.CurrentStep.IsComplete)
-                _actor.Pawn.CurrentStep = new WaitStep(_actor.Pawn, _actor.Pawn.CurrentStep);
+        else if(_pawn.CurrentStep is WalkStep && pawn.CurrentStep.IsComplete())
+                _pawn.CurrentStep = new WaitStep(_pawn, _pawn.CurrentStep, false);
     }
 }

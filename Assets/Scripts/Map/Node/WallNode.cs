@@ -26,4 +26,13 @@ public class WallNode : INode
 
     public Wall WallSprite => _wallSprite;
     public Vector3Int WorldPosition { get; private set; }
+
+    public Room Room => null;
+
+    public INode Node => this;
+
+    public bool HasNavigatedTo(RoomNode node)
+    {
+        return Map.Instance[WorldPosition] == node || Map.Instance[WorldPosition + (_alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left)] == node;
+    }
 }

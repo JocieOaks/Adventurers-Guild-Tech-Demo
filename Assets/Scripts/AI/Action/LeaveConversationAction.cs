@@ -18,8 +18,8 @@ public class LeaveConversationAction : TaskAction
 
     public override void Initialize()
     {
-        _actor.Pawn.Social.EndConversation();
-        _actor.Pawn.CurrentStep = new WaitStep(_actor.Pawn, _actor.Pawn.CurrentStep);
+        _pawn.Social.EndConversation();
+        _pawn.CurrentStep = new WaitStep(_pawn, _pawn.CurrentStep, false);
     }
 
     public override void Perform()

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
+using System.Linq;
 
 [System.Serializable]
 public class Chair : DirectionalSpriteObject, IOccupied
@@ -139,44 +140,65 @@ public class Chair : DirectionalSpriteObject, IOccupied
     {
         Occupant = null;
 
-        RoomNode roomNode = GetInteractionPoints()[0];
+        RoomNode roomNode = InteractionPoints.First();
         pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
     }
 
-    public List<RoomNode> GetInteractionPoints()
+    List<RoomNode> _interactionPoints;
+
+    public IEnumerable<RoomNode> InteractionPoints
     {
-        int minX = -2;
-        int minY = -2;
-        int maxX = 2;
-        int maxY = 2;
-
-        switch(Direction)
+        get
         {
-            case Direction.North:
-                minY = 0;
-                break;
-            case Direction.South:
-                maxY = 0;
-                break;
-            case Direction.East:
-                minX = 0;
-                break;
-            case Direction.West:
-                maxX = 0;
-                break;
-        }
-
-        List<RoomNode> interactionPoints = new List<RoomNode>();
-        for (int i = minX; i < maxX; i++)
-        {
-            for (int j = minY; j < maxY; j++)
+            if(_interactionPoints == null)
             {
-                RoomNode roomNode = Map.Instance[WorldPosition + new Vector3Int(i, j)];
-                if (roomNode.Traversible)
-                    interactionPoints.Add(roomNode);
-            }
-        }
+                int minX = -2;
+                int minY = -2;
+                int maxX = 2;
+                int maxY = 2;
 
-        return interactionPoints;
+                switch (Direction)
+                {
+                    case Direction.North:
+                        minY = 0;
+                        break;
+                    case Direction.South:
+                        maxY = 0;
+                        break;
+                    case Direction.East:
+                        minX = 0;
+                        break;
+                    case Direction.West:
+                        maxX = 0;
+                        break;
+                }
+
+                _interactionPoints = new List<RoomNode>();
+                for (int i = minX; i < maxX; i++)
+                {
+                    for (int j = minY; j < maxY; j++)
+                    {
+                        RoomNode roomNode = Map.Instance[WorldPosition + new Vector3Int(i, j)];
+                        if (roomNode.Traversible)
+                            _interactionPoints.Add(roomNode);
+                    }
+                }
+            }
+            return _interactionPoints;
+        }
+    }
+
+    protected override void OnMapChanging()
+    {
+        _interactionPoints = null;
+        Reserve();
+    }
+
+    public void Reserve()
+    {
+        foreach(RoomNode roomNode in InteractionPoints)
+        {
+            roomNode.Reserved = true;
+        }
     }
 }

@@ -59,9 +59,16 @@ public class GameManager : MonoBehaviour, IDataPersistence
 
     public static event System.Action Ticked;
 
-    public static event System.Action MapChanging;
+    public static event System.Action MapChangingFirst;
+
+    public static event System.Action MapChangingSecond;
 
     public static event System.Action MapChanged;
+
+    /// <summary>
+    /// Invoked each frame. Used for classes that don't inherit from <see cref="MonoBehaviour"/>.
+    /// </summary>
+    public static event System.Action NonMonoUpdate;
 
     enum KeyMode
     {
@@ -512,7 +519,26 @@ public class GameManager : MonoBehaviour, IDataPersistence
     {
         yield return new WaitUntil(() => Map.Ready && ObjectsReady <= 0);
 
-        MapChanging?.Invoke();
+        MapChangingFirst?.Invoke();
+        MapChangingSecond?.Invoke();
+        foreach (RoomNode node in Map.Instance.AllNodes)
+        {
+            if (node != null && node != RoomNode.Undefined)
+            {
+                if (!node.Traversible)
+                {
+                    node.Floor.SpriteRenderer.color = Color.red;
+                }
+                else if (node.Reserved)
+                {
+                    node.Floor.SpriteRenderer.color = Color.yellow;
+                }
+                else
+                {
+                    node.Floor.SpriteRenderer.color = Color.white;
+                }
+            }
+        }
 
         for (int i = 0; i < 3; i++)
         {
@@ -629,8 +655,27 @@ public class GameManager : MonoBehaviour, IDataPersistence
                 Graphics.Instance.ResetSprite();
                 GUI.Instance.SwitchMode(false);
                 Graphics.Instance.Mode = _playWallMode;
-                MapChanging?.Invoke();
+                MapChangingFirst?.Invoke();
+                MapChangingSecond?.Invoke();
                 MapChanged?.Invoke();
+                foreach(RoomNode node in Map.Instance.AllNodes)
+                {
+                    if(node != null && node != RoomNode.Undefined) 
+                    { 
+                        if(!node.Traversible)
+                        {
+                            node.Floor.SpriteRenderer.color = Color.red;
+                        }
+                        else if(node.Reserved)
+                        {
+                            node.Floor.SpriteRenderer.color = Color.yellow;
+                        }
+                        else
+                        {
+                            node.Floor.SpriteRenderer.color = Color.white;
+                        }
+                    }
+                }
             }
         }
 
@@ -724,5 +769,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
                 }
             }
         }
+
+        NonMonoUpdate?.Invoke();
     }
 }

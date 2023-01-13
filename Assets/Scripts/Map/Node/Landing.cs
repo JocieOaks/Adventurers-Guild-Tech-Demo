@@ -33,7 +33,7 @@ public class Landing : ConnectionNode
         _connection1.Room.AddConnection(this);
         _connection2.Room.AddConnection(this);
 
-        GameManager.MapChanging -= RegisterRooms;
+        GameManager.MapChangingSecond -= RegisterRooms;
     }
 
     public override void Disconnect()

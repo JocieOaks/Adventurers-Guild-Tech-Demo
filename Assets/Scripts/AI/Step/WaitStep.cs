@@ -5,20 +5,13 @@ public class WaitStep : TaskStep, IDirected
     public Direction Direction { get; private set; } = Direction.South;
     RoomNode roomNode;
     int animationIndex = 30;
-    public WaitStep(Pawn pawn, TaskStep step) : base(pawn)
-    {
-        roomNode = pawn.CurrentNode;
-        roomNode.Standing = pawn;
-        if(step is IDirected directed)
-        {
-            SetDirection(directed.Direction);
-        }
-    }
+    public WaitStep(Pawn pawn, TaskStep step, bool blocking) : this(pawn, step is IDirected directed ? directed.Direction : Direction.South, blocking) { }
 
-    public WaitStep(Pawn pawn, Direction direction) : base(pawn)
+    public WaitStep(Pawn pawn, Direction direction, bool blocking) : base(pawn)
     {
         roomNode = pawn.CurrentNode;
-        roomNode.Standing = pawn;
+        if(blocking)
+            roomNode.Standing = pawn;
         SetDirection(direction);
     }
 
@@ -54,31 +47,40 @@ public class WaitStep : TaskStep, IDirected
     {
         period += Time.deltaTime;
 
-        if (Direction == Direction.West || Direction == Direction.South)
+        try
         {
-            if (period >= frame * BREATHTIME)
+            if (Direction == Direction.West || Direction == Direction.South)
             {
-                _pawn.SetSprite(animationIndex + _idleFrames[frame]);
-                frame++;
-                if (frame == 22)
+                if (period >= frame * BREATHTIME)
                 {
-                    period -= 2.75f;
-                    frame = 0;
+                    _pawn.SetSprite(animationIndex + _idleFrames[frame]);
+                    frame++;
+                    if (frame == 22)
+                    {
+                        period -= 2.75f;
+                        frame = 0;
+                    }
+                }
+            }
+            else
+            {
+                if (period >= frame * BREATHTIME)
+                {
+                    _pawn.SetSprite(animationIndex);
+                    frame += 100;
                 }
             }
         }
-        else
+        catch (System.IndexOutOfRangeException e)
         {
-            if (period >= frame * BREATHTIME)
-            {
-                _pawn.SetSprite(animationIndex);
-                frame += 100;
-            }
+
+            throw e;
         }
     }
 
     protected override void Finish()
     {
-        roomNode.Standing = null;
+        if(roomNode.Standing == _pawn)
+            roomNode.Standing = null;
     }
 }

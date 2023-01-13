@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
 
 public enum Direction
 {
@@ -29,11 +28,29 @@ public class Map : MonoBehaviour, IDataPersistence
     static Map _instance;
     Layer[] _layers;
     List<Room> _rooms;
+    List<Sector> _sectors = new List<Sector>();
+
 
 
     /// <value>Accessor for the <see cref="Map"/> singleton instance.</value>
     public static Map Instance => _instance;
     public static bool Ready { get; private set; } = false;
+
+    public IEnumerable<RoomNode> AllNodes
+    {
+        get
+        {
+            foreach (Layer layer in _layers)
+            {
+                if (layer == null)
+                    yield break;
+
+                foreach (RoomNode node in layer.Nodes)
+                    yield return node;
+            }
+        }
+    }
+
     public int MapLength { get; } = 40;
     public int MapWidth { get; } = 40;
     public RoomNode this[int x, int y, int z]
@@ -328,7 +345,7 @@ public class Map : MonoBehaviour, IDataPersistence
         if (Instance[roomZ, 1] == null)
             Instance[roomZ, 1] = new Layer(MapWidth, MapLength, new Vector3Int(0, 0, z), roomLayer.LayerID + 1);
 
-        foreach (RoomNode node in room.RoomNodeIterator())
+        foreach (RoomNode node in room.Nodes)
         {
             Vector3Int position = node.WorldPosition;
             if (Instance[position.x, position.y, z] == null || Instance[position.x, position.y, z] == RoomNode.Undefined)
@@ -366,6 +383,21 @@ public class Map : MonoBehaviour, IDataPersistence
             if (Instance[position.x - 1, position.y + 1, z] == null || Instance[position.x - 1, position.y + 1, z] == RoomNode.Undefined)
             {
                 Instance[z].InstantiateRoomNode(position.x - 1, position.y + 1);
+            }
+        }
+    }
+
+    void BuildSectors()
+    {
+        Sector.DivideIntoSectors(Instance, ref _sectors);
+        foreach(Sector sector in _sectors)
+        {
+            foreach(INode node in sector.BottleNecks)
+            {
+                if(node is RoomNode roomNode)
+                {
+                    roomNode.Reserved = true;
+                }
             }
         }
     }
@@ -677,9 +709,11 @@ public class Map : MonoBehaviour, IDataPersistence
         Graphics.Instance.UpdateGraphics();
         Graphics.Instance.SetLevel();
         Graphics.Instance.Confirm();
+        GameManager.MapChangingSecond += BuildSectors;
 
         Ready = true;
     }
+
     /// <summary>
     /// Finds the shortest path for an <see cref="Pawn"/> to take to travel from one <see cref="RoomNode"/> to another.
     /// Assumes that the <see cref="RoomNode"/>s are in differnt <see cref="Room"/>s.
@@ -687,31 +721,16 @@ public class Map : MonoBehaviour, IDataPersistence
     /// <param name="start">The <see cref="RoomNode"/> the <see cref="Pawn"/> is starting in</param>
     /// <param name="end">The <see cref="RoomNode"/> the <see cref="Pawn"/> wishes to end in.</param>
     /// <returns>Returns a <see cref="IEnumerable"/> of <see cref="ConnectionNode"/>s designating the path for the <see cref="Pawn"/> to take, or null if no path exists.</returns>
-    public IEnumerator NavigateBetweenRooms<T>(RoomNode start, T destination)
+    public IEnumerator NavigateBetweenRooms(IWorldPosition start, IWorldPosition end)
     {
-
-        RoomNode end;
-        if(destination is RoomNode roomNode)
-        {
-            end = roomNode;
-        }
-        else if(destination is SpriteObject spriteObject)
-        {
-            end = Instance[spriteObject.WorldPosition];
-        }
-        else
-        {
-            throw new System.ArgumentException();
-        }
-
         Room startingRoom = start.Room;
         Room endingRoom = end.Room;
 
-        Dictionary<INode, float> g_score = new Dictionary<INode, float>();
-        Dictionary<INode, INode> immediatePredecessor = new Dictionary<INode, INode>();
-        Dictionary<(INode, INode), IEnumerator> paths = new Dictionary<(INode, INode), IEnumerator>();
+        Dictionary<IWorldPosition, float> g_score = new Dictionary<IWorldPosition, float>();
+        Dictionary<IWorldPosition, IWorldPosition> immediatePredecessor = new Dictionary<IWorldPosition, IWorldPosition>();
+        Dictionary<(IWorldPosition, IWorldPosition), IEnumerator> paths = new Dictionary<(IWorldPosition, IWorldPosition), IEnumerator>();
 
-        PriorityQueue<(INode, INode), float> nodeQueue = new PriorityQueue<(INode, INode), float>(false);
+        PriorityQueue<(IWorldPosition, IWorldPosition), float> nodeQueue = new PriorityQueue<(IWorldPosition, IWorldPosition), float>(false);
 
         List<ConnectionNode> endingConnections = endingRoom.Doors;
 
@@ -731,13 +750,13 @@ public class Map : MonoBehaviour, IDataPersistence
 
         while (!nodeQueue.Empty && nodeQueue.Count < 50)
         {
-            (INode prevNode, INode currentNode) = nodeQueue.Pop();
-            if (currentNode == end)
+            (IWorldPosition prevNode, IWorldPosition current) = nodeQueue.Pop();
+            if (current == end)
             {
-                if (immediatePredecessor.TryGetValue(end, out INode preceding) && preceding == prevNode)
+                if (immediatePredecessor.TryGetValue(end, out IWorldPosition preceding) && preceding == prevNode)
                 {
                     yield return g_score[end];
-                    if(destination is RoomNode)
+                    if(end is RoomNode)
                         yield return end;
                     IEnumerator path = paths[(preceding, end)];
                     while (path.MoveNext())
@@ -745,7 +764,7 @@ public class Map : MonoBehaviour, IDataPersistence
 
                     if (preceding != start)
                     {
-                        INode receding = preceding;
+                        IWorldPosition receding = preceding;
                         yield return receding;
                         preceding = immediatePredecessor[receding];
                         while (preceding != start)
@@ -766,79 +785,72 @@ public class Map : MonoBehaviour, IDataPersistence
                 }
                 else
                 {
-                    IEnumerator pathIter = endingRoom.Navigate(prevNode, destination);
-                    pathIter.MoveNext();
-                    float score = (float)pathIter.Current + g_score[prevNode];
-                    if (g_score.TryGetValue(end, out float prevScore))
-                    {
-                        if (score >= prevScore)
-                            continue;
-                        else
-                            nodeQueue.Push((prevNode, end), score, true);
-                    }
-                    else
-                    {
+
+                    if(GetPath(prevNode, end, endingRoom, out float score))
                         nodeQueue.Push((prevNode, end), score);
-                    }
-                    paths[(prevNode, end)] = pathIter;
-                    g_score[end] = score;
-                    immediatePredecessor[end] = prevNode;
 
                     continue;
                 }
             }
 
-            if (!currentNode.Traversible)
+            if (current is not ConnectionNode currentNode || !currentNode.Traversible)
                 continue;
-            ConnectionNode current = currentNode as ConnectionNode;
 
             float currentScore;
 
             if (prevNode == start)
             {
-                Room pathRoom = (prevNode as RoomNode).Room;
-                IEnumerator pathIter = pathRoom.Navigate(prevNode, current);
-                pathIter.MoveNext();
-                if (!g_score.TryGetValue(current, out currentScore) || currentScore > (float)pathIter.Current)
-                {
-                    paths[(prevNode, current)] = pathIter;
-                    currentScore = (float)pathIter.Current;
-                    g_score[current] = currentScore;
-                    immediatePredecessor[current] = prevNode;
-                }
+                GetPath(start, currentNode, startingRoom, out currentScore);
             }
             else
             {
-                currentScore = g_score[current];
+                currentScore = g_score[currentNode];
             }
 
-            if (endingConnections.Contains(current))
+            if (endingConnections.Contains(currentNode))
             {
-                nodeQueue.Push((current, end), currentScore + Vector3Int.Distance(current.WorldPosition, endPosition));
+                nodeQueue.Push((currentNode, end), currentScore + Vector3Int.Distance(currentNode.WorldPosition, endPosition));
             }
 
-            List<ConnectionNode> nextNodes = current.ConnectionNodes;
+            List<ConnectionNode> nextNodes = currentNode.ConnectionNodes;
 
             foreach (ConnectionNode next in nextNodes)
             {
-                float nextScore = current.GetDistance(next) + currentScore;
+                float nextScore = currentNode.GetDistance(next) + currentScore;
                 if (g_score.TryGetValue(next, out var score))
                 {
                     if (score < nextScore)
                         continue;
                     else
-                        nodeQueue.Push((current, next), nextScore + Vector3.Distance(endPosition, next.WorldPosition), true);
+                        nodeQueue.Push((currentNode, next), nextScore + Vector3.Distance(endPosition, next.WorldPosition), true);
                 }
                 else
-                    nodeQueue.Push((current, next), nextScore + Vector3.Distance(endPosition, next.WorldPosition));
+                    nodeQueue.Push((currentNode, next), nextScore + Vector3.Distance(endPosition, next.WorldPosition));
 
                 g_score[next] = nextScore;
-                immediatePredecessor[next] = current;
+                immediatePredecessor[next] = currentNode;
             }
 
         }
 
         yield return float.PositiveInfinity;
+
+
+        bool GetPath(IWorldPosition start, IWorldPosition end, Room room, out float score)
+        {
+            IEnumerator pathIter = room.Navigate(start, end);
+            pathIter.MoveNext();
+            if (!g_score.TryGetValue(end, out score) || score > (float)pathIter.Current + g_score[start])
+            {
+                paths[(start, end)] = pathIter;
+                score = (float)pathIter.Current + g_score[start];
+                g_score[end] = score;
+                immediatePredecessor[end] = start;
+                return true;
+            }
+
+            return false;
+        }
     }
 
     public Layer NextLayer(int z, int relZ)
@@ -1003,10 +1015,12 @@ public class Map : MonoBehaviour, IDataPersistence
         gameData.MapHeight = _layers[0].Height;
         gameData.Layers = layerNumber;
     }
+
     public void SetWall(MapAlignment alignment, Vector3Int position, WallNode wall)
     {
         SetWall(alignment, position.x, position.y, position.z, wall);
     }
+
     public void SetWall(MapAlignment alignment, int x, int y, int z, WallNode wall)
     {
         if (alignment == MapAlignment.XEdge)
@@ -1024,8 +1038,6 @@ public class Map : MonoBehaviour, IDataPersistence
         if (_instance == null)
         {
             _instance = this;
-            if (!DataPersistenceManager.LOAD)
-                StartCoroutine(Startup());
             _rooms = new List<Room>();
         }
         else
@@ -1035,73 +1047,6 @@ public class Map : MonoBehaviour, IDataPersistence
     bool IsCorner(int x, int y, int z)
     {
         return Graphics.Corner.GetSpriteIndex(new Vector3Int(x, y, z)) != -1;
-    }
-
-    IEnumerator Startup()
-    {
-        yield return new WaitUntil(() => Graphics.Ready);
-        RoomNode[,] nodes = new RoomNode[MapWidth, MapLength];
-        _layers = new Layer[10];
-        Instance[0] = new Layer(nodes, Vector3Int.zero, 0);
-
-        for (int i = 0; i < MapWidth; i++)
-            for (int j = 0; j < MapLength; j++)
-            {
-                RoomNode next = new RoomNode(Instance[0], i, j);
-                nodes[i, j] = next;
-                if (i > 0)
-                {
-                    next.SetNode(Direction.West, nodes[i - 1, j]);
-                }
-                if (j > 0)
-                {
-                    next.SetNode(Direction.South, nodes[i, j - 1]);
-                }
-            }
-
-
-
-
-
-        //int height = 6;
-        /*Graphics.Instance.PlaceWall(new Vector3Int(10, 10), 33, MapAlignment.XEdge, height, WallMaterial.Brick);
-        Graphics.Instance.Confirm();
-        Graphics.Instance.PlaceWall(new Vector3Int(10, 10), 24, MapAlignment.YEdge, height, WallMaterial.Brick);
-        Graphics.Instance.Confirm();
-        Graphics.Instance.PlaceWall(new Vector3Int(10, 25), 24, MapAlignment.XEdge, height, WallMaterial.Brick);
-        Graphics.Instance.Confirm();
-        Graphics.Instance.PlaceWall(new Vector3Int(25, 10), 24, MapAlignment.YEdge, height, WallMaterial.Brick);
-        Graphics.Instance.Confirm();
-        Graphics.Instance.PlaceWall(new Vector3Int(34, 10), 18, MapAlignment.YEdge, height, WallMaterial.Brick);
-        Graphics.Instance.Confirm();
-        Graphics.Instance.PlaceWall(new Vector3Int(25, 19), 33, MapAlignment.XEdge, height, WallMaterial.Brick);
-        Graphics.Instance.Confirm();*/
-        PlaceDoor(new Vector3Int(16, 10), MapAlignment.XEdge);
-        PlaceDoor(new Vector3Int(25, 13), MapAlignment.YEdge);
-
-        Graphics.Instance.PlaceDoor(new Vector3Int(16, 10), MapAlignment.XEdge, AccentMaterial.Stone);
-        Graphics.Instance.PlaceDoor(new Vector3Int(25, 13), MapAlignment.YEdge, AccentMaterial.Stone);
-
-        Graphics.Instance.UpdateGraphics();
-
-        Graphics.Instance.PlaceFloor(_rooms[0], 0, false);
-        Graphics.Instance.PlaceFloor(_rooms[1], 0, false);
-        Graphics.Instance.PlaceFloor(_layers[1], 0, false);
-        Graphics.Instance.PlaceFloor(_layers[0], 1, false);
-
-        for (int i = 0; i < 7; i++)
-        {
-            new StairNode(new Vector3Int(14 + i, 23), Direction.East);
-        }
-
-        for (int i = 0; i < 5; i++)
-        {
-            Pawn actor = Instantiate(Graphics.Instance.SpritePrefab).AddComponent<Pawn>();
-            actor.transform.position = transform.position + Vector3.forward * 10;
-            actor.name = "ActorPawn" + i;
-        }
-
-        Ready = true;
     }
 
     bool WithinConstraints(int x, int y, int z, MapAlignment alignment)

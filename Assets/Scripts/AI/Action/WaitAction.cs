@@ -21,13 +21,32 @@ public class WaitAction : TaskAction
 
     public override void Initialize()
     {
-        TaskStep step = _actor.Pawn.CurrentStep;
-        if(step is not WaitStep && step is not SitStep && step is not LayStep)
-            _actor.Pawn.CurrentStep = new WaitStep(_actor.Pawn, _actor.Pawn.CurrentStep);
+        TaskStep step = _pawn.CurrentStep;
+        if(_pawn.CurrentNode.Reserved)
+        {
+            foreach ((RoomNode node, float) node in _pawn.CurrentNode.NextNodes)
+            {
+                if (!node.node.Reserved)
+                {
+                    _pawn.CurrentStep = new WalkStep(node.node.WorldPosition, _pawn, step);
+                    return;
+                }
+            }
+            Debug.Log("No Unreserved Location");
+        }
+        else if(step is not WaitStep && step is not SitStep && step is not LayStep)
+            _pawn.CurrentStep = new WaitStep(_pawn, _pawn.CurrentStep, true);
     }
 
     public override void Perform()
     {
+        if(_pawn.CurrentStep is WalkStep)
+        {
+            if(_pawn.CurrentStep.IsComplete())
+            {
+                _pawn.CurrentStep = new WaitStep(_pawn, _pawn.CurrentStep, true);
+            }
+        }
         _period += Time.deltaTime;
     }
 }

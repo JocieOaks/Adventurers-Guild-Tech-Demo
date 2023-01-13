@@ -31,7 +31,7 @@ public abstract class Task
     protected static bool InteractablesCondition(WorldState worldState, List<IInteractable> interactables)
     {
 
-        return interactables.Any(x => x.GetInteractionPoints().Any(y => y.Traversible)) && (worldState.Conversation == null || interactables.Any(x => worldState.Conversation.InRadius(x.WorldPosition)));
+        return interactables.Any(x => x.InteractionPoints.Any(y => y.Traversible)) && (worldState.Conversation == null || interactables.Any(x => worldState.Conversation.InRadius(x.WorldPosition)));
     }
 
     /// <summary>

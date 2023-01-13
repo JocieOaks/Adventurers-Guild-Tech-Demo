@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
+using System.Linq;
 
 [System.Serializable]
 public class Bed : SpriteObject, IOccupied
@@ -90,23 +91,44 @@ public class Bed : SpriteObject, IOccupied
     {
         pawn.transform.Rotate(0, 0, 55);
         Occupant = null;
-        RoomNode roomNode = GetInteractionPoints()[0];
+        RoomNode roomNode = InteractionPoints.First();
         pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
     }
 
-    public List<RoomNode> GetInteractionPoints()
-    {
-        List<RoomNode> interactionPoints = new List<RoomNode>();
-        for(int i = -2; i < 6; i++)
-        {
-            for(int j = -2; j < 4; j++)
-            {
-                RoomNode roomNode = Map.Instance[WorldPosition + new Vector3Int(i, j)];
-                if(roomNode.Traversible)
-                    interactionPoints.Add(roomNode);
-            }
-        }
+    List<RoomNode> _interactionPoints;
 
-        return interactionPoints;
+    protected override void OnMapChanging()
+    {
+        _interactionPoints = null;
+        Reserve();
+    }
+
+    public void Reserve()
+    {
+        foreach (RoomNode roomNode in InteractionPoints)
+        {
+            roomNode.Reserved = true;
+        }
+    }
+
+    public IEnumerable<RoomNode> InteractionPoints
+    {
+        get
+        {
+            if (_interactionPoints == null)
+            {
+                _interactionPoints = new List<RoomNode>();
+                for (int i = -2; i < 6; i++)
+                {
+                    for (int j = -2; j < 4; j++)
+                    {
+                        RoomNode roomNode = Map.Instance[WorldPosition + new Vector3Int(i, j)];
+                        if (roomNode.Traversible)
+                            _interactionPoints.Add(roomNode);
+                    }
+                }
+            }
+            return _interactionPoints;
+        }
     }
 }

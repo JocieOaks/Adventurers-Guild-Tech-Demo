@@ -28,7 +28,7 @@ public enum Race
     Firbolg
 }
 /// <summary>
-/// The <see cref="Actor"/> is the counterpart to the <see cref="Pawn"/> class that controls the characteristic data of an NPC, 
+/// The <see cref="Actor"/> class is the counterpart to the <see cref="Pawn"/> class that controls the characteristic data of an NPC, 
 /// //including it's current status, and character information.
 /// An <see cref="Actor"/> object can exist independently of a Pawn, and is usually constructed before it's corresponding Pawn is constructed.
 /// </summary>

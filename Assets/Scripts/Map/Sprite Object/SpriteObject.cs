@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 [JsonSubTypes.JsonSubtypes.KnownSubType(typeof(TableRound), "TableRound")]
 [JsonSubTypes.JsonSubtypes.KnownSubType(typeof(TableSquare), "TableSquare")]
 [JsonSubTypes.JsonSubtypes.KnownSubType(typeof(Bar), "Bar")]
-public abstract class SpriteObject : IDataPersistence
+public abstract class SpriteObject : IDataPersistence, IWorldPosition
 {
     [JsonIgnore]
     protected SpriteRenderer[] _spriteRenderer;
@@ -41,12 +41,10 @@ public abstract class SpriteObject : IDataPersistence
         SpriteCollider mouseOver = GameObject.AddComponent<SpriteCollider>();
         mouseOver.Set(this);
 
-        if (blocking)
-        {
-            Map.Instance.StartCoroutine(Block(position, dimensions));
-        }
+        Map.Instance.StartCoroutine(WaitForMap(position, dimensions, blocking));
 
         Graphics.LevelChanged += SetLevel;
+        GameManager.MapChangingSecond += OnMapChanging;
 
         if (this is not Wall && this is not Stair && this is not Floor)
             DataPersistenceManager.instance.NonMonoDataPersistenceObjects.Add(this);
@@ -96,10 +94,17 @@ public abstract class SpriteObject : IDataPersistence
     [JsonIgnore]
     protected Transform Transform => _spriteRenderer[0].transform;
 
+    [JsonIgnore]
+    public Room Room => Node.Room;
+
+    [JsonIgnore]
+    public INode Node { get; private set; }
+
     public virtual void Destroy()
     {
         Graphics.LevelChanged -= SetLevel;
         Graphics.ResetingSprite -= ResetSprite;
+        GameManager.MapChangingSecond -= OnMapChanging;
 
         if (_blocking)
         {
@@ -132,6 +137,11 @@ public abstract class SpriteObject : IDataPersistence
     public void SaveData(GameData gameData)
     {
         gameData.SpriteObjects.Add(this);
+    }
+
+    protected virtual void OnMapChanging()
+    {
+
     }
 
     protected static void BuildPixelArray(Sprite[] spriteArray, ref bool[,] pixelArray)
@@ -187,21 +197,39 @@ public abstract class SpriteObject : IDataPersistence
                 _spriteRenderer[i].enabled = true;
     }
 
-    IEnumerator Block(Vector3Int position, Vector3Int dimensions)
+    IEnumerator WaitForMap(Vector3Int position, Vector3Int dimensions, bool blocking)
     {
         GameManager.Instance.ObjectsReady++;
         yield return new WaitUntil(() => Map.Ready);
 
-        for (int i = 0; i < dimensions.x; i++)
+        Node = Map.Instance[position];
+        if (blocking)
         {
-            for (int j = 0; j < dimensions.y; j++)
+            for (int i = 0; i < dimensions.x; i++)
             {
-                Map.Instance[position + i * Vector3Int.right + j * Vector3Int.up].Occupant = this;
+                for (int j = 0; j < dimensions.y; j++)
+                {
+                    Map.Instance[position + i * Vector3Int.right + j * Vector3Int.up].Occupant = this;
+                }
             }
         }
 
         GameManager.Instance.ObjectsReady--;
     }
+
+    public bool HasNavigatedTo(RoomNode node)
+    {
+        if(this is IInteractable interactable)
+        {
+            foreach(RoomNode roomNode in interactable.InteractionPoints)
+            {
+                if (node == roomNode)
+                    return true;
+            }
+        }
+        return false;
+    }
+
     public class SpriteCollider : MonoBehaviour
     {
         public SpriteObject SpriteObject { get; private set; }
