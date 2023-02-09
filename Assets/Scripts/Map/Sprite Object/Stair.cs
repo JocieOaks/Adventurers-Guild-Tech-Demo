@@ -2,83 +2,77 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class Stair : AreaSpriteObject
+/// <summary>
+/// The <see cref="Stair"/> class is the <see cref="SpriteObject"/> that corresponds with <see cref="StairNode"/>.
+/// </summary>
+public class Stair : AreaSpriteObject, IDirected
 {
-    public static void CreateStair(Vector3Int position)
-    {
-        Direction direction = BuildFunctions.Direction;
-        if(Map.Instance[position].TryGetNodeAs(~direction, out StairNode stairNode, false))
-            position.z = stairNode.WorldPosition.z + 1;
-
-        if (!CheckObject(position))
-            return;
-
-        Layer layer = Map.Instance[position.z];
-
-        int z = position.z - layer.Origin.z;
-
-        new Stair(position, z, direction);
-    }
-
-    public static void PlaceHighlight(SpriteRenderer highlight, Vector3Int position)
-    {
-        Direction direction = BuildFunctions.Direction;
-        if (Map.Instance[position].TryGetNodeAs(~direction, out StairNode stairNode, false))
-            position.z = stairNode.WorldPosition.z + 1;
-
-        if (CheckObject(position))
-        {
-            highlight.enabled = true;
-
-            switch (BuildFunctions.Direction)
-            {
-                case Direction.North:
-                    highlight.sprite = Graphics.Instance.StairsNorth;
-                    break;
-                case Direction.South:
-                    highlight.sprite = Graphics.Instance.StairsSouth;
-                    break;
-                case Direction.East:
-                    highlight.sprite = Graphics.Instance.StairsEast;
-                    break;
-                case Direction.West:
-                    highlight.sprite = Graphics.Instance.StairsWest;
-                    break;
-            };
-            highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
-            highlight.sortingOrder = Graphics.GetSortOrder(position);
-        }
-        else
-            highlight.enabled = false;
-        
-    }
-
-    public static bool CheckObject(Vector3Int position)
-    {
-        return Map.Instance.CanPlaceObject(position, ObjectDimensions) && GameManager.Instance.IsOnLevel(position.z) <= 0;
-    }
-
-    public static new Vector3Int ObjectDimensions = Vector3Int.one;
-
-    public Direction Direction { get; }
-
-    public override Vector3 OffsetVector => Vector3.down * 2;
-
+    // Initialized the first time GetMaskPixels is called for each given direction, _pixelsCube, _pixelsEast, _pixelsNorth, _pixelsSouth, and _pixelsWest are the sprite mask for all Stairs.
+    static bool[,] _pixelsCube;
+    static bool[,] _pixelsEast;
     static bool[,] _pixelsNorth;
     static bool[,] _pixelsSouth;
-    static bool[,] _pixelsEast;
     static bool[,] _pixelsWest;
-    static bool[,] _pixelsCube;
+    static Sprite[] sprites = new Sprite[] { Graphics.Instance.StairsNorth, Graphics.Instance.StairsEast, Graphics.Instance.StairsSouth, Graphics.Instance.StairsWest };
+    SortingGroup _sortingGroup;
+    StairNode _stair;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Stair"/> class.
+    /// </summary>
+    /// <param name="direction">The <see cref="Direction"/> the <see cref="Stair"/> is facing.</param>
+    /// <param name="worldPosition">The position in <see cref="Map"/> coordinates of the <see cref="Stair"/>.</param>
+    /// <param name="z">The elevation relative to the <see cref="Room"/> the <see cref="Stair"/> is in.</param>
+    public Stair(Direction direction, Vector3Int worldPosition, int z) : base(z + 1, sprites, direction, worldPosition, "Stair", ObjectDimensions, false)
+    {
+        Direction = direction;
+
+        SpriteRenderer.sortingOrder = 0;
+        SpriteRenderer.enabled = GameManager.Instance.IsOnLevel(WorldPosition.z) <= 0;
+
+        _sortingGroup = GameObject.AddComponent<SortingGroup>();
+        _sortingGroup.sortingOrder = Graphics.GetSortOrder(worldPosition + z * Vector3Int.back);
+
+        for (int i = 1; i < z + 1; i++)
+        {
+            SpriteRenderer current = _spriteRenderers[i];
+
+            current.transform.localPosition = Vector3Int.down * i * 2;
+            current.name = "Stair";
+            current.sortingOrder = -i;
+            current.sprite = Graphics.Instance.Cube;
+        }
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Stair"/> class for a <see cref="StairNode"/> that has already been initialized.
+    /// </summary>
+    /// <param name="direction">The <see cref="Direction"/> the <see cref="Stair"/> is facing.</param>
+    /// <param name="worldPosition">The position in <see cref="Map"/> coordinates of the <see cref="Stair"/>.</param>
+    /// <param name="z">The elevation relative to the <see cref="Room"/> the <see cref="Stair"/> is in.</param>
+    /// <param name="stair">The <see cref="StairNode"/> this <see cref="Stair"/> corresponds to.</param>
+    public Stair(Direction direction, Vector3Int worldPosition, int z, StairNode stair) : this(direction, worldPosition, z)
+    {
+        _stair = stair;
+        OnConfirmingObjects();
+    }
+
+    /// <value>The 3D dimensions of a <see cref="Stair"/> in terms of <see cref="Map"/> coordinates.</value>
+    public static new Vector3Int ObjectDimensions => Vector3Int.one;
+
+    /// <inheritdoc/>
+    public Direction Direction { get; }
+
+    /// <inheritdoc/>
     public override IEnumerable<bool[,]> GetMaskPixels
     {
         get
         {
-            switch(Direction)
+            switch (Direction)
             {
                 case Direction.North:
 
-                    if(_pixelsNorth == null)
+                    if (_pixelsNorth == null)
                     {
                         BuildPixelArray(Graphics.Instance.StairsNorth, ref _pixelsNorth);
                     }
@@ -119,73 +113,103 @@ public class Stair : AreaSpriteObject
                 BuildPixelArray(Graphics.Instance.Cube, ref _pixelsCube);
             }
 
-            for (int i = 1; i < _spriteRenderer.Length; i++)
+            for (int i = 1; i < _spriteRenderers.Length; i++)
             {
                 yield return _pixelsCube;
             }
         }
     }
 
-    SortingGroup _sortingGroup;
+    /// <inheritdoc/>
+    public override Vector3 OffsetVector => Vector3.down * 2;
 
-    public Stair(Vector3Int position, int z, Direction direction) : base(z + 1, null, position, "Stair", ObjectDimensions, false)
+    /// <summary>
+    /// Checks if a new <see cref="Stair"/> can be created at a given <see cref="Map"/> position.
+    /// </summary>
+    /// <param name="position"><see cref="Map"/> position to check.</param>
+    /// <returns>Returns true if a <see cref="Stair"/> can be created at <c>position</c>.</returns>
+    public static bool CheckObject(Vector3Int position)
     {
-        Direction = direction;
-        switch (direction)
-        {
-            case Direction.North:
-                Sprite = Graphics.Instance.StairsNorth;
-                break;
-            case Direction.South:
-                Sprite = Graphics.Instance.StairsSouth;
-                break;
-            case Direction.East:
-                Sprite = Graphics.Instance.StairsEast;
-                break;
-            case Direction.West:
-                Sprite = Graphics.Instance.StairsWest;
-                break;
-        }
-
-        SpriteRenderer.sortingOrder = 0;
-        SpriteRenderer.enabled = GameManager.Instance.IsOnLevel(WorldPosition.z) <= 0;
-
-        _sortingGroup = GameObject.AddComponent<SortingGroup>();
-        _sortingGroup.sortingOrder = Graphics.GetSortOrder(position + z * Vector3Int.back);
-
-        for (int i = 1; i < z + 1; i++)
-        {
-            SpriteRenderer current = _spriteRenderer[i];
-
-            current.transform.localPosition = Vector3Int.down * i * 2;
-            current.name = "Stair";
-            current.sortingOrder = -i;
-            current.sprite = Graphics.Instance.Cube;
-        }
+        return Map.Instance.CanPlaceObject(position, ObjectDimensions) && GameManager.Instance.IsOnLevel(position.z) <= 0;
     }
 
-    StairNode _stair;
-
-    public Stair(Vector3Int position, int z, Direction direction, StairNode stair) : this(position, z, direction)
+    /// <summary>
+    /// Initializes a new <see cref="Stair"/> at the given <see cref="Map"/> position.
+    /// </summary>
+    /// <param name="position"><see cref="Map"/> position to create the new <see cref="Stair"/>.</param>
+    public static void CreateStair(Vector3Int position)
     {
-        _stair = stair;
-        Confirm();
+        Direction direction = BuildFunctions.Direction;
+        if(Map.Instance[position].TryGetNodeAs(~direction, out StairNode stairNode, false))
+            position.z = stairNode.WorldPosition.z + 1;
+
+        if (!CheckObject(position))
+            return;
+
+        Layer layer = Map.Instance[position.z];
+
+        int z = position.z - layer.Origin.z;
+
+        new Stair(direction, position, z);
     }
 
-    protected override void Confirm()
+    /// <summary>
+    /// Places a highlight object with a <see cref="Stair"/> <see cref="Sprite"/> at the given position.
+    /// </summary>
+    /// <param name="highlight">The highlight game object that is being placed.</param>
+    /// <param name="position"><see cref="Map"/> position to place the highlight.</param>
+    public static void PlaceHighlight(SpriteRenderer highlight, Vector3Int position)
+    {
+        Direction direction = BuildFunctions.Direction;
+        if (Map.Instance[position].TryGetNodeAs(~direction, out StairNode stairNode, false))
+            position.z = stairNode.WorldPosition.z + 1;
+
+        if (CheckObject(position))
+        {
+            highlight.enabled = true;
+
+            switch (BuildFunctions.Direction)
+            {
+                case Direction.North:
+                    highlight.sprite = Graphics.Instance.StairsNorth;
+                    break;
+                case Direction.South:
+                    highlight.sprite = Graphics.Instance.StairsSouth;
+                    break;
+                case Direction.East:
+                    highlight.sprite = Graphics.Instance.StairsEast;
+                    break;
+                case Direction.West:
+                    highlight.sprite = Graphics.Instance.StairsWest;
+                    break;
+            };
+            highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
+            highlight.sortingOrder = Graphics.GetSortOrder(position);
+        }
+        else
+            highlight.enabled = false;
+        
+    }
+
+    /// <inheritdoc/>
+    public override void Destroy()
+    {
+        RoomNode roomNode = Map.Instance[WorldPosition];
+        (roomNode as StairNode)?.Destroy();
+        base.Destroy();
+    }
+
+    /// <summary>
+    /// Called when the created <see cref="AreaSpriteObject"/>s are confirmed.
+    /// Creates a new <see cref="StairNode"/> at the given <see cref="Map"/> position if one is not already present.
+    /// </summary>
+    protected override void OnConfirmingObjects()
     {
         RoomNode roomNode = Map.Instance[WorldPosition];
 
         if(_stair == null)
             _stair = new StairNode(this, roomNode, WorldPosition.z, Direction);
 
-        base.Confirm();
-    }
-
-    public override void Destroy()
-    {
-        RoomNode roomNode = Map.Instance[WorldPosition];
-        (roomNode as StairNode)?.Destroy();
-        base.Destroy();
+        base.OnConfirmingObjects();
     }
 }

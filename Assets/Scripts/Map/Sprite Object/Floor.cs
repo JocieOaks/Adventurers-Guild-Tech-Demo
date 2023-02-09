@@ -2,38 +2,75 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// The <see cref="Floor"/> class is a <see cref="SpriteObject"/> for flooring.
+/// It corresponds to <see cref="RoomNode"/>s and every <see cref="RoomNode"/> has a <see cref="Floor"/>.
+/// </summary>
 public class Floor : AreaSpriteObject
 {
-    public static int FloorSpriteIndex { private get; set; } = 0;
-
-    public static void CreateFloor(Vector3Int position)
+    // Initialized the first time GetMaskPixels is called, _pixels are the sprite mask for all Floors.
+    static bool[,] _pixels;
+    static Sprite[] sprites = new Sprite[] { null };
+    bool _enabled = false;
+    int _spriteIndex;
+    public Floor(Vector3Int position) : base(1, sprites, Direction.Undirected, position, "Floor", new Vector3Int(1, 1, 0), false)
     {
-        Floor floor = Map.Instance[position].Floor;
-        floor.Sprite = Graphics.Instance.FloorSprites[FloorSpriteIndex];
-        floor.SpriteRenderer.color = Graphics.Instance.HighlightColor;
-        Graphics.ConfirmingObject += floor.Confirm;
-        Graphics.CheckingAreaConstraints += floor.DestroyIfOutOfRange;
+        if (position == Vector3Int.back)
+            return;
+
+        SpriteRenderer.sortingOrder = Graphics.GetSortOrder(position) - 4;
+        SpriteRenderer.color = Color.white;
+
+        Graphics.CheckingAreaConstraints -= OnCheckingConstraints;
+        Graphics.ConfirmingObjects -= OnConfirmingObjects;
     }
 
-    public static void PlaceHighlight(SpriteRenderer highlight,Vector3Int position)
+    /// <value>The current index for any <see cref="Floor"/>s placed.</value>
+    public static int FloorSpriteIndex { private get; set; } = 0;
+
+    /// <value>Sets whether the <see cref="Floor"/> is active or not.
+    /// Unlike other <see cref="SpriteObject"/>s, the <see cref="Floor"/> class is created for every <see cref="RoomNode"/>,
+    /// even if their is no actual floor in that location.</value>
+    public bool Enabled
     {
-        Graphics.Instance.ResetSprite();
-        if (CheckObject(position))
+        get
         {
-            RoomNode node = Map.Instance[position];
-            node.Floor.Highlight(Graphics.Instance.HighlightColor, FloorSpriteIndex);
+            return _enabled;
+        }
+        set
+        {
+            _enabled = value;
+            if (value)
+            {
+                Sprite = Graphics.Instance.FloorSprites[_spriteIndex];
+                Graphics.LevelChanged += OnLevelChanged;
+
+            }
+            else
+            {
+                Sprite = null;
+                Graphics.LevelChanged -= OnLevelChanged;
+            }
         }
     }
 
-    public static bool CheckObject(Vector3Int position)
+    /// <inheritdoc/>
+    public override IEnumerable<bool[,]> GetMaskPixels
     {
-        return Map.Instance.IsSupported(position, MapAlignment.Center);
+        get
+        {
+            if (_pixels == null)
+            {
+                BuildPixelArray(Graphics.Instance.FloorSprites[0], ref _pixels);
+            }
+            if (Enabled)
+                yield return _pixels;
+            else
+                yield break;
+        }
     }
 
-
-    int _spriteIndex;
-    bool _enabled = false;
-
+    /// <value>The sprite index for the <see cref="Floor"/>. When set, enables the <see cref="Floor"/>.</value>
     public int SpriteIndex
     {
         get { return _spriteIndex; }
@@ -48,32 +85,65 @@ public class Floor : AreaSpriteObject
                 if (GameManager.Instance.IsOnLevel(WorldPosition.z) > 0)
                     SpriteRenderer.enabled = false;
 
-                Graphics.LevelChanged += SetLevel;
+                Graphics.LevelChanged += OnLevelChanged;
             }
         }
     }
 
-    public Floor(Vector3Int position) : base(1,null,position, "Floor", new Vector3Int(1, 1, 0), false)
+    /// <summary>
+    /// Checks if the <see cref="Floor"/> can be enabled at a given <see cref="Map"/> position.
+    /// </summary>
+    /// <param name="position"><see cref="Map"/> position to check.</param>
+    /// <returns>Returns true if <see cref="Floor"/> is supported at <c>position</c>.</returns>
+    public static bool CheckObject(Vector3Int position)
     {
-        if (position == Vector3Int.back)
-            return;
-
-        SpriteRenderer.sortingOrder = Graphics.GetSortOrder(position) - 4;
-        SpriteRenderer.color = Color.white;
-
-        Graphics.CheckingAreaConstraints -= DestroyIfOutOfRange;
-        Graphics.ConfirmingObject -= Confirm;
+        return Map.Instance.IsSupported(position, MapAlignment.Center);
     }
 
-    protected override void Confirm()
+    /// <summary>
+    /// Enables the <see cref="Floor"/> at the given <see cref="Map"/> position, but does not confirm it until <see cref="OnConfirmingObjects"/> is called.
+    /// </summary>
+    /// <param name="position">The <see cref="Map"/> position where the <see cref="Floor"/> should be enabled.</param>
+    public static void CreateFloor(Vector3Int position)
     {
-        Graphics.CheckingAreaConstraints -= DestroyIfOutOfRange;
-        Graphics.ConfirmingObject -= Confirm;
-        SpriteIndex = FloorSpriteIndex;
-        SpriteRenderer.color = Color.white;
-        Enabled = true;
+        Floor floor = Map.Instance[position].Floor;
+        floor.Sprite = Graphics.Instance.FloorSprites[FloorSpriteIndex];
+        floor.SpriteRenderer.color = Graphics.Instance.HighlightColor;
+        Graphics.ConfirmingObjects += floor.OnConfirmingObjects;
+        Graphics.CheckingAreaConstraints += floor.OnCheckingConstraints;
     }
 
+    /// <summary>
+    /// Highlights the <see cref="Floor"/> at a given <see cref="Map"/> position.
+    /// </summary>
+    /// <param name="highlight">Not actually used, but present for delegate pattern matching.</param>
+    /// <param name="position"><see cref="Map"/> position of <see cref="Floor"/> to be highlighted.</param>
+    public static void PlaceHighlight(SpriteRenderer highlight,Vector3Int position)
+    {
+        Graphics.Instance.ResetSprite();
+        if (CheckObject(position))
+        {
+            RoomNode node = Map.Instance[position];
+            node.Floor.Highlight(Graphics.Instance.HighlightColor, FloorSpriteIndex);
+        }
+    }
+
+    /// <summary>
+    /// Sets the <see cref="Floor"/> to be disabled, unless the <see cref="Floor"/> is at ground level, in which the sprite is set to ground.
+    /// </summary>
+    public override void Destroy()
+    {
+        if (WorldPosition.z > 0)
+            Enabled = false;
+        else
+            SpriteIndex = 1;
+    }
+
+    /// <summary>
+    /// Highlights this <see cref="Floor"/>.
+    /// </summary>
+    /// <param name="color"><see cref="Color"/> to set the <see cref="SpriteRenderer"/> to.</param>
+    /// <param name="spriteIndex">Sprite index to set this <see cref="Floor"/> to.</param>
     public void Highlight(Color color, int spriteIndex)
     {
         SpriteRenderer.color = color;
@@ -81,6 +151,34 @@ public class Floor : AreaSpriteObject
         Graphics.ResetingSprite += ResetSprite;
     }
 
+    /// <inheritdoc/>
+    protected override void OnCheckingConstraints(Vector3Int start, Vector3Int end)
+    {
+        int minX = start.x < end.x ? start.x : end.x;
+        int maxX = start.x > end.x ? start.x : end.x;
+        int minY = start.y < end.y ? start.y : end.y;
+        int maxY = start.y > end.y ? start.y : end.y;
+
+        if (WorldPosition.x < minX || WorldPosition.y < minY || WorldPosition.x > maxX || WorldPosition.y > maxY)
+        {
+            Graphics.ConfirmingObjects -= OnConfirmingObjects;
+            Graphics.CheckingAreaConstraints -= OnCheckingConstraints;
+
+            ResetSprite();
+        }
+    }
+
+    /// <inheritdoc/>
+    protected override void OnConfirmingObjects()
+    {
+        Graphics.CheckingAreaConstraints -= OnCheckingConstraints;
+        Graphics.ConfirmingObjects -= OnConfirmingObjects;
+        SpriteIndex = FloorSpriteIndex;
+        SpriteRenderer.color = Color.white;
+        Enabled = true;
+    }
+
+    /// <inheritdoc/>
     protected override void ResetSprite()
     {
 
@@ -95,69 +193,5 @@ public class Floor : AreaSpriteObject
         }
 
         Graphics.ResetingSprite -= ResetSprite;
-    }
-
-    public override void Destroy()
-    {
-        if (WorldPosition.z > 0)
-            Enabled = false;
-        else
-            SpriteIndex = 1;
-    }
-
-    protected override void DestroyIfOutOfRange(Vector3Int start, Vector3Int end)
-    {
-        int minX = start.x < end.x ? start.x : end.x;
-        int maxX = start.x > end.x ? start.x : end.x;
-        int minY = start.y < end.y ? start.y : end.y;
-        int maxY = start.y > end.y ? start.y : end.y;
-
-        if (WorldPosition.x < minX || WorldPosition.y < minY || WorldPosition.x > maxX || WorldPosition.y > maxY)
-        {
-            Graphics.ConfirmingObject -= Confirm;
-            Graphics.CheckingAreaConstraints -= DestroyIfOutOfRange;
-
-            ResetSprite();
-        }
-    }
-
-    public bool Enabled
-    {
-        get
-        {
-            return _enabled;
-        }
-        set
-        {
-            _enabled = value;
-            if (value)
-            {
-                Sprite = Graphics.Instance.FloorSprites[_spriteIndex];
-                Graphics.LevelChanged += SetLevel;
-
-            }
-            else
-            {
-                Sprite = null;
-                Graphics.LevelChanged -= SetLevel;
-            }
-        }
-    }
-
-    static bool[,] _pixels;
-
-    public override IEnumerable<bool[,]> GetMaskPixels
-    {
-        get
-        {
-            if(_pixels == null )
-            {
-                BuildPixelArray(Graphics.Instance.FloorSprites[0], ref _pixels);
-            }
-            if (Enabled)
-                yield return _pixels;
-            else
-                yield break;
-        }
     }
 }

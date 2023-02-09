@@ -12,7 +12,7 @@ public enum Stance
 }
 
 /// <summary>
-/// The <see cref="Pawn"/> class is the counterpart to the <see cref="Actor"/> class that controls the active functional aspect of an NPC, including the in game sprite representation and overseeing the AI behaviors.
+/// The <see cref="Pawn"/> class is the counterpart to the <see cref="global::Actor"/> class that controls the active functional aspect of an NPC, including the in game sprite representation and overseeing the AI behaviors.
 /// </summary>
 public class Pawn : MonoBehaviour, IWorldPosition
 {
@@ -53,7 +53,7 @@ public class Pawn : MonoBehaviour, IWorldPosition
 
     Vector3 _worldPosition;
 
-    /// <value>The <see cref="Pawn"/>'s corresponding <see cref="Actor"/>.</value>
+    /// <value>The <see cref="Pawn"/>'s corresponding <see cref="global::Actor"/>.</value>
     public Actor Actor { 
         get => _actor; 
         set
@@ -190,7 +190,7 @@ public class Pawn : MonoBehaviour, IWorldPosition
     /// Displays a speech bubble over the <see cref="Pawn"/>'s <see cref="Sprite"/>, to visually indicate that they are speaking with another <see cref="Pawn"/>.
     /// </summary>
     /// <param name="type">The type of speech that the <see cref="Pawn"/> is engaging in, which indicates the type of symbol that should be used.</param>
-    /// <returns>Returns <see cref="WaitStep"/> objects for the <c>StartCoroutine</c> function.</returns>
+    /// <returns>Returns <see cref="WaitForSeconds"/> objects for the <c>StartCoroutine</c> function.</returns>
     public IEnumerator Say(SpeechType type)
     {
         _speechBubble.gameObject.SetActive(true);
@@ -440,7 +440,7 @@ public class Pawn : MonoBehaviour, IWorldPosition
     /// <summary>
     /// Initializes the <see cref="Pawn"/> once the game is ready.
     /// </summary>
-    /// <returns>Returns <see cref="WaitStep"/> objects for the <c>StartCoroutine</c> function, until the <see cref="GameManager"/> is ready.</returns>
+    /// <returns>Returns <see cref="WaitUntil"/> objects for the <see cref="MonoBehaviour.StartCoroutine(IEnumerator)"/>, until the <see cref="GameManager"/> is ready.</returns>
     IEnumerator Startup()
     {
         yield return new WaitUntil(() => GameManager.GameReady);

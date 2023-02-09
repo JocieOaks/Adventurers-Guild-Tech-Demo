@@ -3,20 +3,33 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System.Linq;
 
+/// <summary>
+/// The <see cref="Stool"/> class is a <see cref="SpriteObject"/> for stool furniture.
+/// </summary>
 [System.Serializable]
 public class Stool : SpriteObject, IOccupied
 {
+    // Initialized the first time GetMaskPixels is called, _pixels are the sprite mask for all Stools.
     static bool[,] _pixels;
+    static Sprite[] sprites = new Sprite[] { Graphics.Instance.Stool };
 
+    List<RoomNode> _interactionPoints;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Stool"/> class.
+    /// </summary>
+    /// <param name="worldPosition">The position in <see cref="Map"/> coordinates of the <see cref="Stool"/>.</param>
     [JsonConstructor]
     public Stool(Vector3Int worldPosition)
-        : base(1, Graphics.Instance.Stool, worldPosition, "Stool", ObjectDimensions, true)
+        : base(1, sprites, Direction.Undirected, worldPosition, "Stool", ObjectDimensions, true)
     {
         StanceSit.SittingObjects.Add(this);
     }
 
+    /// <value>The 3D dimensions of a <see cref="Stool"/> in terms of <see cref="Map"/> coordinates.</value>
     public static new Vector3Int ObjectDimensions { get; } = new Vector3Int(1, 1, 2);
 
+    /// <inheritdoc/>
     [JsonIgnore]
     public override IEnumerable<bool[,]> GetMaskPixels
     {
@@ -30,72 +43,8 @@ public class Stool : SpriteObject, IOccupied
             yield return _pixels;
         }
     }
-    [JsonIgnore]
-    public Actor Occupant { get; set; }
 
-    [JsonIgnore]
-    public bool Occupied => Occupant != null;
-
-    [JsonProperty]
-    protected override string ObjectType { get; } = "Stool";
-    public static bool CheckObject(Vector3Int position)
-    {
-        return Map.Instance.CanPlaceObject(position, ObjectDimensions);
-    }
-
-    public static void CreateStool(Vector3Int position)
-    {
-        new Stool(position);
-    }
-
-    public static void PlaceHighlight(SpriteRenderer highlight, Vector3Int position)
-    {
-        if (CheckObject(position))
-        {
-            highlight.enabled = true;
-            highlight.sprite = Graphics.Instance.Stool;
-            highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
-            highlight.sortingOrder = Graphics.GetSortOrder(position);
-        }
-        else
-            highlight.enabled = false;
-    }
-    public override void Destroy()
-    {
-        StanceSit.SittingObjects.Remove(this);
-        base.Destroy();
-    }
-
-    public void Enter(Pawn pawn)
-    {
-        pawn.WorldPositionNonDiscrete = WorldPosition + Vector3Int.back;
-        Occupant = pawn.Actor;
-    }
-
-    public void Exit(Pawn pawn)
-    {
-        Occupant = null;
-
-        RoomNode roomNode = InteractionPoints.First();
-        pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
-    }
-
-    List<RoomNode> _interactionPoints;
-
-    protected override void OnMapChanging()
-    {
-        _interactionPoints = null;
-        Reserve();
-    }
-
-    public void Reserve()
-    {
-        foreach (RoomNode roomNode in InteractionPoints)
-        {
-            roomNode.Reserved = true;
-        }
-    }
-
+    /// <inheritdoc/>
     public IEnumerable<RoomNode> InteractionPoints
     {
         get
@@ -111,11 +60,102 @@ public class Stool : SpriteObject, IOccupied
                         if (roomNode.Traversible)
                             _interactionPoints.Add(roomNode);
                     }
-                } 
+                }
             }
 
 
             return _interactionPoints;
         }
+    }
+
+    /// <inheritdoc/>
+    [JsonIgnore]
+    public Pawn Occupant { get; set; }
+
+    /// <inheritdoc/>
+    [JsonIgnore]
+    public bool Occupied => Occupant != null;
+
+    /// <inheritdoc/>
+    [JsonProperty]
+    protected override string ObjectType { get; } = "Stool";
+
+    /// <summary>
+    /// Checks if a new <see cref="Stool"/> can be created at a given <see cref="Map"/> position.
+    /// </summary>
+    /// <param name="position"><see cref="Map"/> position to check.</param>
+    /// <returns>Returns true a <see cref="Stool"/> can be created at <c>position</c>.</returns>
+    public static bool CheckObject(Vector3Int position)
+    {
+        return Map.Instance.CanPlaceObject(position, ObjectDimensions);
+    }
+
+    /// <summary>
+    /// Initializes a new <see cref="Stool"/> at the given <see cref="Map"/> position.
+    /// </summary>
+    /// <param name="position"><see cref="Map"/> position to create the new <see cref="Stool"/>.</param>
+    public static void CreateStool(Vector3Int position)
+    {
+        new Stool(position);
+    }
+
+    /// <summary>
+    /// Places a highlight object with a <see cref="Stool"/> <see cref="Sprite"/> at the given position.
+    /// </summary>
+    /// <param name="highlight">The highlight game object that is being placed.</param>
+    /// <param name="position"><see cref="Map"/> position to place the highlight.</param>
+    public static void PlaceHighlight(SpriteRenderer highlight, Vector3Int position)
+    {
+        if (CheckObject(position))
+        {
+            highlight.enabled = true;
+            highlight.sprite = Graphics.Instance.Stool;
+            highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
+            highlight.sortingOrder = Graphics.GetSortOrder(position);
+        }
+        else
+            highlight.enabled = false;
+    }
+
+    /// <inheritdoc/>
+    public override void Destroy()
+    {
+        StanceSit.SittingObjects.Remove(this);
+        base.Destroy();
+    }
+
+    /// <inheritdoc/>
+    public void Enter(Pawn pawn)
+    {
+        pawn.WorldPositionNonDiscrete = WorldPosition + Vector3Int.back;
+        Occupant = pawn;
+    }
+
+    /// <inheritdoc/>
+    public void Exit(Pawn pawn)
+    {
+        if (pawn == Occupant)
+        {
+            Occupant = null;
+
+            RoomNode roomNode = InteractionPoints.First();
+            pawn.WorldPositionNonDiscrete = roomNode.WorldPosition; 
+        }
+    }
+
+    /// <inheritdoc/>
+    public void ReserventeractionPoints()
+    {
+        foreach (RoomNode roomNode in InteractionPoints)
+        {
+            roomNode.Reserved = true;
+        }
+    }
+
+    /// <inheritdoc/>
+    protected override void OnMapChanging()
+    {
+        _interactionPoints = null;
+        ReserventeractionPoints();
     }
 }

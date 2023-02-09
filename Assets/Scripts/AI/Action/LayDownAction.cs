@@ -19,7 +19,7 @@ public class LayDownAction : TaskAction
 
     public override int Complete()
     {
-        if (_bed.Occupied && _bed.Occupant != _actor)
+        if (_bed.Occupied && _bed.Occupant != _pawn)
             return -1;
         return _period > WAITTIME ? 1 : 0;
     }

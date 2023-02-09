@@ -47,7 +47,6 @@ public class GameManager : MonoBehaviour, IDataPersistence
 
     bool _placingArea = false;
     bool _placingLine = false;
-    bool _placingWalls = false;
 
     WallMode _playWallMode;
 
@@ -334,21 +333,21 @@ public class GameManager : MonoBehaviour, IDataPersistence
 
     void BuildingLine(KeyMode mode)
     {
-        (Vector3Int position, MapAlignment alignment) = Map.GetEdgeFromSceneCoordinates(_camera.ScreenToWorldPoint(Input.mousePosition), _levelMin);
+        Vector3Int position = Map.SceneCoordinatesToMapCoordinates(_camera.ScreenToWorldPoint(Input.mousePosition), _levelMin);
         switch (mode)
         {
             case KeyMode.LeftClickDown:
-                if (BuildFunctions.CheckLine(position, alignment))
+                if (BuildFunctions.CheckPoint(position))
                 {
                     _placingLine = true;
                     _lineStart = position;
-                    _lineAlignment = alignment;
-                    _graphics.PlaceLine(position, alignment == MapAlignment.XEdge ? position.x : position.y, alignment);
+                    _lineAlignment = Map.DirectionToEdgeAlignment(BuildFunctions.Direction);
+                    _graphics.PlaceLine(position, _lineAlignment == MapAlignment.XEdge ? position.x : position.y, _lineAlignment);
                     _graphics.HideHighlight();
                 }
                 break;
             case KeyMode.LeftClickHeld:
-                if (BuildFunctions.CheckLine(position, alignment) && _placingLine)
+                if (BuildFunctions.CheckPoint(position) && _placingLine)
                 {
                     _graphics.PlaceLine(_lineStart, _lineAlignment == MapAlignment.XEdge ? position.x : position.y, _lineAlignment);
                 }
@@ -365,8 +364,8 @@ public class GameManager : MonoBehaviour, IDataPersistence
                 break;
 
             case KeyMode.None:
-                if (BuildFunctions.CheckLine(position, alignment))
-                    BuildFunctions.HighlightLine(Graphics.Instance._highlight, position, alignment);
+                if (BuildFunctions.CheckPoint(position))
+                    BuildFunctions.HighlightPoint(Graphics.Instance._highlight, position);
                 else
                     _graphics.HideHighlight();
                 break;
@@ -708,42 +707,45 @@ public class GameManager : MonoBehaviour, IDataPersistence
             _camera.transform.Translate(Vector3.right * _cameraSpeed);
         }
 
-        if(Input.GetKeyDown(KeyCode.E))
-            switch (BuildFunctions.Direction)
-            {
-                case Direction.North:
-                    BuildFunctions.Direction = Direction.East;
-                    break;
-                case Direction.East:
-                    BuildFunctions.Direction = Direction.South;
-                    break;
-                case Direction.South:
-                    BuildFunctions.Direction = Direction.West;
-                    break;
-                case Direction.West:
-                    BuildFunctions.Direction = Direction.North;
-                    break;
-            }
-        if (Input.GetKeyDown(KeyCode.Q))
-            switch (BuildFunctions.Direction)
-            {
-                case Direction.North:
-                    BuildFunctions.Direction = Direction.West;
-                    break;
-                case Direction.West:
-                    BuildFunctions.Direction = Direction.South;
-                    break;
-                case Direction.South:
-                    BuildFunctions.Direction = Direction.East;
-                    break;
-                case Direction.East:
-                    BuildFunctions.Direction = Direction.North;
-                    break;
-            }
+        if (!_placingLine && !_placingArea)
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+                switch (BuildFunctions.Direction)
+                {
+                    case Direction.North:
+                        BuildFunctions.Direction = Direction.East;
+                        break;
+                    case Direction.East:
+                        BuildFunctions.Direction = Direction.South;
+                        break;
+                    case Direction.South:
+                        BuildFunctions.Direction = Direction.West;
+                        break;
+                    case Direction.West:
+                        BuildFunctions.Direction = Direction.North;
+                        break;
+                }
+            if (Input.GetKeyDown(KeyCode.Q))
+                switch (BuildFunctions.Direction)
+                {
+                    case Direction.North:
+                        BuildFunctions.Direction = Direction.West;
+                        break;
+                    case Direction.West:
+                        BuildFunctions.Direction = Direction.South;
+                        break;
+                    case Direction.South:
+                        BuildFunctions.Direction = Direction.East;
+                        break;
+                    case Direction.East:
+                        BuildFunctions.Direction = Direction.North;
+                        break;
+                }
+        }
 
         if (_gameMode == GameMode.Build)
         {
-            if (IsMouseOverUI() && !_placingWalls)
+            if (IsMouseOverUI() && !_placingLine && !_placingArea)
                 _graphics.HideHighlight();
             else
             {

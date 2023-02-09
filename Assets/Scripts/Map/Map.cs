@@ -185,6 +185,11 @@ public class Map : MonoBehaviour, IDataPersistence
         }
     }
 
+    public static MapAlignment DirectionToEdgeAlignment(Direction direction)
+    {
+        return (direction == Direction.North || direction == Direction.South) ? MapAlignment.XEdge : MapAlignment.YEdge;
+    }
+
     public static Vector3Int Floor(Vector3Int position)
     {
         Layer layer = Instance[position.z];

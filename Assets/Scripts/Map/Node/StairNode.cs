@@ -16,7 +16,7 @@ public class StairNode : RoomNode
             new Landing(this, direction);
         }
 
-        stairSprite = new Stair(WorldPosition, RoomPosition.z, direction, this);
+        stairSprite = new Stair(direction, WorldPosition, RoomPosition.z, this);
     }
 
     public StairNode(Stair sprite, RoomNode node, int z, Direction direction) : base(node)

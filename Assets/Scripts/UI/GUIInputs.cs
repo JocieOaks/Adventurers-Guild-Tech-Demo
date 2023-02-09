@@ -29,9 +29,9 @@ public class GUIInputs : MonoBehaviour
     public void WallOnClick()
     {
         BuildFunctions.BuildMode = BuildMode.Line;
-        BuildFunctions.CreateLine = Wall.CreateWall;
-        BuildFunctions.CheckLine = Wall.CheckObject;
-        BuildFunctions.HighlightLine = Wall.PlaceHighlight;
+        BuildFunctions.CreatePoint = Wall.CreateWall;
+        BuildFunctions.CheckPoint = Wall.CheckObject;
+        BuildFunctions.HighlightPoint = Wall.PlaceHighlight;
         GUI.Instance.CloseObjects();
     }
 
@@ -108,9 +108,9 @@ public class GUIInputs : MonoBehaviour
     public void BarOnClick()
     {
         BuildFunctions.BuildMode = BuildMode.Line;
-        BuildFunctions.CreateLine = Bar.CreateBar;
-        BuildFunctions.CheckLine = Bar.CheckObject;
-        BuildFunctions.HighlightLine = Bar.PlaceHighlight;
+        BuildFunctions.CreatePoint = Bar.CreateBar;
+        BuildFunctions.CheckPoint = Bar.CheckObject;
+        BuildFunctions.HighlightPoint = Bar.PlaceHighlight;
     }
 
     public void DemolishOnClick()

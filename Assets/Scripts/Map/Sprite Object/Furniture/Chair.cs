@@ -3,26 +3,41 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System.Linq;
 
+/// <summary>
+/// The <see cref="Chair"/> class is a <see cref="SpriteObject"/> for chair furniture.
+/// </summary>
 [System.Serializable]
-public class Chair : DirectionalSpriteObject, IOccupied
+public class Chair : SpriteObject, IOccupied, IDirected
 {
+    // Initialized the first time GetMaskPixels is called for each given direction., _pixelsEast, _pixelsNorth, _pixelsSouth, and _pixelsWest are the sprite mask for all Chairs.
     static bool[,] _pixelsEast;
-
     static bool[,] _pixelsNorth;
-
     static bool[,] _pixelsSouth;
-
     static bool[,] _pixelsWest;
+    static Sprite[] sprites = new Sprite[] { Graphics.Instance.ChairNorth, Graphics.Instance.ChairEast, Graphics.Instance.ChairSouth, Graphics.Instance.ChairWest };
 
+    List<RoomNode> _interactionPoints;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Chair"/> class.
+    /// </summary>
+    /// <param name="direction">The <see cref="Direction"/> the <see cref="Chair"/> is facing.</param>
+    /// <param name="worldPosition">The position in <see cref="Map"/> coordinates of the <see cref="Chair"/>.</param>
     [JsonConstructor]
     public Chair(Direction direction, Vector3Int worldPosition)
-        : base(1, Graphics.Instance.ChairNorth, Graphics.Instance.ChairSouth, Graphics.Instance.ChairEast, Graphics.Instance.ChairWest, direction, worldPosition, "Chair", ObjectDimensions, true)
+        : base(1,  sprites, direction, worldPosition, "Chair", ObjectDimensions, true)
     {
+        Direction = direction;
         StanceSit.SittingObjects.Add(this);
     }
 
+    /// <value>The 3D dimensions of a <see cref="Chair"/> in terms of <see cref="Map"/> coordinates.</value>
     public static new Vector3Int ObjectDimensions { get; } = new Vector3Int(1, 1, 2);
 
+    /// <inheritdoc/>
+    public Direction Direction { get; private set; }
+
+    ///<inheritdoc/>
     [JsonIgnore]
     public override IEnumerable<bool[,]> GetMaskPixels
     {
@@ -63,94 +78,12 @@ public class Chair : DirectionalSpriteObject, IOccupied
         }
     }
 
-    [JsonIgnore]
-    public Actor Occupant { get; set; }
-
-    [JsonIgnore]
-    public bool Occupied => Occupant != null;
-
-    [JsonProperty]
-    protected override string ObjectType { get; } = "Chair";
-
-    public static bool CheckObject(Vector3Int position)
-    {
-        Vector3Int dimensions = default;
-        switch (BuildFunctions.Direction)
-        {
-            case Direction.North:
-            case Direction.South:
-                dimensions = ObjectDimensions;
-                break;
-            case Direction.East:
-            case Direction.West:
-                dimensions = new Vector3Int(ObjectDimensions.y, ObjectDimensions.x, ObjectDimensions.z);
-                break;
-        }
-        return Map.Instance.CanPlaceObject(position, default);
-    }
-
-    public static void CreateChair(Vector3Int position)
-    {
-        new Chair(BuildFunctions.Direction, position);
-    }
-
-    public static void PlaceHighlight(SpriteRenderer highlight, Vector3Int position)
-    {
-        if (CheckObject(position))
-        {
-            highlight.enabled = true;
-
-            switch (BuildFunctions.Direction)
-            {
-                case Direction.North:
-                    highlight.sprite = Graphics.Instance.ChairNorth;
-                    break;
-                case Direction.South:
-                    highlight.sprite = Graphics.Instance.ChairSouth;
-                    break;
-                case Direction.East:
-                    highlight.sprite = Graphics.Instance.ChairEast;
-                    break;
-                case Direction.West:
-                    highlight.sprite = Graphics.Instance.ChairWest;
-                    break;
-            };
-            highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
-            highlight.sortingOrder = Graphics.GetSortOrder(position);
-        }
-        else
-            highlight.enabled = false;
-    }
-    public override void Destroy()
-    {
-        StanceSit.SittingObjects.Remove(this);
-        base.Destroy();
-    }
-
-    public void Enter(Pawn pawn)
-    {
-        if (pawn is NPC || Direction == Direction.South || Direction == Direction.West)
-            pawn.WorldPositionNonDiscrete = WorldPosition + Vector3Int.back;
-        else
-            pawn.WorldPositionNonDiscrete = WorldPosition;
-        Occupant = pawn.Actor;
-    }
-
-    public void Exit(Pawn pawn)
-    {
-        Occupant = null;
-
-        RoomNode roomNode = InteractionPoints.First();
-        pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
-    }
-
-    List<RoomNode> _interactionPoints;
-
+    /// <inheritdoc/>
     public IEnumerable<RoomNode> InteractionPoints
     {
         get
         {
-            if(_interactionPoints == null)
+            if (_interactionPoints == null)
             {
                 int minX = -2;
                 int minY = -2;
@@ -188,17 +121,112 @@ public class Chair : DirectionalSpriteObject, IOccupied
         }
     }
 
-    protected override void OnMapChanging()
+    /// <inheritdoc/>
+    [JsonIgnore]
+    public Pawn Occupant { get; set; }
+
+    /// <inheritdoc/>
+    [JsonIgnore]
+    public bool Occupied => Occupant != null;
+
+    /// <inheritdoc/>
+    [JsonProperty]
+    protected override string ObjectType { get; } = "Chair";
+
+    /// <summary>
+    /// Checks if a new <see cref="Chair"/> can be created at a given <see cref="Map"/> position.
+    /// </summary>
+    /// <param name="position"><see cref="Map"/> position to check.</param>
+    /// <returns>Returns true a <see cref="Chair"/> can be created at <c>position</c>.</returns>
+    public static bool CheckObject(Vector3Int position)
     {
-        _interactionPoints = null;
-        Reserve();
+        return Map.Instance.CanPlaceObject(position, ObjectDimensions);
     }
 
-    public void Reserve()
+    /// <summary>
+    /// Initializes a new <see cref="Chair"/> at the given <see cref="Map"/> position.
+    /// </summary>
+    /// <param name="position"><see cref="Map"/> position to create the new <see cref="Chair"/>.</param>
+    public static void CreateChair(Vector3Int position)
     {
-        foreach(RoomNode roomNode in InteractionPoints)
+        new Chair(BuildFunctions.Direction, position);
+    }
+
+    /// <summary>
+    /// Places a highlight object with a <see cref="Chair"/> <see cref="Sprite"/> at the given position.
+    /// </summary>
+    /// <param name="highlight">The highlight game object that is being placed.</param>
+    /// <param name="position"><see cref="Map"/> position to place the highlight.</param>
+    public static void PlaceHighlight(SpriteRenderer highlight, Vector3Int position)
+    {
+        if (CheckObject(position))
+        {
+            highlight.enabled = true;
+
+            switch (BuildFunctions.Direction)
+            {
+                case Direction.North:
+                    highlight.sprite = Graphics.Instance.ChairNorth;
+                    break;
+                case Direction.South:
+                    highlight.sprite = Graphics.Instance.ChairSouth;
+                    break;
+                case Direction.East:
+                    highlight.sprite = Graphics.Instance.ChairEast;
+                    break;
+                case Direction.West:
+                    highlight.sprite = Graphics.Instance.ChairWest;
+                    break;
+            };
+            highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
+            highlight.sortingOrder = Graphics.GetSortOrder(position);
+        }
+        else
+            highlight.enabled = false;
+    }
+
+    /// <inheritdoc/>
+    public override void Destroy()
+    {
+        StanceSit.SittingObjects.Remove(this);
+        base.Destroy();
+    }
+
+    /// <inheritdoc/>
+    public void Enter(Pawn pawn)
+    {
+        if (pawn is NPC || Direction == Direction.South || Direction == Direction.West)
+            pawn.WorldPositionNonDiscrete = WorldPosition + Vector3Int.back;
+        else
+            pawn.WorldPositionNonDiscrete = WorldPosition;
+        Occupant = pawn;
+    }
+
+    /// <inheritdoc/>
+    public void Exit(Pawn pawn)
+    {
+        if (pawn == Occupant)
+        {
+            Occupant = null;
+
+            RoomNode roomNode = InteractionPoints.First();
+            pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
+        }
+    }
+
+    /// <inheritdoc/>
+    public void ReserventeractionPoints()
+    {
+        foreach (RoomNode roomNode in InteractionPoints)
         {
             roomNode.Reserved = true;
         }
+    }
+
+    /// <inheritdoc/>
+    protected override void OnMapChanging()
+    {
+        _interactionPoints = null;
+        ReserventeractionPoints();
     }
 }

@@ -6,7 +6,11 @@ using UnityEngine;
 /// </summary>
 public interface IInteractable : IWorldPosition
 {
+    /// <value>The <see cref="List{T}"/> of all <see cref="RoomNode"/>s from which a <see cref="Pawn"/> can interact with this <see cref="IInteractable"/>.</value>
     public IEnumerable<RoomNode> InteractionPoints { get; }
 
-    public void Reserve();
+    /// <summary>
+    /// Sets all <see cref="InteractionPoints"/> to be reserved, so that a <see cref="Pawn"/> cannot block them.
+    /// </summary>
+    public void ReserventeractionPoints();
 }

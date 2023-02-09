@@ -18,7 +18,7 @@ public class SitDownAction : TaskAction
 
     public override int Complete()
     {
-        if (_seat.Occupied && _seat.Occupant != _actor)
+        if (_seat.Occupied && _seat.Occupant != _pawn)
             return -1;
         return _period > WAITTIME ? 1 : 0;
     }

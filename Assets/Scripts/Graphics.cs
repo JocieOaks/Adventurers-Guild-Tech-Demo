@@ -67,16 +67,11 @@ public enum WallSpriteType
 }
 public static class BuildFunctions
 {
-    public delegate bool CheckLineDelegate(Vector3Int position, MapAlignment alignment);
-
     public delegate bool CheckPointDelegate(Vector3Int position);
     public static BuildMode BuildMode { get; set; }
-    public static CheckLineDelegate CheckLine { get; set; }
     public static CheckPointDelegate CheckPoint { get; set; }
-    public static Action<int, int, int, MapAlignment> CreateLine { get; set; }
     public static Action<Vector3Int> CreatePoint { get; set; }
     public static Direction Direction { get; set; }
-    public static Action<SpriteRenderer, Vector3Int, MapAlignment> HighlightLine { get; set; }
     public static Action<SpriteRenderer, Vector3Int> HighlightPoint { get; set; }
 }
 
@@ -248,7 +243,7 @@ public class Graphics : MonoBehaviour
     public static event Action<Vector3Int, Vector3Int> CheckingAreaConstraints;
 
     public static event Action<int, int> CheckingLineConstraints;
-    public static event Action ConfirmingObject;
+    public static event Action ConfirmingObjects;
 
     public static event Action LevelChangedLate;
 
@@ -476,7 +471,7 @@ public class Graphics : MonoBehaviour
 
     public void Confirm()
     {
-        ConfirmingObject?.Invoke();
+        ConfirmingObjects?.Invoke();
         _lineStart = -1;
         _lineEnd = -1;
     }
@@ -602,9 +597,10 @@ public class Graphics : MonoBehaviour
             {
                 for (int i = startX < end ? startX : end; i <= (startX < end ? end : startX); i++)
                 {
-                    if ((i < _lineStart || i > _lineEnd) && BuildFunctions.CheckLine(new Vector3Int(i, startY, z) ,alignment))
+                    Vector3Int position = new Vector3Int(i, startY, z);
+                    if ((i < _lineStart || i > _lineEnd) && BuildFunctions.CheckPoint(position))
                     {
-                        BuildFunctions.CreateLine(i, startY, z, alignment);
+                        BuildFunctions.CreatePoint(position);
                     }
                 }
 
@@ -615,9 +611,10 @@ public class Graphics : MonoBehaviour
             {
                 for (int i = startY < end ? startY : end; i <= (startY < end ? end : startY); i++)
                 {
-                    if ((i < _lineStart || i > _lineEnd) && BuildFunctions.CheckLine(new Vector3Int(startX, i, z), alignment))
+                    Vector3Int position = new Vector3Int(startX, i, z);
+                    if ((i < _lineStart || i > _lineEnd) && BuildFunctions.CheckPoint(position))
                     {
-                        BuildFunctions.CreateLine(startX, i, z, alignment);
+                        BuildFunctions.CreatePoint(position);
                     }
                 }
 

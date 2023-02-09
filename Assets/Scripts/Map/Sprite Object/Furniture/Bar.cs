@@ -1,23 +1,38 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using UnityEngine;
-using Newtonsoft.Json;
 
+/// <summary>
+/// The <see cref="Bar"/> class is a <see cref="SpriteObject"/> for bar furniture.
+/// </summary>
 [System.Serializable]
 public class Bar : LinearSpriteObject, IInteractable
 {
+
+    // Initialized the first time GetMaskPixels is called, _pixelsX and _pixelsY are the sprite mask for all Bars.
     static bool[,] _pixelsX;
     static bool[,] _pixelsY;
+    static Sprite[] sprites = new Sprite[] { Graphics.Instance.BarX[0], Graphics.Instance.BarY[0], Graphics.Instance.BarX[0], Graphics.Instance.BarY[0] };
 
+    List<RoomNode> _interactionPoints;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Bar"/> class.
+    /// </summary>
+    /// <param name="direction">The <see cref="Direction"/> the <see cref="Bar"/> is facing.</param>
+    /// <param name="worldPosition">The position in <see cref="Map"/> coordinates of the <see cref="Bar"/>.</param>
     [JsonConstructor]
-    public Bar(MapAlignment alignment, Vector3Int worldPosition)
-        : base(2, Graphics.Instance.BarX[0], Graphics.Instance.BarY[0], worldPosition, alignment, "Bar", alignment == MapAlignment.XEdge ? ObjectDimensions : new Vector3Int(2, 1, 2), true)
+    public Bar(Direction direction, Vector3Int worldPosition)
+        : base(2, sprites, direction, worldPosition, "Bar", ObjectDimensions, true)
     {
-        _spriteRenderer[1].sprite = alignment == MapAlignment.XEdge ? Graphics.Instance.BarX[1] : Graphics.Instance.BarY[1];
-        _spriteRenderer[1].sortingOrder = Graphics.GetSortOrder(WorldPosition + (alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left));
+        _spriteRenderers[1].sprite = Alignment == MapAlignment.XEdge ? Graphics.Instance.BarX[1] : Graphics.Instance.BarY[1];
+        _spriteRenderers[1].sortingOrder = Graphics.GetSortOrder(WorldPosition + (Alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left));
     }
 
-    public static new Vector3Int ObjectDimensions { get; } = new Vector3Int(1, 2, 2);
+    /// <value>The 3D dimensions of a <see cref="Bar"/> in terms of <see cref="Map"/> coordinates.</value>
+    public new static Vector3Int ObjectDimensions { get; } = new Vector3Int(1, 2, 2);
 
+    /// <inheritdoc/>
     [JsonIgnore]
     public override IEnumerable<bool[,]> GetMaskPixels
     {
@@ -44,45 +59,7 @@ public class Bar : LinearSpriteObject, IInteractable
         }
     }
 
-    [JsonProperty]
-    protected override string ObjectType { get; } = "Bar";
-    public static bool CheckObject(Vector3Int position, MapAlignment alignment)
-    {
-        Vector3Int dimensions = default;
-
-        if (alignment == MapAlignment.XEdge)
-            dimensions = ObjectDimensions;
-        else
-            dimensions = new Vector3Int(ObjectDimensions.y, ObjectDimensions.x, ObjectDimensions.z);
-
-
-        return Map.Instance.CanPlaceObject(position, dimensions);
-    }
-
-    public static void CreateBar(int x, int y, int z, MapAlignment alignment)
-    {
-        new Bar(alignment, new Vector3Int(x, y, z));
-    }
-
-    public static void PlaceHighlight(SpriteRenderer highlight, Vector3Int position, MapAlignment alignment)
-    {
-        if (CheckObject(position, alignment))
-        {
-            highlight.enabled = true;
-            highlight.sprite = alignment == MapAlignment.XEdge ? Graphics.Instance.BarX[0] : Graphics.Instance.BarY[0];
-            highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
-            highlight.sortingOrder = Graphics.GetSortOrder(position);
-        }
-        else
-            highlight.enabled = false;
-    }
-    public override void Destroy()
-    {
-        AcquireFoodTask.FoodSources.Remove(this);
-        base.Destroy();
-    }
-    List<RoomNode> _interactionPoints;
-
+    /// <inheritdoc/>
     public IEnumerable<RoomNode> InteractionPoints
     {
         get
@@ -93,7 +70,6 @@ public class Bar : LinearSpriteObject, IInteractable
 
                 if (Alignment == MapAlignment.XEdge)
                 {
-
                     int i = 0;
                     while (Map.Instance[WorldPosition + Vector3Int.right * i].Occupant is Bar)
                     {
@@ -110,7 +86,6 @@ public class Bar : LinearSpriteObject, IInteractable
                             _interactionPoints.Add(roomNode);
                         i++;
                     }
-
                 }
                 else
                 {
@@ -137,16 +112,83 @@ public class Bar : LinearSpriteObject, IInteractable
         }
     }
 
+    /// <inheritdoc/>
+    [JsonProperty]
+    protected override string ObjectType { get; } = "Bar";
+
+    /// <summary>
+    /// Checks if a new <see cref="Bar"/> can be created at a given <see cref="Map"/> position.
+    /// </summary>
+    /// <param name="position"><see cref="Map"/> position to check.</param>
+    /// <returns>Returns true if a <see cref="Bar"/> can be created at <c>position</c>.</returns>
+    public static bool CheckObject(Vector3Int position)
+    {
+        Vector3Int dimensions = default;
+        switch (BuildFunctions.Direction)
+        {
+            case Direction.North:
+            case Direction.South:
+                dimensions = ObjectDimensions;
+                break;
+
+            case Direction.East:
+            case Direction.West:
+                dimensions = new Vector3Int(ObjectDimensions.y, ObjectDimensions.x, ObjectDimensions.z);
+                break;
+        }
+        return Map.Instance.CanPlaceObject(position, dimensions);
+    }
+
+    /// <summary>
+    /// Initializes a new <see cref="Bar"/> at the given <see cref="Map"/> position.
+    /// </summary>
+    /// <param name="position"><see cref="Map"/> position to create the new <see cref="Bar"/>.</param>
+    public static void CreateBar(Vector3Int position)
+    {
+        new Bar(BuildFunctions.Direction, position);
+    }
+
+    /// <summary>
+    /// Places a highlight object with a <see cref="Bar"/> <see cref="Sprite"/> at the given position.
+    /// </summary>
+    /// <param name="highlight">The highlight game object that is being placed.</param>///
+    /// <param name="position"><see cref="Map"/> position to place the highlight.</param>
+    public static void PlaceHighlight(SpriteRenderer highlight, Vector3Int position)
+    {
+        if (CheckObject(position))
+        {
+            highlight.enabled = true;
+
+            highlight.sprite = Map.DirectionToEdgeAlignment(BuildFunctions.Direction) == MapAlignment.XEdge ? Graphics.Instance.BarX[0] : Graphics.Instance.BarY[0];
+
+            highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
+            highlight.sortingOrder = Graphics.GetSortOrder(position);
+        }
+        else
+            highlight.enabled = false;
+    }
+
+    /// <inheritdoc/>
+    public override void Destroy()
+    {
+        AcquireFoodTask.FoodSources.Remove(this);
+        base.Destroy();
+    }
+
+    /// <inheritdoc/>
+    public void ReserventeractionPoints()
+    { }
+
+    /// <inheritdoc/>
+    protected override void OnConfirmingObjects()
+    {
+        AcquireFoodTask.FoodSources.Add(this);
+        base.OnConfirmingObjects();
+    }
+
+    /// <inheritdoc/>
     protected override void OnMapChanging()
     {
         _interactionPoints = null;
-    }
-
-    public void Reserve() { }
-
-    protected override void Confirm()
-    {
-        AcquireFoodTask.FoodSources.Add(this);
-        base.Confirm();
     }
 }
