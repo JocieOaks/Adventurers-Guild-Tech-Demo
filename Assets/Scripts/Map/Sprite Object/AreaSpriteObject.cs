@@ -13,7 +13,7 @@ public abstract class AreaSpriteObject : SpriteObject
     /// <param name="sprites">The inititial <see cref="UnityEngine.Sprite"/> to set, depending on the direction. Has only one sprite if undirected.
     /// This is generally the forward most sprite for the <see cref="AreaSpriteObject"/>.
     /// <param name="direction">The direction the <see cref="AreaSpriteObject"/> is facing.</param>
-    /// <param name="position">The world position in <see cref="Map"/> coordinates of the <see cref="AreaSpriteObject"/>. For <see cref="AreaSpriteObject"/>s that extend over multiple <see cref="RoomNode"/>s, 
+    /// <param name="position">The <see cref="IWorldPosition.WorldPosition"/> of the  <see cref="AreaSpriteObject"/>. For <see cref="AreaSpriteObject"/>s that extend over multiple <see cref="RoomNode"/>s, 
     /// this is the coordinate of the forward most <see cref="RoomNode"/> the object occupies.</param>
     /// <param name="name">The name of the <see cref="AreaSpriteObject"/>.</param>
     /// <param name="dimensions">The 3D dimensions of the <see cref="AreaSpriteObject"/> in <see cref="Map"/> coordinates.</param>

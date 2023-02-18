@@ -17,7 +17,7 @@ public class StanceLay : Task, /*ISetup,*/ IRecovery
         return new RestTask(worldState);
     }
 
-    Bed bed;
+    BedSprite bed;
     public override WorldState ChangeWorldState(WorldState worldState)
     {
         bed = GetBed(worldState.PrimaryActor);
@@ -64,11 +64,11 @@ public class StanceLay : Task, /*ISetup,*/ IRecovery
         return 0;
     }
 
-    Bed GetBed(ActorProfile profile)
+    BedSprite GetBed(ActorProfile profile)
     {
         float closestDistance = float.PositiveInfinity;
-        Bed best = null;
-        foreach (Bed bed in LayingObjects)
+        BedSprite best = null;
+        foreach (BedSprite bed in LayingObjects)
         {
             if (!bed.Occupied)
             {

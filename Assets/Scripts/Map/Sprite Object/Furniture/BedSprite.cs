@@ -4,30 +4,40 @@ using Newtonsoft.Json;
 using System.Linq;
 
 /// <summary>
-/// The <see cref="Stool"/> class is a <see cref="SpriteObject"/> for stool furniture.
+/// The <see cref="BedSprite"/> class is a <see cref="SpriteObject"/> for bed furniture.
 /// </summary>
 [System.Serializable]
-public class Stool : SpriteObject, IOccupied
+public class BedSprite : SpriteObject, IOccupied
 {
-    // Initialized the first time GetMaskPixels is called, _pixels are the sprite mask for all Stools.
+    // Initialized the first time GetMaskPixels is called, _pixels is the sprite mask for all Beds.
     static bool[,] _pixels;
-    static Sprite[] sprites = new Sprite[] { Graphics.Instance.Stool };
+    static Sprite[] sprites = new Sprite[] { Graphics.Instance.BedSprite[1] };
 
     List<RoomNode> _interactionPoints;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Stool"/> class.
-    /// </summary>
-    /// <param name="worldPosition">The position in <see cref="Map"/> coordinates of the <see cref="Stool"/>.</param>
     [JsonConstructor]
-    public Stool(Vector3Int worldPosition)
-        : base(1, sprites, Direction.Undirected, worldPosition, "Stool", ObjectDimensions, true)
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BedSprite"/> class.
+    /// </summary>
+    /// <param name="worldPosition">The <see cref="IWorldPosition.WorldPosition"/> of the  <see cref="BedSprite"/>.</param>
+    public BedSprite(Vector3Int worldPosition) :
+        base(5, sprites, Direction.Undirected, worldPosition, "Bed", ObjectDimensions, true)
     {
-        StanceSit.SittingObjects.Add(this);
+        StanceLay.LayingObjects.Add(this);
+        _spriteRenderers[1].sprite = Graphics.Instance.BedSprite[0];
+        _spriteRenderers[1].sortingOrder = Graphics.GetSortOrder(WorldPosition + Vector3Int.up);
+
+        for (int i = 2; i < _spriteRenderers.Length; i++)
+        {
+            _spriteRenderers[i].sprite = Graphics.Instance.BedSprite[i];
+            _spriteRenderers[i].sortingOrder = Graphics.GetSortOrder(WorldPosition + Vector3Int.right * (i - 1));
+        }
+
     }
 
-    /// <value>The 3D dimensions of a <see cref="Stool"/> in terms of <see cref="Map"/> coordinates.</value>
-    public static new Vector3Int ObjectDimensions { get; } = new Vector3Int(1, 1, 2);
+    /// <value>The 3D dimensions of a <see cref="BedSprite"/> in terms of <see cref="Map"/> coordinates.</value>
+    public static new Vector3Int ObjectDimensions { get; } = new Vector3Int(4, 2, 1);
 
     /// <inheritdoc/>
     [JsonIgnore]
@@ -37,13 +47,14 @@ public class Stool : SpriteObject, IOccupied
         {
             if (_pixels == default)
             {
-                BuildPixelArray(Graphics.Instance.Stool, ref _pixels);
+                BuildPixelArray(Graphics.Instance.BedSprite, ref _pixels);
             }
 
             yield return _pixels;
         }
     }
 
+    [JsonIgnore]
     /// <inheritdoc/>
     public IEnumerable<RoomNode> InteractionPoints
     {
@@ -52,18 +63,16 @@ public class Stool : SpriteObject, IOccupied
             if (_interactionPoints == null)
             {
                 _interactionPoints = new List<RoomNode>();
-                for (int i = -2; i < 2; i++)
+                for (int i = -2; i < 6; i++)
                 {
-                    for (int j = -2; j < 2; j++)
+                    for (int j = -2; j < 4; j++)
                     {
                         RoomNode roomNode = Map.Instance[WorldPosition + new Vector3Int(i, j)];
-                        if (roomNode.Traversible)
+                        if (roomNode.Traversable)
                             _interactionPoints.Add(roomNode);
                     }
                 }
             }
-
-
             return _interactionPoints;
         }
     }
@@ -75,32 +84,35 @@ public class Stool : SpriteObject, IOccupied
     /// <inheritdoc/>
     [JsonIgnore]
     public bool Occupied => Occupant != null;
+    
+    /// <value>The <see cref="Pawn"/> that owns this <see cref="BedSprite"/>.</value>
+    public Pawn Owner { get; private set; }
 
     /// <inheritdoc/>
     [JsonProperty]
-    protected override string ObjectType { get; } = "Stool";
+    protected override string ObjectType { get; } = "Bed";
 
     /// <summary>
-    /// Checks if a new <see cref="Stool"/> can be created at a given <see cref="Map"/> position.
+    /// Checks if a new <see cref="BedSprite"/> can be created at a given <see cref="Map"/> position.
     /// </summary>
     /// <param name="position"><see cref="Map"/> position to check.</param>
-    /// <returns>Returns true a <see cref="Stool"/> can be created at <c>position</c>.</returns>
+    /// <returns>Returns true a <see cref="BedSprite"/> can be created at <c>position</c>.</returns>
     public static bool CheckObject(Vector3Int position)
     {
         return Map.Instance.CanPlaceObject(position, ObjectDimensions);
     }
 
     /// <summary>
-    /// Initializes a new <see cref="Stool"/> at the given <see cref="Map"/> position.
+    /// Initializes a new <see cref="BedSprite"/> at the given <see cref="Map"/> position.
     /// </summary>
-    /// <param name="position"><see cref="Map"/> position to create the new <see cref="Stool"/>.</param>
-    public static void CreateStool(Vector3Int position)
+    /// <param name="position"><see cref="Map"/> position to create the new <see cref="BedSprite"/>.</param>
+    public static void CreateBed(Vector3Int position)
     {
-        new Stool(position);
+        new BedSprite(position);
     }
 
     /// <summary>
-    /// Places a highlight object with a <see cref="Stool"/> <see cref="Sprite"/> at the given position.
+    /// Places a highlight object with a <see cref="BedSprite"/> <see cref="Sprite"/> at the given position.
     /// </summary>
     /// <param name="highlight">The highlight game object that is being placed.</param>
     /// <param name="position"><see cref="Map"/> position to place the highlight.</param>
@@ -109,7 +121,8 @@ public class Stool : SpriteObject, IOccupied
         if (CheckObject(position))
         {
             highlight.enabled = true;
-            highlight.sprite = Graphics.Instance.Stool;
+            highlight.flipX = false;
+            highlight.sprite = Graphics.Instance.BedSprite[1];
             highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
             highlight.sortingOrder = Graphics.GetSortOrder(position);
         }
@@ -120,14 +133,15 @@ public class Stool : SpriteObject, IOccupied
     /// <inheritdoc/>
     public override void Destroy()
     {
-        StanceSit.SittingObjects.Remove(this);
+        StanceLay.LayingObjects.Remove(this);
         base.Destroy();
     }
 
     /// <inheritdoc/>
     public void Enter(Pawn pawn)
     {
-        pawn.WorldPositionNonDiscrete = WorldPosition + Vector3Int.back;
+        pawn.transform.Rotate(0, 0, -55);
+        pawn.WorldPositionNonDiscrete = WorldPosition + Vector3Int.up;
         Occupant = pawn;
     }
 
@@ -136,10 +150,10 @@ public class Stool : SpriteObject, IOccupied
     {
         if (pawn == Occupant)
         {
+            pawn.transform.Rotate(0, 0, 55);
             Occupant = null;
-
             RoomNode roomNode = InteractionPoints.First();
-            pawn.WorldPositionNonDiscrete = roomNode.WorldPosition; 
+            pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
         }
     }
 

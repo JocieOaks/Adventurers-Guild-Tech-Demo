@@ -8,12 +8,12 @@ using Newtonsoft.Json;
 /// <see cref="SpriteObject"/>s may encapsulate multiple <see cref="UnityEngine.SpriteRenderer"/>
 /// </summary>
 [JsonConverter(typeof(JsonSubTypes.JsonSubtypes), "ObjectType")]
-[JsonSubTypes.JsonSubtypes.KnownSubType(typeof(Bed), "Bed")]
-[JsonSubTypes.JsonSubtypes.KnownSubType(typeof(Chair), "Chair")]
-[JsonSubTypes.JsonSubtypes.KnownSubType(typeof(Stool), "Stool")]
-[JsonSubTypes.JsonSubtypes.KnownSubType(typeof(TableRound), "TableRound")]
-[JsonSubTypes.JsonSubtypes.KnownSubType(typeof(TableSquare), "TableSquare")]
-[JsonSubTypes.JsonSubtypes.KnownSubType(typeof(Bar), "Bar")]
+[JsonSubTypes.JsonSubtypes.KnownSubType(typeof(BedSprite), "Bed")]
+[JsonSubTypes.JsonSubtypes.KnownSubType(typeof(ChairSprite), "Chair")]
+[JsonSubTypes.JsonSubtypes.KnownSubType(typeof(StoolSprite), "Stool")]
+[JsonSubTypes.JsonSubtypes.KnownSubType(typeof(TableRoundSprite), "TableRound")]
+[JsonSubTypes.JsonSubtypes.KnownSubType(typeof(TableSquareSprite), "TableSquare")]
+[JsonSubTypes.JsonSubtypes.KnownSubType(typeof(BarSprite), "Bar")]
 public abstract class SpriteObject : IDataPersistence, IWorldPosition
 {
     [JsonIgnore]
@@ -27,7 +27,7 @@ public abstract class SpriteObject : IDataPersistence, IWorldPosition
     /// <param name="sprites">The inititial <see cref="UnityEngine.Sprite"/> to set, depending on the direction. Has only one sprite if undirected.
     /// This is generally the forward most sprite for the <see cref="SpriteObject"/>.
     /// <param name="direction">The direction the <see cref="SpriteObject"/> is facing.</param>
-    /// <param name="position">The world position in <see cref="Map"/> coordinates of the <see cref="SpriteObject"/>. For <see cref="SpriteObject"/>s that extend over multiple <see cref="RoomNode"/>s, 
+    /// <param name="position">The <see cref="IWorldPosition.WorldPosition"/> of the <see cref="SpriteObject"/>. For <see cref="SpriteObject"/>s that extend over multiple <see cref="RoomNode"/>s, 
     /// this is the coordinate of the forward most <see cref="RoomNode"/> the object occupies.</param>
     /// <param name="name">The name of the <see cref="SpriteObject"/>.</param>
     /// <param name="dimensions">The 3D dimensions of the <see cref="SpriteObject"/> in <see cref="Map"/> coordinates.</param>
@@ -80,7 +80,7 @@ public abstract class SpriteObject : IDataPersistence, IWorldPosition
         Graphics.LevelChanged += OnLevelChanged;
         GameManager.MapChangingSecond += OnMapChanging;
 
-        if (this is not Wall && this is not Stair && this is not Floor)
+        if (this is not WallSprite && this is not StairSprite && this is not FloorSprite)
             DataPersistenceManager.instance.NonMonoDataPersistenceObjects.Add(this);
     }
 

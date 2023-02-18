@@ -127,7 +127,7 @@ public class Actor
     }
 
     /// <value>A reference to the character's bed.</value>
-    public Bed Bed { get; set; }
+    public BedSprite Bed { get; set; }
 
     /// <value>The character's charisma stat.</value>
     public int Charisma { get; private set; }

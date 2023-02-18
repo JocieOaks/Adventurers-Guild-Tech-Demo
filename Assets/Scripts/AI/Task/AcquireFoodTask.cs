@@ -32,7 +32,6 @@ public class AcquireFoodTask : Task, ISetup, IRecovery
 
     public override IEnumerable<TaskAction> GetActions(Actor actor)
     {
-        //Debug.Log(actor.Stats.Name + " Food");
         IInteractable foodSource = GetFoodSource(actor.Stats);
         if (foodSource == null)
             yield break;

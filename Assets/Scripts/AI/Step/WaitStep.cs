@@ -11,7 +11,7 @@ public class WaitStep : TaskStep, IDirected
     {
         roomNode = pawn.CurrentNode;
         if(blocking)
-            roomNode.Standing = pawn;
+            roomNode.Occupant = pawn;
         SetDirection(direction);
     }
 
@@ -80,7 +80,7 @@ public class WaitStep : TaskStep, IDirected
 
     protected override void Finish()
     {
-        if(roomNode.Standing == _pawn)
-            roomNode.Standing = null;
+        if(roomNode.Occupant == _pawn)
+            roomNode.Occupant = null;
     }
 }

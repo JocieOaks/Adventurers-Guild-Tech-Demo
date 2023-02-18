@@ -1,11 +1,21 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+
 /// <summary>
-/// Base class for locations on a <see cref="Map"/>.
+/// Interface for connected points on a <see cref="Map"/>.
+/// Can be either a coordinate location on a map such as <see cref="RoomNode"/> or a connecting point between two coordinates such as <see cref="ConnectingNode"/>.
 /// </summary>
 public interface INode : IWorldPosition
 {
-    /// <summary>
-    /// Determines if the <see cref="INode"/> can be passed through by a navigating <see cref="Pawn"/>.
-    /// </summary>
-    public bool Traversible{ get; set;}
+    /// <value>Iterates over all <see cref="INode"/>'s directly adjactent to this <see cref="INode"/>.</value>
+    public IEnumerable<INode> AdjacentNodes { get; }
+
+    /// <value>Returns true if the <see cref="INode"/> is blocked and cannot be passed through.</value>
+    public bool Obstructed {get;}
+
+    /// <value> Returns true if the <see cref="INode"/> can be passed through by a navigating <see cref="Pawn"/>.</value>
+    public bool Traversable => !Obstructed;
+
+    //Obstructed and Traversable are typically opposites, but have subtle differences, specifically for RoomNodes.
+    //Because Pawns take up a three by three area, all 9 RoomNode tiles that they are ocupying must not be Obstructed in order for the Pawn to stand there.
+    //Therefore, it is possible for a RoomNode to not be Obstructed, but also not be Traversible.
 }

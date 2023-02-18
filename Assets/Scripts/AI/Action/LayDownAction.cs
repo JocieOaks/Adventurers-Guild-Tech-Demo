@@ -3,12 +3,12 @@
 public class LayDownAction : TaskAction
 {
 
-    Bed _bed;
+    BedSprite _bed;
 
     float _period;
     const float WAITTIME = 0.5f;
 
-    public LayDownAction(Bed bed, Actor actor) : base(actor)
+    public LayDownAction(BedSprite bed, Actor actor) : base(actor)
     {
         _bed = bed;
     }

@@ -4,10 +4,10 @@ using Newtonsoft.Json;
 using System.Linq;
 
 /// <summary>
-/// The <see cref="Chair"/> class is a <see cref="SpriteObject"/> for chair furniture.
+/// The <see cref="ChairSprite"/> class is a <see cref="SpriteObject"/> for chair furniture.
 /// </summary>
 [System.Serializable]
-public class Chair : SpriteObject, IOccupied, IDirected
+public class ChairSprite : SpriteObject, IOccupied, IDirected
 {
     // Initialized the first time GetMaskPixels is called for each given direction., _pixelsEast, _pixelsNorth, _pixelsSouth, and _pixelsWest are the sprite mask for all Chairs.
     static bool[,] _pixelsEast;
@@ -19,19 +19,19 @@ public class Chair : SpriteObject, IOccupied, IDirected
     List<RoomNode> _interactionPoints;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Chair"/> class.
+    /// Initializes a new instance of the <see cref="ChairSprite"/> class.
     /// </summary>
-    /// <param name="direction">The <see cref="Direction"/> the <see cref="Chair"/> is facing.</param>
-    /// <param name="worldPosition">The position in <see cref="Map"/> coordinates of the <see cref="Chair"/>.</param>
+    /// <param name="direction">The <see cref="Direction"/> the <see cref="ChairSprite"/> is facing.</param>
+    /// <param name="worldPosition">The <see cref="IWorldPosition.WorldPosition"/> of the  <see cref="ChairSprite"/>.</param>
     [JsonConstructor]
-    public Chair(Direction direction, Vector3Int worldPosition)
+    public ChairSprite(Direction direction, Vector3Int worldPosition)
         : base(1,  sprites, direction, worldPosition, "Chair", ObjectDimensions, true)
     {
         Direction = direction;
         StanceSit.SittingObjects.Add(this);
     }
 
-    /// <value>The 3D dimensions of a <see cref="Chair"/> in terms of <see cref="Map"/> coordinates.</value>
+    /// <value>The 3D dimensions of a <see cref="ChairSprite"/> in terms of <see cref="Map"/> coordinates.</value>
     public static new Vector3Int ObjectDimensions { get; } = new Vector3Int(1, 1, 2);
 
     /// <inheritdoc/>
@@ -78,6 +78,7 @@ public class Chair : SpriteObject, IOccupied, IDirected
         }
     }
 
+    [JsonIgnore]
     /// <inheritdoc/>
     public IEnumerable<RoomNode> InteractionPoints
     {
@@ -112,7 +113,7 @@ public class Chair : SpriteObject, IOccupied, IDirected
                     for (int j = minY; j < maxY; j++)
                     {
                         RoomNode roomNode = Map.Instance[WorldPosition + new Vector3Int(i, j)];
-                        if (roomNode.Traversible)
+                        if (roomNode.Traversable)
                             _interactionPoints.Add(roomNode);
                     }
                 }
@@ -134,26 +135,26 @@ public class Chair : SpriteObject, IOccupied, IDirected
     protected override string ObjectType { get; } = "Chair";
 
     /// <summary>
-    /// Checks if a new <see cref="Chair"/> can be created at a given <see cref="Map"/> position.
+    /// Checks if a new <see cref="ChairSprite"/> can be created at a given <see cref="Map"/> position.
     /// </summary>
     /// <param name="position"><see cref="Map"/> position to check.</param>
-    /// <returns>Returns true a <see cref="Chair"/> can be created at <c>position</c>.</returns>
+    /// <returns>Returns true a <see cref="ChairSprite"/> can be created at <c>position</c>.</returns>
     public static bool CheckObject(Vector3Int position)
     {
         return Map.Instance.CanPlaceObject(position, ObjectDimensions);
     }
 
     /// <summary>
-    /// Initializes a new <see cref="Chair"/> at the given <see cref="Map"/> position.
+    /// Initializes a new <see cref="ChairSprite"/> at the given <see cref="Map"/> position.
     /// </summary>
-    /// <param name="position"><see cref="Map"/> position to create the new <see cref="Chair"/>.</param>
+    /// <param name="position"><see cref="Map"/> position to create the new <see cref="ChairSprite"/>.</param>
     public static void CreateChair(Vector3Int position)
     {
-        new Chair(BuildFunctions.Direction, position);
+        new ChairSprite(BuildFunctions.Direction, position);
     }
 
     /// <summary>
-    /// Places a highlight object with a <see cref="Chair"/> <see cref="Sprite"/> at the given position.
+    /// Places a highlight object with a <see cref="ChairSprite"/> <see cref="Sprite"/> at the given position.
     /// </summary>
     /// <param name="highlight">The highlight game object that is being placed.</param>
     /// <param name="position"><see cref="Map"/> position to place the highlight.</param>

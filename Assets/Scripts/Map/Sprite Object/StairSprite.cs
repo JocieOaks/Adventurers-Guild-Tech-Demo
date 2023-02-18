@@ -3,9 +3,9 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 /// <summary>
-/// The <see cref="Stair"/> class is the <see cref="SpriteObject"/> that corresponds with <see cref="StairNode"/>.
+/// The <see cref="StairSprite"/> class is the <see cref="SpriteObject"/> that corresponds with <see cref="StairNode"/>.
 /// </summary>
-public class Stair : AreaSpriteObject, IDirected
+public class StairSprite : AreaSpriteObject, IDirected
 {
     // Initialized the first time GetMaskPixels is called for each given direction, _pixelsCube, _pixelsEast, _pixelsNorth, _pixelsSouth, and _pixelsWest are the sprite mask for all Stairs.
     static bool[,] _pixelsCube;
@@ -18,12 +18,12 @@ public class Stair : AreaSpriteObject, IDirected
     StairNode _stair;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Stair"/> class.
+    /// Initializes a new instance of the <see cref="StairSprite"/> class.
     /// </summary>
-    /// <param name="direction">The <see cref="Direction"/> the <see cref="Stair"/> is facing.</param>
-    /// <param name="worldPosition">The position in <see cref="Map"/> coordinates of the <see cref="Stair"/>.</param>
-    /// <param name="z">The elevation relative to the <see cref="Room"/> the <see cref="Stair"/> is in.</param>
-    public Stair(Direction direction, Vector3Int worldPosition, int z) : base(z + 1, sprites, direction, worldPosition, "Stair", ObjectDimensions, false)
+    /// <param name="direction">The <see cref="Direction"/> the <see cref="StairSprite"/> is facing.</param>
+    /// <param name="worldPosition">The <see cref="IWorldPosition.WorldPosition"/> of the  <see cref="StairSprite"/>.</param>
+    /// <param name="z">The elevation relative to the <see cref="Room"/> the <see cref="StairSprite"/> is in.</param>
+    public StairSprite(Direction direction, Vector3Int worldPosition, int z) : base(z + 1, sprites, direction, worldPosition, "Stair", ObjectDimensions, false)
     {
         Direction = direction;
 
@@ -45,19 +45,19 @@ public class Stair : AreaSpriteObject, IDirected
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Stair"/> class for a <see cref="StairNode"/> that has already been initialized.
+    /// Initializes a new instance of the <see cref="StairSprite"/> class for a <see cref="StairNode"/> that has already been initialized.
     /// </summary>
-    /// <param name="direction">The <see cref="Direction"/> the <see cref="Stair"/> is facing.</param>
-    /// <param name="worldPosition">The position in <see cref="Map"/> coordinates of the <see cref="Stair"/>.</param>
-    /// <param name="z">The elevation relative to the <see cref="Room"/> the <see cref="Stair"/> is in.</param>
-    /// <param name="stair">The <see cref="StairNode"/> this <see cref="Stair"/> corresponds to.</param>
-    public Stair(Direction direction, Vector3Int worldPosition, int z, StairNode stair) : this(direction, worldPosition, z)
+    /// <param name="direction">The <see cref="Direction"/> the <see cref="StairSprite"/> is facing.</param>
+    /// <param name="worldPosition">The <see cref="IWorldPosition.WorldPosition"/> of the  <see cref="StairSprite"/>.</param>
+    /// <param name="z">The elevation relative to the <see cref="Room"/> the <see cref="StairSprite"/> is in.</param>
+    /// <param name="stair">The <see cref="StairNode"/> this <see cref="StairSprite"/> corresponds to.</param>
+    public StairSprite(Direction direction, Vector3Int worldPosition, int z, StairNode stair) : this(direction, worldPosition, z)
     {
         _stair = stair;
         OnConfirmingObjects();
     }
 
-    /// <value>The 3D dimensions of a <see cref="Stair"/> in terms of <see cref="Map"/> coordinates.</value>
+    /// <value>The 3D dimensions of a <see cref="StairSprite"/> in terms of <see cref="Map"/> coordinates.</value>
     public static new Vector3Int ObjectDimensions => Vector3Int.one;
 
     /// <inheritdoc/>
@@ -124,19 +124,19 @@ public class Stair : AreaSpriteObject, IDirected
     public override Vector3 OffsetVector => Vector3.down * 2;
 
     /// <summary>
-    /// Checks if a new <see cref="Stair"/> can be created at a given <see cref="Map"/> position.
+    /// Checks if a new <see cref="StairSprite"/> can be created at a given <see cref="Map"/> position.
     /// </summary>
     /// <param name="position"><see cref="Map"/> position to check.</param>
-    /// <returns>Returns true if a <see cref="Stair"/> can be created at <c>position</c>.</returns>
+    /// <returns>Returns true if a <see cref="StairSprite"/> can be created at <c>position</c>.</returns>
     public static bool CheckObject(Vector3Int position)
     {
         return Map.Instance.CanPlaceObject(position, ObjectDimensions) && GameManager.Instance.IsOnLevel(position.z) <= 0;
     }
 
     /// <summary>
-    /// Initializes a new <see cref="Stair"/> at the given <see cref="Map"/> position.
+    /// Initializes a new <see cref="StairSprite"/> at the given <see cref="Map"/> position.
     /// </summary>
-    /// <param name="position"><see cref="Map"/> position to create the new <see cref="Stair"/>.</param>
+    /// <param name="position"><see cref="Map"/> position to create the new <see cref="StairSprite"/>.</param>
     public static void CreateStair(Vector3Int position)
     {
         Direction direction = BuildFunctions.Direction;
@@ -150,11 +150,11 @@ public class Stair : AreaSpriteObject, IDirected
 
         int z = position.z - layer.Origin.z;
 
-        new Stair(direction, position, z);
+        new StairSprite(direction, position, z);
     }
 
     /// <summary>
-    /// Places a highlight object with a <see cref="Stair"/> <see cref="Sprite"/> at the given position.
+    /// Places a highlight object with a <see cref="StairSprite"/> <see cref="Sprite"/> at the given position.
     /// </summary>
     /// <param name="highlight">The highlight game object that is being placed.</param>
     /// <param name="position"><see cref="Map"/> position to place the highlight.</param>

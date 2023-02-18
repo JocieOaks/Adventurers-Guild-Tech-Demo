@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
-using static Unity.VisualScripting.Member;
 
 /// <summary>
 /// Helper class for <see cref="Sector"/> to store data for each <see cref="INode"/> in the <see cref="Sector"/>.
@@ -84,14 +82,15 @@ public class Sector
 
             foreach(RoomNode node in Map.Instance.AllNodes)
             {
-                if(node.Traversible && 
+                //Tries to find a loop of four rooms that are all connected, as such rooms cannot be bottlenecks
+                if(node.Traversable && 
                     !sectors.Any(x => x == node.Sector) && 
                     node.NorthEast != null && 
-                    node.NorthEast.Traversible && 
+                    node.NorthEast.Traversable && 
                     node.TryGetNodeAs(Direction.North, out RoomNode north) && 
-                    north.Traversible && 
+                    north.Traversable && 
                     node.TryGetNodeAs(Direction.East, out RoomNode east)&&
-                    east.Traversible)
+                    east.Traversable)
                 {
                     currentNode = node;
                     break;
@@ -101,7 +100,7 @@ public class Sector
             {
                 foreach (RoomNode node in Map.Instance.AllNodes)
                 {
-                    if (node.Traversible && !sectors.Any(x => x == node.Sector))
+                    if (node.Traversable && !sectors.Any(x => x == node.Sector))
                     {
                         currentNode = node;
                         break;
@@ -142,9 +141,9 @@ public class Sector
                         endPoints.Add(current);
                     }
                 } 
-                else if(current.Node is ConnectionNode connection)
+                else if(current.Node is ConnectingNode connection)
                 {
-                    foreach (INode node in connection.Nodes)
+                    foreach (INode node in connection.AdjacentNodes)
                     {
                         Next(current, node);
                     }
@@ -165,7 +164,7 @@ public class Sector
             
             bool Next(GraphNode current, INode nextNode)
             {
-                if (nextNode.Traversible)
+                if (nextNode.Traversable)
                 {
                     if (graphNodes.TryGetValue(nextNode, out GraphNode next))
                     {
@@ -195,5 +194,66 @@ public class Sector
 
 
         }while(true);
+    }
+
+    /// <summary>
+    /// Checks if two <see cref="IWorldPosition"/>s share the same <see cref="Sector"/>.
+    /// </summary>
+    /// <param name="a">The first <see cref="IWorldPosition"/> being checked.</param>
+    /// <param name="b">The second <see cref="IWorldPosition"/> being checked.</param>
+    /// <returns>Returns true if <c>a</c> and <c>b</c> are in the same <see cref="Sector"/>.</returns>
+    public static bool SameSector(IWorldPosition a, IWorldPosition b)
+    {
+        if(a.Node is RoomNode aRoomNode)
+        {
+            if (b.Node is RoomNode bRoomNode)
+                return SameSector(aRoomNode, bRoomNode);
+            else if (b.Node is IDividerNode bDivider)
+                return SameSector(aRoomNode, bDivider);
+        }
+        else if(a.Node is IDividerNode aDivider)
+        {
+            if (b.Node is RoomNode bRoomNode)
+                return SameSector(bRoomNode, aDivider);
+            else if (b.Node is IDividerNode bDivider)
+                return SameSector(aDivider, bDivider);
+        }
+        throw new System.ArgumentException();
+    }
+
+    /// <summary>
+    /// Checks if two <see cref="RoomNode"/>s share the same <see cref="Sector"/>.
+    /// </summary>
+    /// <param name="a">The first <see cref="RoomNode"/> being checked.</param>
+    /// <param name="b">The second <see cref="RoomNode"/> being checked.</param>
+    /// <returns>Returns true if <c>a</c> and <c>b</c> are in the same <see cref="Sector"/>.</returns>
+    public static bool SameSector(RoomNode a, RoomNode b)
+    {
+        return a.Sector == b.Sector;
+    }
+
+    /// <summary>
+    /// Checks if an <see cref="IDividerNode"/> is adjacent to the same <see cref="Sector"/> as a <see cref="RoomNode"/>.
+    /// </summary>
+    /// <param name="a">The <see cref="RoomNode"/> being checked.</param>
+    /// <param name="b">The <see cref="IDividerNode"/> being checked.</param>
+    /// <returns>Returns true if <c>a</c> and <c>b</c> are in the same <see cref="Sector"/>.</returns>
+    public static bool SameSector(RoomNode a, IDividerNode b)
+    {
+        return a.Sector == b.FirstNode.Sector || a.Sector == b.SecondNode.Sector;
+    }
+
+    /// <summary>
+    /// Checks if two <see cref="IDividerNode"/>s share the same <see cref="Sector"/>.
+    /// </summary>
+    /// <param name="a">The first <see cref="IDividerNode"/> being checked.</param>
+    /// <param name="b">The second <see cref="IDividerNode"/> being checked.</param>
+    /// <returns>Returns true if <c>a</c> and <c>b</c> are adjacent to the same <see cref="Sector"/>.</returns>
+    public static bool SameSector(IDividerNode a, IDividerNode b)
+    {
+        return a.FirstNode.Sector == b.FirstNode.Sector ||
+            a.SecondNode.Sector == b.FirstNode.Sector ||
+            a.FirstNode.Sector == b.SecondNode.Sector ||
+            a.SecondNode.Sector == b.SecondNode.Sector;
     }
 }

@@ -8,7 +8,7 @@ public interface IWorldPosition
     /// <value>Gives the position of the object in <see cref="Map"/> coordinates.</value>
     Vector3Int WorldPosition { get; }
 
-    /// <value>Gives the <see cref="Room"/> the object currently occupies. Can be <c>null</c> for objects that border two rooms, i.e. <see cref="WallNode"/> and <see cref="ConnectionNode"/>.</value>
+    /// <value>Gives the <see cref="global::Room"/> the object currently occupies. Can be <c>null</c> for objects that border two rooms, i.e. <see cref="WallBlocker"/> and <see cref="ConnectingNode"/>.</value>
     Room Room { get; }
 
     /// <value>Gives the <see cref="INode"/> the object currently occupies. <see cref="INode"/> objects return themselves. Everything else returns <see cref="RoomNode"/>.</value>

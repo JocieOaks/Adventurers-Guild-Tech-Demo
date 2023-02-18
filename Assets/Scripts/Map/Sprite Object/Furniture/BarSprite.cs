@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// The <see cref="Bar"/> class is a <see cref="SpriteObject"/> for bar furniture.
+/// The <see cref="BarSprite"/> class is a <see cref="SpriteObject"/> for bar furniture.
 /// </summary>
 [System.Serializable]
-public class Bar : LinearSpriteObject, IInteractable
+public class BarSprite : LinearSpriteObject, IInteractable, IDirected
 {
 
     // Initialized the first time GetMaskPixels is called, _pixelsX and _pixelsY are the sprite mask for all Bars.
@@ -17,19 +17,20 @@ public class Bar : LinearSpriteObject, IInteractable
     List<RoomNode> _interactionPoints;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Bar"/> class.
+    /// Initializes a new instance of the <see cref="BarSprite"/> class.
     /// </summary>
-    /// <param name="direction">The <see cref="Direction"/> the <see cref="Bar"/> is facing.</param>
-    /// <param name="worldPosition">The position in <see cref="Map"/> coordinates of the <see cref="Bar"/>.</param>
+    /// <param name="direction">The <see cref="Direction"/> the <see cref="BarSprite"/> is facing.</param>
+    /// <param name="worldPosition">The <see cref="IWorldPosition.WorldPosition"/> of the  <see cref="BarSprite"/>.</param>
     [JsonConstructor]
-    public Bar(Direction direction, Vector3Int worldPosition)
+    public BarSprite(Direction direction, Vector3Int worldPosition)
         : base(2, sprites, direction, worldPosition, "Bar", ObjectDimensions, true)
     {
+        Direction = direction;
         _spriteRenderers[1].sprite = Alignment == MapAlignment.XEdge ? Graphics.Instance.BarX[1] : Graphics.Instance.BarY[1];
         _spriteRenderers[1].sortingOrder = Graphics.GetSortOrder(WorldPosition + (Alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left));
     }
 
-    /// <value>The 3D dimensions of a <see cref="Bar"/> in terms of <see cref="Map"/> coordinates.</value>
+    /// <value>The 3D dimensions of a <see cref="BarSprite"/> in terms of <see cref="Map"/> coordinates.</value>
     public new static Vector3Int ObjectDimensions { get; } = new Vector3Int(1, 2, 2);
 
     /// <inheritdoc/>
@@ -59,6 +60,7 @@ public class Bar : LinearSpriteObject, IInteractable
         }
     }
 
+    [JsonIgnore]
     /// <inheritdoc/>
     public IEnumerable<RoomNode> InteractionPoints
     {
@@ -71,18 +73,18 @@ public class Bar : LinearSpriteObject, IInteractable
                 if (Alignment == MapAlignment.XEdge)
                 {
                     int i = 0;
-                    while (Map.Instance[WorldPosition + Vector3Int.right * i].Occupant is Bar)
+                    while (Map.Instance[WorldPosition + Vector3Int.right * i].Occupant is BarSprite)
                     {
                         RoomNode roomNode = Map.Instance[WorldPosition + Vector3Int.right * i + 2 * Vector3Int.down];
-                        if (roomNode.Traversible)
+                        if (roomNode.Traversable)
                             _interactionPoints.Add(roomNode);
                         i++;
                     }
                     i = 1;
-                    while (Map.Instance[WorldPosition + Vector3Int.left * i].Occupant is Bar)
+                    while (Map.Instance[WorldPosition + Vector3Int.left * i].Occupant is BarSprite)
                     {
                         RoomNode roomNode = Map.Instance[WorldPosition + Vector3Int.left * i + 2 * Vector3Int.down];
-                        if (roomNode.Traversible)
+                        if (roomNode.Traversable)
                             _interactionPoints.Add(roomNode);
                         i++;
                     }
@@ -90,18 +92,18 @@ public class Bar : LinearSpriteObject, IInteractable
                 else
                 {
                     int i = 0;
-                    while (Map.Instance[WorldPosition + Vector3Int.up * i].Occupant is Bar)
+                    while (Map.Instance[WorldPosition + Vector3Int.up * i].Occupant is BarSprite)
                     {
                         RoomNode roomNode = Map.Instance[WorldPosition + Vector3Int.up * i + 2 * Vector3Int.left];
-                        if (roomNode.Traversible)
+                        if (roomNode.Traversable)
                             _interactionPoints.Add(roomNode);
                         i++;
                     }
                     i = 1;
-                    while (Map.Instance[WorldPosition + Vector3Int.down * i].Occupant is Bar)
+                    while (Map.Instance[WorldPosition + Vector3Int.down * i].Occupant is BarSprite)
                     {
                         RoomNode roomNode = Map.Instance[WorldPosition + Vector3Int.down * i + 2 * Vector3Int.left];
-                        if (roomNode.Traversible)
+                        if (roomNode.Traversable)
                             _interactionPoints.Add(roomNode);
                         i++;
                     }
@@ -112,15 +114,19 @@ public class Bar : LinearSpriteObject, IInteractable
         }
     }
 
+    [JsonProperty]
+    /// <inheritdoc/>
+    public Direction Direction { get; }
+
     /// <inheritdoc/>
     [JsonProperty]
     protected override string ObjectType { get; } = "Bar";
 
     /// <summary>
-    /// Checks if a new <see cref="Bar"/> can be created at a given <see cref="Map"/> position.
+    /// Checks if a new <see cref="BarSprite"/> can be created at a given <see cref="Map"/> position.
     /// </summary>
     /// <param name="position"><see cref="Map"/> position to check.</param>
-    /// <returns>Returns true if a <see cref="Bar"/> can be created at <c>position</c>.</returns>
+    /// <returns>Returns true if a <see cref="BarSprite"/> can be created at <c>position</c>.</returns>
     public static bool CheckObject(Vector3Int position)
     {
         Vector3Int dimensions = default;
@@ -140,16 +146,16 @@ public class Bar : LinearSpriteObject, IInteractable
     }
 
     /// <summary>
-    /// Initializes a new <see cref="Bar"/> at the given <see cref="Map"/> position.
+    /// Initializes a new <see cref="BarSprite"/> at the given <see cref="Map"/> position.
     /// </summary>
-    /// <param name="position"><see cref="Map"/> position to create the new <see cref="Bar"/>.</param>
+    /// <param name="position"><see cref="Map"/> position to create the new <see cref="BarSprite"/>.</param>
     public static void CreateBar(Vector3Int position)
     {
-        new Bar(BuildFunctions.Direction, position);
+        new BarSprite(BuildFunctions.Direction, position);
     }
 
     /// <summary>
-    /// Places a highlight object with a <see cref="Bar"/> <see cref="Sprite"/> at the given position.
+    /// Places a highlight object with a <see cref="BarSprite"/> <see cref="Sprite"/> at the given position.
     /// </summary>
     /// <param name="highlight">The highlight game object that is being placed.</param>///
     /// <param name="position"><see cref="Map"/> position to place the highlight.</param>

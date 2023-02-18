@@ -3,10 +3,10 @@ using UnityEngine;
 using Newtonsoft.Json;
 
 /// <summary>
-/// The <see cref="TableRound"/> class is a <see cref="SpriteObject"/> for round table furniture.
+/// The <see cref="TableRoundSprite"/> class is a <see cref="SpriteObject"/> for round table furniture.
 /// </summary>
 [System.Serializable]
-public class TableRound : SpriteObject
+public class TableRoundSprite : SpriteObject
 {
     // Initialized the first time GetMaskPixels is called, _pixels are the sprite mask for all TableRounds.
     static bool[,] _pixels;
@@ -15,10 +15,10 @@ public class TableRound : SpriteObject
     [JsonConstructor]
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TableRound"/> class.
+    /// Initializes a new instance of the <see cref="TableRoundSprite"/> class.
     /// </summary>
-    /// <param name="worldPosition">The position in <see cref="Map"/> coordinates of the <see cref="TableRound"/>.</param>
-    public TableRound(Vector3Int worldPosition)
+    /// <param name="worldPosition">The <see cref="IWorldPosition.WorldPosition"/> of the  <see cref="TableRoundSprite"/>.</param>
+    public TableRoundSprite(Vector3Int worldPosition)
         : base(3, sprites, Direction.Undirected, worldPosition, "Round Table", new Vector3Int(1, 1, 2), true)
     {
         Dimensions = ObjectDimensions;
@@ -28,7 +28,7 @@ public class TableRound : SpriteObject
         _spriteRenderers[2].sortingOrder = Graphics.GetSortOrder(WorldPosition + Vector3Int.right);
     }
 
-    /// <value>The 3D dimensions of a <see cref="TableRound"/> in terms of <see cref="Map"/> coordinates.</value>
+    /// <value>The 3D dimensions of a <see cref="TableRoundSprite"/> in terms of <see cref="Map"/> coordinates.</value>
     public static new Vector3Int ObjectDimensions { get; } = new Vector3Int(3, 3, 2);
 
     /// <value>he 3D dimensions of the <see cref="SpriteObject"/> in terms of <see cref="Map"/> coordinates. 
@@ -56,26 +56,26 @@ public class TableRound : SpriteObject
     protected override string ObjectType { get; } = "TableRound";
 
     /// <summary>
-    /// Checks if a new <see cref="TableRound"/> can be created at a given <see cref="Map"/> position.
+    /// Checks if a new <see cref="TableRoundSprite"/> can be created at a given <see cref="Map"/> position.
     /// </summary>
     /// <param name="position"><see cref="Map"/> position to check.</param>
-    /// <returns>Returns true a <see cref="TableRound"/> can be created at <c>position</c>.</returns>
+    /// <returns>Returns true a <see cref="TableRoundSprite"/> can be created at <c>position</c>.</returns>
     public static bool CheckObject(Vector3Int position)
     {
         return Map.Instance.CanPlaceObject(position, ObjectDimensions);
     }
 
     /// <summary>
-    /// Initializes a new <see cref="TableRound"/> at the given <see cref="Map"/> position.
+    /// Initializes a new <see cref="TableRoundSprite"/> at the given <see cref="Map"/> position.
     /// </summary>
-    /// <param name="position"><see cref="Map"/> position to create the new <see cref="TableRound"/>.</param>
+    /// <param name="position"><see cref="Map"/> position to create the new <see cref="TableRoundSprite"/>.</param>
     public static void CreateTableRound(Vector3Int position)
     {
-        new TableRound(position);
+        new TableRoundSprite(position);
     }
 
     /// <summary>
-    /// Places a highlight object with a <see cref="TableRound"/> <see cref="Sprite"/> at the given position.
+    /// Places a highlight object with a <see cref="TableRoundSprite"/> <see cref="Sprite"/> at the given position.
     /// </summary>
     /// <param name="highlight">The highlight game object that is being placed.</param>
     /// <param name="position"><see cref="Map"/> position to place the highlight.</param>

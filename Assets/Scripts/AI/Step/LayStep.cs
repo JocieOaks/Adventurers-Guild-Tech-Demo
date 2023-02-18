@@ -3,8 +3,8 @@
 public class LayStep : TaskStep
 {
 
-    Bed _bed;
-    public LayStep(Pawn pawn, Bed bed) : base(pawn)
+    BedSprite _bed;
+    public LayStep(Pawn pawn, BedSprite bed) : base(pawn)
     {
         _bed = bed;
         pawn.Stance = Stance.Lay;

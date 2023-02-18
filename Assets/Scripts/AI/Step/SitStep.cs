@@ -10,25 +10,25 @@ public class SitStep : TaskStep, IDirected
 
         seat.Enter(pawn);
 
-        if(seat is Chair chair)
+        if(seat is ChairSprite chair)
         {
             Direction = chair.Direction;
         }
-        else if(seat is Stool stool)
+        else if(seat is StoolSprite stool)
         {
-            if (Map.Instance[stool.WorldPosition + Map.DirToVector(Direction.North) * 2].Occupant is Bar)
+            if (Map.Instance[stool.WorldPosition + Map.DirectionToVector(Direction.North) * 2].Occupant is BarSprite)
             {
                 Direction = Direction.North;
             }
-            else if (Map.Instance[stool.WorldPosition + Map.DirToVector(Direction.South) * 2].Occupant is Bar)
+            else if (Map.Instance[stool.WorldPosition + Map.DirectionToVector(Direction.South) * 2].Occupant is BarSprite)
             {
                 Direction = Direction.South;
             }
-            else if (Map.Instance[stool.WorldPosition + Map.DirToVector(Direction.East) * 2].Occupant is Bar)
+            else if (Map.Instance[stool.WorldPosition + Map.DirectionToVector(Direction.East) * 2].Occupant is BarSprite)
             {
                 Direction = Direction.East;
             }
-            else if (Map.Instance[stool.WorldPosition + Map.DirToVector(Direction.West) * 2].Occupant is Bar)
+            else if (Map.Instance[stool.WorldPosition + Map.DirectionToVector(Direction.West) * 2].Occupant is BarSprite)
             {
                 Direction = Direction.West;
             }

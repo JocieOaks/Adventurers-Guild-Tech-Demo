@@ -160,7 +160,7 @@ public class Map : MonoBehaviour, IDataPersistence
         }
     }
 
-    public static Vector3Int DirToVector(Direction direction)
+    public static Vector3Int DirectionToVector(Direction direction)
     {
         switch (direction)
         {
@@ -195,44 +195,6 @@ public class Map : MonoBehaviour, IDataPersistence
         Layer layer = Instance[position.z];
         position.z = layer.Origin.z;
         return position;
-    }
-
-    public static (Vector3Int, MapAlignment alignment) GetEdgeFromSceneCoordinates(Vector3 position, int level)
-    {
-        float x = (position.x - 154 + 2 * (position.y - 2 * level)) / 4f + 0.5f;
-        float y = position.y - 1 - x - 2 * level;
-
-        float val = x - (int)x;
-        int index = 0;
-
-        if ((int)x - x + 1 < val)
-        {
-            val = (int)x - x + 1;
-            index = 1;
-        }
-        if (y - (int)y < val)
-        {
-            val = y - (int)y;
-            index = 2;
-        }
-        if ((int)y - y + 1 < val)
-        {
-            index = 3;
-        }
-
-        switch (index)
-        {
-            case 0:
-                return (new Vector3Int((int)x, (int)y, level), MapAlignment.YEdge);
-            case 1:
-                return (new Vector3Int((int)x + 1, (int)y, level), MapAlignment.YEdge);
-            case 2:
-                return (new Vector3Int((int)x, (int)y, level), MapAlignment.XEdge);
-            case 3:
-                return (new Vector3Int((int)x, (int)y + 1, level), MapAlignment.XEdge);
-        }
-
-        return default;
     }
 
     public static RoomNode GetNodeFromSceneCoordinates(Vector3 position, float level)
@@ -410,14 +372,16 @@ public class Map : MonoBehaviour, IDataPersistence
     public float ApproximateDistance(Vector3Int startPosition, Vector3Int endPosition)
     {
         RoomNode end = Instance[endPosition];
+
+        if (!Sector.SameSector(Instance[startPosition], end))
+            return float.PositiveInfinity;
+
         Room startingRoom = Instance[startPosition].Room;
         Room endingRoom = end.Room;
 
         Dictionary<INode, float> g_score = new Dictionary<INode, float>();
 
         PriorityQueue<INode, float> nodeQueue = new PriorityQueue<INode, float>(false);
-
-        List<ConnectionNode> endingConnections = endingRoom.Doors;
 
         if (startingRoom == endingRoom)
         {
@@ -427,7 +391,7 @@ public class Map : MonoBehaviour, IDataPersistence
             nodeQueue.Push(end, score);
         }
 
-        foreach (ConnectionNode node in startingRoom.Doors)
+        foreach (ConnectingNode node in startingRoom.Connections)
         {
             float score = Vector3Int.Distance(startPosition, node.WorldPosition);
             g_score[node] = score;
@@ -442,13 +406,13 @@ public class Map : MonoBehaviour, IDataPersistence
                 return g_score[end];
             }
 
-            if (!currentNode.Traversible)
+            if (!currentNode.Traversable)
                 continue;
-            ConnectionNode current = currentNode as ConnectionNode;
+            ConnectingNode current = currentNode as ConnectingNode;
 
             float currentScore = g_score[current];
 
-            if (endingConnections.Contains(current))
+            if (current.AdjacentToRoom(endingRoom))
             {
                 float nextScore = currentScore + Vector3Int.Distance(current.WorldPosition, endPosition);
                 if (g_score.TryGetValue(end, out var score) && score < nextScore)
@@ -460,9 +424,9 @@ public class Map : MonoBehaviour, IDataPersistence
                 nodeQueue.Push(end, nextScore, true);
             }
 
-            List<ConnectionNode> nextNodes = current.ConnectionNodes;
+            List<ConnectingNode> nextNodes = current.ConnectionNodes;
 
-            foreach (ConnectionNode next in nextNodes)
+            foreach (ConnectingNode next in nextNodes)
             {
                 float nextScore = current.GetDistance(next) + currentScore;
                 if (g_score.TryGetValue(next, out var score) && score < nextScore)
@@ -573,11 +537,11 @@ public class Map : MonoBehaviour, IDataPersistence
         return CanPlaceWall(position.x, position.y, position.z, alignment);
     }
 
-    public ConnectionNode GetConnectionNode(Vector3Int position)
+    public ConnectingNode GetConnectionNode(Vector3Int position)
     {
-        if (Instance[position].TryGetNodeAs(Direction.South, out ConnectionNode southNode))
+        if (Instance[position].TryGetNodeAs(Direction.South, out ConnectingNode southNode))
             return southNode;
-        if (Instance[position].TryGetNodeAs(Direction.West, out ConnectionNode westNode))
+        if (Instance[position].TryGetNodeAs(Direction.West, out ConnectingNode westNode))
             return westNode;
         return null;
     }
@@ -595,23 +559,23 @@ public class Map : MonoBehaviour, IDataPersistence
         return GetCorner(position.x, position.y, position.z);
     }
 
-    public WallNode GetWall(MapAlignment alignment, Vector3Int position)
+    public WallBlocker GetWall(MapAlignment alignment, Vector3Int position)
     {
         return GetWall(alignment, position.x, position.y, position.z);
     }
 
-    public WallNode GetWall(MapAlignment alignment, int x, int y, int z)
+    public WallBlocker GetWall(MapAlignment alignment, int x, int y, int z)
     {
         if (!WithinConstraints(x, y, z, alignment))
             return null;
 
         if (alignment == MapAlignment.XEdge)
         {
-            return Instance[x, y, z].GetNodeAs<WallNode>(Direction.South);
+            return Instance[x, y, z].GetNodeAs<WallBlocker>(Direction.South);
         }
         else
         {
-            return Instance[x, y, z].GetNodeAs<WallNode>(Direction.West);
+            return Instance[x, y, z].GetNodeAs<WallBlocker>(Direction.West);
         }
     }
 
@@ -711,6 +675,9 @@ public class Map : MonoBehaviour, IDataPersistence
             new StairNode(stair.Position, stair.Direction);
         }
 
+        RoomNode.Invalid.Floor.Enabled = false;
+        RoomNode.Undefined.Floor.Enabled = false;
+
         Graphics.Instance.UpdateGraphics();
         Graphics.Instance.SetLevel();
         Graphics.Instance.Confirm();
@@ -725,9 +692,13 @@ public class Map : MonoBehaviour, IDataPersistence
     /// </summary>
     /// <param name="start">The <see cref="RoomNode"/> the <see cref="Pawn"/> is starting in</param>
     /// <param name="end">The <see cref="RoomNode"/> the <see cref="Pawn"/> wishes to end in.</param>
-    /// <returns>Returns a <see cref="IEnumerable"/> of <see cref="ConnectionNode"/>s designating the path for the <see cref="Pawn"/> to take, or null if no path exists.</returns>
+    /// <returns>Returns a <see cref="IEnumerable"/> of <see cref="ConnectingNode"/>s designating the path for the <see cref="Pawn"/> to take, or null if no path exists.</returns>
     public IEnumerator NavigateBetweenRooms(IWorldPosition start, IWorldPosition end)
     {
+
+        if (!Sector.SameSector(start, end))
+            yield return float.PositiveInfinity;
+
         Room startingRoom = start.Room;
         Room endingRoom = end.Room;
 
@@ -736,8 +707,6 @@ public class Map : MonoBehaviour, IDataPersistence
         Dictionary<(IWorldPosition, IWorldPosition), IEnumerator> paths = new Dictionary<(IWorldPosition, IWorldPosition), IEnumerator>();
 
         PriorityQueue<(IWorldPosition, IWorldPosition), float> nodeQueue = new PriorityQueue<(IWorldPosition, IWorldPosition), float>(false);
-
-        List<ConnectionNode> endingConnections = endingRoom.Doors;
 
         Vector3Int endPosition = end.WorldPosition;
 
@@ -748,7 +717,7 @@ public class Map : MonoBehaviour, IDataPersistence
             nodeQueue.Push((start, end), Vector3Int.Distance(start.WorldPosition, endPosition));
         }
 
-        foreach (ConnectionNode node in startingRoom.Doors)
+        foreach (ConnectingNode node in startingRoom.Connections)
         {
             nodeQueue.Push((start, node), Vector3Int.Distance(start.WorldPosition, node.WorldPosition) + Vector3Int.Distance(node.WorldPosition, endPosition));
         }
@@ -774,7 +743,7 @@ public class Map : MonoBehaviour, IDataPersistence
                         preceding = immediatePredecessor[receding];
                         while (preceding != start)
                         {
-                            foreach (RoomNode node in (preceding as ConnectionNode).GetPath(receding as ConnectionNode))
+                            foreach (RoomNode node in (preceding as ConnectingNode).GetPath(receding as ConnectingNode))
                                 yield return node;
 
                             receding = preceding;
@@ -798,7 +767,7 @@ public class Map : MonoBehaviour, IDataPersistence
                 }
             }
 
-            if (current is not ConnectionNode currentNode || !currentNode.Traversible)
+            if (current is not ConnectingNode currentNode || currentNode.Obstructed)
                 continue;
 
             float currentScore;
@@ -812,14 +781,14 @@ public class Map : MonoBehaviour, IDataPersistence
                 currentScore = g_score[currentNode];
             }
 
-            if (endingConnections.Contains(currentNode))
+            if (currentNode.AdjacentToRoom(endingRoom))
             {
                 nodeQueue.Push((currentNode, end), currentScore + Vector3Int.Distance(currentNode.WorldPosition, endPosition));
             }
 
-            List<ConnectionNode> nextNodes = currentNode.ConnectionNodes;
+            List<ConnectingNode> nextNodes = currentNode.ConnectionNodes;
 
-            foreach (ConnectionNode next in nextNodes)
+            foreach (ConnectingNode next in nextNodes)
             {
                 float nextScore = currentNode.GetDistance(next) + currentScore;
                 if (g_score.TryGetValue(next, out var score))
@@ -891,7 +860,7 @@ public class Map : MonoBehaviour, IDataPersistence
                 node1 = Instance[position.x - 1, position.y, position.z];
                 break;
         }
-        new Door(node1, node2, true, position, alignment);
+        new DoorConnector(node1, node2, position);
     }
 
     public void RemoveDoor(Vector3Int position, MapAlignment alignment)
@@ -900,7 +869,7 @@ public class Map : MonoBehaviour, IDataPersistence
         int y = position.y;
         int z = position.z;
 
-        ConnectionNode door;
+        ConnectingNode door;
         if (alignment == MapAlignment.XEdge)
         {
             if (!Instance[x, y, z].TryGetNodeAs(Direction.South, out door))
@@ -914,13 +883,6 @@ public class Map : MonoBehaviour, IDataPersistence
                 if (!Instance[x, y - 1, z].TryGetNodeAs(Direction.West, out door))
                     if (!Instance[x, y + 1, z].TryGetNodeAs(Direction.West, out door))
                         return;
-        }
-
-        (Room room1, Room room2) = door.Rooms;
-        room1.RemoveConnection(door);
-        if (room1 != room2)
-        {
-            room2.RemoveConnection(door);
         }
 
         door.Disconnect();
@@ -977,6 +939,7 @@ public class Map : MonoBehaviour, IDataPersistence
             }
         }
 
+        int arrayLength = layerNumber * MapWidth * MapLength;
         SerializableNode[] mapData = new SerializableNode[layerNumber * MapWidth * MapLength];
         for (int i = 0; i < layerNumber; i++)
         {
@@ -997,14 +960,14 @@ public class Map : MonoBehaviour, IDataPersistence
 
                         if (checkSouth)
                         {
-                            if (Instance[j, k, 0, i].TryGetNodeAs(Direction.South, out Door door))
+                            if (Instance[j, k, 0, i].TryGetNodeAs(Direction.South, out DoorConnector door))
                             {
                                 gameData.Doors.Add(new SerializableDoor(door));
                             }
                         }
                         if (checkWest)
                         {
-                            if (Instance[j, k, 0, i].TryGetNodeAs(Direction.West, out Door door))
+                            if (Instance[j, k, 0, i].TryGetNodeAs(Direction.West, out DoorConnector door))
                             {
                                 gameData.Doors.Add(new SerializableDoor(door));
                             }
@@ -1014,6 +977,8 @@ public class Map : MonoBehaviour, IDataPersistence
             }
         }
 
+        System.Array.Resize(ref mapData, arrayLength);
+
         gameData.Map = mapData;
         gameData.MapWidth = MapWidth;
         gameData.MapLength = MapLength;
@@ -1021,12 +986,12 @@ public class Map : MonoBehaviour, IDataPersistence
         gameData.Layers = layerNumber;
     }
 
-    public void SetWall(MapAlignment alignment, Vector3Int position, WallNode wall)
+    public void SetWall(MapAlignment alignment, Vector3Int position, WallBlocker wall)
     {
         SetWall(alignment, position.x, position.y, position.z, wall);
     }
 
-    public void SetWall(MapAlignment alignment, int x, int y, int z, WallNode wall)
+    public void SetWall(MapAlignment alignment, int x, int y, int z, WallBlocker wall)
     {
         if (alignment == MapAlignment.XEdge)
         {

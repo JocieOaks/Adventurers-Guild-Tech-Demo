@@ -14,7 +14,7 @@ public abstract class LinearSpriteObject : SpriteObject
     /// <param name="sprites">The inititial <see cref="UnityEngine.Sprite"/> to set, depending on the direction. Has only one sprite if undirected.
     /// This is generally the forward most sprite for the <see cref="SpriteObject"/>.
     /// <param name="direction">The direction the <see cref="LinearSpriteObject"/> is facing.</param>
-    /// <param name="position">The world position in <see cref="Map"/> coordinates of the <see cref="LinearSpriteObject"/>. For <see cref="LinearSpriteObject"/>s that extend over multiple <see cref="RoomNode"/>s, 
+    /// <param name="position">The <see cref="IWorldPosition.WorldPosition"/> of the  <see cref="LinearSpriteObject"/>. For <see cref="LinearSpriteObject"/>s that extend over multiple <see cref="RoomNode"/>s, 
     /// this is the coordinate of the forward most <see cref="RoomNode"/> the object occupies.</param>
     /// <param name="alignment">The <see cref="MapAlignment"/> of the <see cref="LinearSpriteObject"/>.</param>
     /// <param name="name">The name of the <see cref="LinearSpriteObject"/>.</param>

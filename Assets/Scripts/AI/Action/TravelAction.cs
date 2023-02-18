@@ -30,7 +30,7 @@ public class TravelAction : TaskAction
     {
         foreach(INode node in WalkingPath)
         {
-            if (!node.Traversible)
+            if (!node.Traversable)
             {
                 GameManager.MapChanged -= OnMapEdited;
                 return -1;
@@ -110,7 +110,7 @@ public class TravelAction : TaskAction
             {
                 pawn.CurrentStep = new WalkStep(roomNode.SurfacePosition, pawn, pawn.CurrentStep);
             }
-            else if(node is ConnectionNode connection)
+            else if(node is ConnectingNode connection)
             {
                 pawn.CurrentStep = new TraverseStep(pawn.CurrentNode, connection, pawn, pawn.CurrentStep);
             }

@@ -24,17 +24,17 @@ public struct NavigateJob : IJob
         }
         else
         {
-            if (!endNode.Traversible)
+            if (!endNode.Traversable)
             {
                 foreach (RoomNode node in new List<RoomNode> { endNode.GetNodeAs<RoomNode>(Direction.North), endNode.GetNodeAs<RoomNode>(Direction.South), endNode.GetNodeAs<RoomNode>(Direction.West), endNode.GetNodeAs<RoomNode>(Direction.East), endNode.NorthEast, endNode.NorthWest, endNode.SouthEast, endNode.SouthWest })
                 {
-                    if (node != null && node.Traversible)
+                    if (node != null && node.Traversable)
                     {
                         endNode = node;
                         break;
                     }
                 }
-                if (!endNode.Traversible)
+                if (!endNode.Traversable)
                     return;
             }
 
@@ -60,7 +60,7 @@ public struct NavigateJob : IJob
         for (int i = 0; i < pathLength; i++)
         {
             INode node = nodes.Pop();
-            walkingPath[i] = (node is ConnectionNode, node.WorldPosition);
+            walkingPath[i] = (node is ConnectingNode, node.WorldPosition);
         }
     }
 

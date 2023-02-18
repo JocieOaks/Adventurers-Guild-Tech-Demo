@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
@@ -32,9 +31,9 @@ public struct SerializableDoor
     public Vector3Int Position;
     public MapAlignment Alignment;
 
-    public SerializableDoor(Door door)
+    public SerializableDoor(DoorConnector door)
     {
-        (Position, Alignment) = door.Wall.WallSprite.GetPosition;
+        (Position, Alignment) = door.WallNode.WallSprite.GetPosition;
     }
 }
 
@@ -98,12 +97,12 @@ public struct SerializableNode
         {
             _south = NodeType.RoomNode;
         }
-        else if (node.TryGetNodeAs<Door>(Direction.South))
+        else if (node.TryGetNodeAs<DoorConnector>(Direction.South))
         {
             _south = NodeType.Wall;
             checkSouth = true;
         }
-        else if (node.TryGetNodeAs<WallNode>(Direction.South))
+        else if (node.TryGetNodeAs<WallBlocker>(Direction.South))
         {
             _south = NodeType.Wall;
         }
@@ -116,12 +115,12 @@ public struct SerializableNode
         {
             _west = NodeType.RoomNode;
         }
-        else if (node.TryGetNodeAs<Door>(Direction.West))
+        else if (node.TryGetNodeAs<DoorConnector>(Direction.West))
         {
             _west = NodeType.Wall;
             checkWest = true;
         }
-        else if (node.TryGetNodeAs<WallNode>(Direction.West))
+        else if (node.TryGetNodeAs<WallBlocker>(Direction.West))
         {
             _west = NodeType.Wall;
         }
@@ -142,7 +141,7 @@ public struct SerializableNode
         switch (_south)
         {
             case NodeType.Wall:
-                WallNode wall = new WallNode(node.WorldPosition, MapAlignment.XEdge);
+                WallBlocker wall = new WallBlocker(node.WorldPosition, MapAlignment.XEdge);
                 node.SetNode(Direction.South, wall);
                 break;
             case NodeType.Null:
@@ -155,7 +154,7 @@ public struct SerializableNode
         switch (_west)
         {
             case NodeType.Wall:
-                WallNode wall = new WallNode(node.WorldPosition, MapAlignment.YEdge);
+                WallBlocker wall = new WallBlocker(node.WorldPosition, MapAlignment.YEdge);
                 node.SetNode(Direction.West,wall);
                 break;
             case NodeType.Null:

@@ -2,20 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
-using Unity.Profiling;
-using UnityEditor.Experimental.GraphView;
 
 /// <summary>
-/// Class <c>Room</c> models a closed space within a <see cref="Map"/>.
+/// Class <see cref="Room"/> models a closed space within a <see cref="Map"/>.
 /// </summary>
 public class Room
 {
 
     protected RoomNode[,] _nodes;
+    protected List<Pawn> _occupants = new List<Pawn>();
     const float RAD2 = 1.41421356237f;
+    List<ConnectingNode> _connections;
     bool _updating = false;
+
     /// <summary>
-    /// Initializes a new <see cref="Room"/> object.
+    /// Initializes a new empty <see cref="Room"/> object.
     /// </summary>
     /// <param name="x">The width of the <see cref="Room"/>.</param>
     /// <param name="y">The length of the <see cref="Room"/>.</param>
@@ -24,39 +25,59 @@ public class Room
     {
         _nodes = new RoomNode[x, y];
         Origin = originPosition;
-        Doors = new List<ConnectionNode>();
+        _connections = new List<ConnectingNode>();
     }
 
+    /// <summary>
+    /// Initializes a new <see cref="Room"/> object based on an array of <see cref="RoomNode"/>s.
+    /// </summary>
+    /// <param name="nodes">An array of <see cref="RoomNode"/>s that the <see cref="Room"/> contains.</param>
+    /// <param name="originPosition">The <see cref="Map"/> position of the lower left corner of the room.</param>
     public Room(RoomNode[,] nodes, Vector3Int originPosition)
     {
         _nodes = nodes;
         Origin = originPosition;
-        Doors = new List<ConnectionNode>();
+        _connections = new List<ConnectingNode>();
     }
 
-    ///<value>Property <c>Doors</c> gets the <see cref="List{T}"/> of all <see cref="ConnectionNode"/>s accessible from a <see cref="Room"/>.</value>
-    public List<ConnectionNode> Doors { get; set; }
+    /// <value>Returns an <see cref="IEnumerable"/> of all the <see cref="ConnectingNode"/>s that border this <see cref="Room"/>.</value>
+    public IEnumerable<ConnectingNode> Connections => _connections;
 
+    /// <value>The vertical height of the <see cref="Room"/>.</value>
     public int Height { get; } = 6;
-    ///<value>Property <c>Length</c> represents the length of the room.</value>
+
+    ///<value>The length of the <see cref="Room"/> in the y-coordinates.</value>
     public int Length => _nodes.GetLength(1);
 
-    ///<value>Property <c>MaxPoint</c> represents the coordinates of the maximum x and y value in the <see cref="Room"/>s array.
+    ///<value>The coordinates of the maximum x and y value in the <see cref="Room"/>s array.
     ///The <see cref="RoomNode"/> corresponding to the MaxPoint is not necessarily inside of the Room.</value>
     public (int x, int y) MaxPoint => (Origin.x + Width, Origin.y + Length);
 
-    ///<value>Property <c>MinPoint</c> represents the coordinates of the minimum x and y value in the <see cref="Room"/>s array.
-    ///The <see cref="RoomNode"/> corresponding to the OriginPoint is not necessarily inside of the Room.</value>
+    ///<value>The coordinates of the minimum x and y value in the <see cref="Room"/>s array.
+    ///The <see cref="RoomNode"/> corresponding to the MinPoint is not necessarily inside of the Room.</value>
     public (int x, int y) MinPoint => (Origin.x, Origin.y);
 
-    public IEnumerable Occupants => _occupants;
-    ///<value>Property <c>Origin</c> gives the Vector3Int origin of the <see cref="Room"/>.</value>
+    public IEnumerable<RoomNode> Nodes
+    {
+        get
+        {
+            for (int i = 0; i < Width; i++)
+                for (int j = 0; j < Length; j++)
+                {
+                    if (_nodes[i, j] != null && _nodes[i, j] != RoomNode.Undefined)
+                        yield return _nodes[i, j];
+                }
+        }
+    }
+
+    /// <value>An <see cref="IEnumerable"/> that iterates over all of <see cref="Pawn"/>s that are currently in the <see cref="Room"/>.</value>
+    public IEnumerable<Pawn> Occupants => _occupants;
+
+    ///<value>The <see cref="Map"/> coordinates of the origin point of the <see cref="Room"/>.</value>
     public Vector3Int Origin { get; protected set; }
 
-    ///<value>Property <c>Width</c> represents the width of the room.</value>
+    ///<value>The width of the <see cref="Room"/> in the x-coordinates.</value>
     public int Width => _nodes.GetLength(0);
-
-    protected List<Pawn> _occupants { get; } = new List<Pawn>();
 
     ///<value>Gets the <see cref="RoomNode"/> at a specific location within the <see cref="Room"/> grid. Returns null if there is no <see cref="RoomNode"/> at that location.</value>
     public virtual RoomNode this[int x, int y]
@@ -70,20 +91,24 @@ public class Room
         }
     }
 
-    public void AddConnection(ConnectionNode connection)
+    /// <summary>
+    /// Adds a new <see cref="ConnectingNode"/> that border's the <see cref="Room"/>.
+    /// </summary>
+    /// <param name="connection">The new <see cref="ConnectingNode"/> that connects to the <see cref="Room"/>.</param>
+    public void AddConnection(ConnectingNode connection)
     {
-        if (Doors.Contains(connection))
+        if (_connections.Contains(connection))
             return;
 
-        foreach (ConnectionNode door in Doors)
+        foreach (ConnectingNode door in _connections)
         {
             ConstructPaths(door, connection);
         }
-        Doors.Add(connection);
+        _connections.Add(connection);
     }
 
     /// <summary>
-    /// Determines if two <see cref="RoomNode"/>s are directly accessible to one another and thus should be part of the same <see cref="Room"/>.
+    /// Determines if two <see cref="RoomNode"/>s are directly accessible to one another without traversing a <see cref="ConnectingNode"/> and thus should be part of the same <see cref="Room"/>.
     /// </summary>
     /// <param name="node1">First <see cref="RoomNode"/> being evaluated.</param>
     /// <param name="node2">Second <see cref="RoomNode"/> being eveluated.</param>
@@ -141,12 +166,20 @@ public class Room
         }
     }
 
+    /// <summary>
+    /// Adds a <see cref="Pawn"/> to the list of occupants in the <see cref="Room"/>.
+    /// </summary>
+    /// <param name="pawn">The <see cref="Pawn"/> entering the <see cref="Room"/>.</param>
     public void EnterRoom(Pawn pawn)
     {
         _occupants.Add(pawn);
         pawn.Social.EnterRoom(this);
     }
 
+    /// <summary>
+    /// Takes another <see cref="Room"/> and combine's it with this <see cref="Room"/>, expanding the size of the <see cref="RoomNode"/> array if necessary.
+    /// </summary>
+    /// <param name="otherRoom">The other <see cref="Room"/> being combined with this <see cref="Room"/>.</param>
     public void EnvelopRoom(Room otherRoom)
     {
         bool reconfigure = false;
@@ -208,11 +241,15 @@ public class Room
                 }
             }
         }
-        Doors.AddRange(otherRoom.Doors.Except(Doors));
+        _connections.AddRange(otherRoom._connections.Except(_connections));
 
         RegisterForUpdate();
     }
 
+    /// <summary>
+    /// Removes a <see cref="Pawn"/> from the list of occupants of the <see cref="Room"/>.
+    /// </summary>
+    /// <param name="pawn">The <see cref="Pawn"/> exiting the <see cref="Room"/>.</param>
     public void ExitRoom(Pawn pawn)
     {
         _occupants.Remove(pawn);
@@ -228,16 +265,23 @@ public class Room
         return Origin + node.RoomPosition;
     }
 
+    /// <summary>
+    /// Checks if a given <see cref="Pawn"/> is within this <see cref="Room"/>.
+    /// </summary>
+    /// <param name="pawn">The <see cref="Pawn"/> being checked.</param>
+    /// <returns>Retunrs true if the <c>pawn</c> is in the <see cref="Room"/>.</returns>
     public bool IsInRoom(Pawn pawn)
     {
         return _occupants.Any(x => x == pawn);
     }
+
     /// <summary>
-    /// Evaluates the shortest route from start to end.
+    /// Evaluates the shortest route from one <see cref="IWorldPosition"/> to another, where both are located within this <see cref="Room"/>.
     /// </summary>
-    /// <param name="start">The starting position to navigate from.</param>
-    /// <param name="end">The ending position to navigate to.</param>
-    /// <returns>The shortest path to the end as a list of steps, or default if no path exists.</returns>
+    /// <param name="start">The starting <see cref="IWorldPosition"/>.</param>
+    /// <param name="end">The ending <see cref="IWorldPosition"/>.</param>
+    /// <returns>The <see cref="IEnumerator"/> first returns the distance from <c>start</c> to <c>end</c>, and then all the steps between the two, in reverse order.
+    /// The initial distance may be <see cref="float.PositiveInfinity"/> if no path exists between the two <see cref="IWorldPosition"/>.</returns>
     public IEnumerator Navigate(IWorldPosition start, IWorldPosition end)
     {
         PriorityQueue<RoomNode, float> nodeQueue = new PriorityQueue<RoomNode, float>(false);
@@ -254,13 +298,13 @@ public class Room
 
         RoomNode current;
 
-        if (start.Node is ConnectionNode startConnection)
+        if (start.Node is ConnectingNode startConnection)
         {
-            if (startConnection.SingleRoom)
+            if (startConnection.IsWithinSingleRoom)
             {
-                foreach(RoomNode node in startConnection.Nodes)
+                foreach(RoomNode node in startConnection.AdjacentNodes)
                 {
-                    if(node.Traversible)
+                    if(node.Traversable)
                     {
                         nodeQueue.Push(node, 0);
                         (int nodex, int nodey) = node.Coords;
@@ -276,7 +320,7 @@ public class Room
             else
             {
                 current = startConnection.GetRoomNode(this);
-                if (!current.Traversible)
+                if (!current.Traversable)
                     yield return float.PositiveInfinity;
             }
         }
@@ -359,34 +403,56 @@ public class Room
 
     }
 
-    public void RemoveConnection(ConnectionNode connection, bool removeFromList = true)
+    /// <summary>
+    /// Registers the <see cref="Room"/> to be updated by the <see cref="GameManager"/> once all changes to the <see cref="Map"/> have completed.
+    /// </summary>
+    public void RegisterForUpdate()
     {
-        foreach (ConnectionNode door in Doors)
+        if (!_updating)
+        {
+            GameManager.MapChangingFirst += UpdatePaths;
+            _updating = true;
+        }
+    }
+
+    /// <summary>
+    /// Removes a <see cref="ConnectingNode"/> from the list of connections and disconnects it from all adjoining connections.
+    /// </summary>
+    /// <param name="connection">The <see cref="ConnectingNode"/> being removed.</param>
+    /// <param name="removeFromList">Determines whether <c>connection</c> should be actually removed from the list. This is only false when <see cref="Connections"/> is being iterated over, 
+    /// and thus cannot be modified. It is expected that <c>connection</c> will be removed from the list afterwards.</param>
+    public void RemoveConnection(ConnectingNode connection, bool removeFromList = true)
+    {
+        foreach (ConnectingNode door in _connections)
         {
             door.RemoveAdjoiningConnection(connection);
             connection.RemoveAdjoiningConnection(door);
         }
         if (removeFromList)
-            Doors.Remove(connection);
+            _connections.Remove(connection);
     }
 
+    /// <summary>
+    /// Replaces a <see cref="RoomNode"/> with another <see cref="RoomNode"/> in the same position. This is primarily for when a <see cref="RoomNode"/> is changed into a derived class.
+    /// </summary>
+    /// <param name="x">The x position of the <see cref="RoomNode"/> relative to <see cref="Origin"/>.</param>
+    /// <param name="y">The y position of the <see cref="RoomNode"/> relative to <see cref="Origin"/>.</param>
+    /// <param name="node">The <see cref="RoomNode"/> replacing the <see cref="RoomNode"/> that was previously at this position.</param>
     public void ReplaceNode(int x, int y, RoomNode node)
     {
         _nodes[x, y] = node;
     }
-    public IEnumerable<RoomNode> Nodes
-    {
-        get
-        {
-            for (int i = 0; i < Width; i++)
-                for (int j = 0; j < Length; j++)
-                {
-                    if (_nodes[i, j] != null && _nodes[i, j] != RoomNode.Undefined)
-                        yield return _nodes[i, j];
-                }
-        }
-    }
 
+    /// <summary>
+    /// Creates a second <see cref="Room"/> from out of this <see cref="Room"/>. Used for when the <see cref="Room"/> is split by <see cref="IDividerNode"/>s.
+    /// </summary>
+    /// <param name="roomDesignation">An array of ints that flag which <see cref="RoomNode"/>s should be kept as part of this <see cref="Room"/> and which should be split off into another <see cref="Room"/>.</param>
+    /// <param name="flag">The int value representing the <see cref="RoomNode"/>s being split off into another <see cref="Room"/>.</param>
+    /// <param name="originX">The minimum x value of the new <see cref="Room"/> relative to <see cref="Origin"/>.</param>
+    /// <param name="originY">The minimum y value of the new <see cref="Room"/> relative to <see cref="Origin"/>.</param>
+    /// <param name="endX">The maximum x value of the new <see cref="Room"/> relative to <see cref="Origin"/>.</param>
+    /// <param name="endY">The maximum y value of the new <see cref="Room"/> relative to <see cref="Origin"/>.</param>
+    /// <returns>Returns the new <see cref="Room"/> created from this <see cref="Room"/>.</returns>
     protected virtual Room CutRoom(int[,] roomDesignation, int flag, int originX, int originY, int endX, int endY)
     {
         RoomNode[,] nodes = new RoomNode[endX - originX, endY - originY];
@@ -406,15 +472,13 @@ public class Room
 
         return newRoom;
     }
-    public void RegisterForUpdate()
-    {
-        if (!_updating)
-        {
-            GameManager.MapChangingFirst += UpdatePaths;
-            _updating = true;
-        }
-    }
 
+    /// <summary>
+    /// Splits the <see cref="Room"/> into two different <see cref="Room"/>s based two <see cref="RoomNode"/>s that are in different <see cref="Room"/>s.
+    /// </summary>
+    /// <param name="a">The first <see cref="RoomNode"/>.</param>
+    /// <param name="b">The second <see cref="RoomNode"/>.</param>
+    /// <returns>Returns the new <see cref="Room"/> created from this <see cref="Room"/>.</returns>
     protected virtual Room SplitOffRooms(RoomNode a, RoomNode b)
     {
         int[,] roomDesignation = new int[Width, Length];
@@ -521,12 +585,12 @@ public class Room
 
 
     /// <summary>
-    /// Creates the paths between two <see cref="ConnectionNode"/>s. Because the pathways are made to be natural to the way people walk
+    /// Creates the paths between two <see cref="ConnectingNode"/>s. Because the pathways are made to be natural to the way people walk
     /// reversing them looks odd, so the reverse path is evaluated separately.
     /// </summary>
-    /// <param name="connection1">The first <see cref="ConnectionNode"/></param>
-    /// <param name="connection2">The second <see cref="ConnectionNode"/></param>
-    void ConstructPaths(ConnectionNode connection1, ConnectionNode connection2)
+    /// <param name="connection1">The first <see cref="ConnectingNode"/></param>
+    /// <param name="connection2">The second <see cref="ConnectingNode"/></param>
+    void ConstructPaths(ConnectingNode connection1, ConnectingNode connection2)
     {
         List<RoomNode> path = new List<RoomNode>();
         IEnumerator navigationIter = Navigate(connection1, connection2);
@@ -561,6 +625,10 @@ public class Room
             connection2.RemoveAdjoiningConnection(connection1);
         }
     }
+
+    /// <summary>
+    /// Update's the pathways between the <see cref="ConnectingNode"/>s that border this <see cref="Room"/>.
+    /// </summary>
     void UpdatePaths()
     {
         foreach(RoomNode node in Nodes)
@@ -568,9 +636,9 @@ public class Room
             node.Reserved = false;
         }
 
-        Doors.RemoveAll(x =>
+        _connections.RemoveAll(x =>
         {
-            if (!x.ConnectedToRoom(this))
+            if (!x.AdjacentToRoom(this))
             {
                 RemoveConnection(x, false);
                 x.RegisterRooms();
@@ -579,12 +647,12 @@ public class Room
             return false;
         });
 
-        List<ConnectionNode> doorsToBeEvaluated = new List<ConnectionNode>(Doors);
+        List<ConnectingNode> doorsToBeEvaluated = new List<ConnectingNode>(_connections);
 
-        foreach (ConnectionNode door in Doors)
+        foreach (ConnectingNode door in _connections)
         {
             doorsToBeEvaluated.Remove(door);
-            foreach (ConnectionNode door2 in doorsToBeEvaluated)
+            foreach (ConnectingNode door2 in doorsToBeEvaluated)
             {
                 ConstructPaths(door, door2);
             }

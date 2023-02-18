@@ -494,7 +494,7 @@ public class Graphics : MonoBehaviour
 
     public void Demolish(SpriteObject spriteObject)
     {
-        if (spriteObject is Wall wall && wall.IsDoor)
+        if (spriteObject is WallSprite wall && wall.IsDoor)
         {
             wall.RemoveDoor();
         }
@@ -569,9 +569,9 @@ public class Graphics : MonoBehaviour
 
     public void PlaceDoor(Vector3Int position, MapAlignment alignment, AccentMaterial material)
     {
-        if (Wall.CheckDoor(position, alignment))
+        if (WallSprite.CheckDoor(position, alignment))
         {
-            Wall.CreateDoor(position, alignment);
+            WallSprite.CreateDoor(position, alignment);
         }
     }
 

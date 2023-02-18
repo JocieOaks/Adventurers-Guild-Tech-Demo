@@ -29,9 +29,9 @@ public class GUIInputs : MonoBehaviour
     public void WallOnClick()
     {
         BuildFunctions.BuildMode = BuildMode.Line;
-        BuildFunctions.CreatePoint = Wall.CreateWall;
-        BuildFunctions.CheckPoint = Wall.CheckObject;
-        BuildFunctions.HighlightPoint = Wall.PlaceHighlight;
+        BuildFunctions.CreatePoint = WallSprite.CreateWall;
+        BuildFunctions.CheckPoint = WallSprite.CheckObject;
+        BuildFunctions.HighlightPoint = WallSprite.PlaceHighlight;
         GUI.Instance.CloseObjects();
     }
 
@@ -44,18 +44,18 @@ public class GUIInputs : MonoBehaviour
     public void StairOnClick()
     {
         BuildFunctions.BuildMode = BuildMode.Area;
-        BuildFunctions.CreatePoint = Stair.CreateStair;
-        BuildFunctions.CheckPoint = Stair.CheckObject;
-        BuildFunctions.HighlightPoint = Stair.PlaceHighlight;
+        BuildFunctions.CreatePoint = StairSprite.CreateStair;
+        BuildFunctions.CheckPoint = StairSprite.CheckObject;
+        BuildFunctions.HighlightPoint = StairSprite.PlaceHighlight;
         GUI.Instance.CloseObjects();
     }
 
     public void FloorOnClick()
     {
         BuildFunctions.BuildMode = BuildMode.Area;
-        BuildFunctions.CreatePoint = Floor.CreateFloor;
-        BuildFunctions.HighlightPoint = Floor.PlaceHighlight;
-        BuildFunctions.CheckPoint = Floor.CheckObject;
+        BuildFunctions.CreatePoint = FloorSprite.CreateFloor;
+        BuildFunctions.HighlightPoint = FloorSprite.PlaceHighlight;
+        BuildFunctions.CheckPoint = FloorSprite.CheckObject;
         GUI.Instance.CloseObjects();
     }
 
@@ -67,50 +67,50 @@ public class GUIInputs : MonoBehaviour
     public void BedOnClick()
     {
         BuildFunctions.BuildMode = BuildMode.Point;
-        BuildFunctions.CreatePoint = Bed.CreateBed;
-        BuildFunctions.CheckPoint = Bed.CheckObject;
-        BuildFunctions.HighlightPoint = Bed.PlaceHighlight;
+        BuildFunctions.CreatePoint = BedSprite.CreateBed;
+        BuildFunctions.CheckPoint = BedSprite.CheckObject;
+        BuildFunctions.HighlightPoint = BedSprite.PlaceHighlight;
     }
 
     public void ChairOnClick()
     {
         BuildFunctions.BuildMode = BuildMode.Point;
         BuildFunctions.Direction = Direction.West;
-        BuildFunctions.CreatePoint = Chair.CreateChair;
-        BuildFunctions.CheckPoint = Chair.CheckObject;
-        BuildFunctions.HighlightPoint = Chair.PlaceHighlight;
+        BuildFunctions.CreatePoint = ChairSprite.CreateChair;
+        BuildFunctions.CheckPoint = ChairSprite.CheckObject;
+        BuildFunctions.HighlightPoint = ChairSprite.PlaceHighlight;
     }
 
     public void StoolOnClick()
     {
         BuildFunctions.BuildMode = BuildMode.Point;
-        BuildFunctions.CreatePoint = Stool.CreateStool;
-        BuildFunctions.CheckPoint = Stool.CheckObject;
-        BuildFunctions.HighlightPoint = Stool.PlaceHighlight;
+        BuildFunctions.CreatePoint = StoolSprite.CreateStool;
+        BuildFunctions.CheckPoint = StoolSprite.CheckObject;
+        BuildFunctions.HighlightPoint = StoolSprite.PlaceHighlight;
     }
 
     public void TableRoundOnClick()
     {
         BuildFunctions.BuildMode = BuildMode.Point;
-        BuildFunctions.CreatePoint = TableRound.CreateTableRound;
-        BuildFunctions.CheckPoint = TableRound.CheckObject;
-        BuildFunctions.HighlightPoint = TableRound.PlaceHighlight;
+        BuildFunctions.CreatePoint = TableRoundSprite.CreateTableRound;
+        BuildFunctions.CheckPoint = TableRoundSprite.CheckObject;
+        BuildFunctions.HighlightPoint = TableRoundSprite.PlaceHighlight;
     }
 
     public void TableSquareOnClick()
     {
         BuildFunctions.BuildMode = BuildMode.Point;
-        BuildFunctions.CreatePoint = TableSquare.CreateTableSquare;
-        BuildFunctions.CheckPoint = TableSquare.CheckObject;
-        BuildFunctions.HighlightPoint = TableSquare.PlaceHighlight;
+        BuildFunctions.CreatePoint = TableSquareSprite.CreateTableSquare;
+        BuildFunctions.CheckPoint = TableSquareSprite.CheckObject;
+        BuildFunctions.HighlightPoint = TableSquareSprite.PlaceHighlight;
     }
 
     public void BarOnClick()
     {
         BuildFunctions.BuildMode = BuildMode.Line;
-        BuildFunctions.CreatePoint = Bar.CreateBar;
-        BuildFunctions.CheckPoint = Bar.CheckObject;
-        BuildFunctions.HighlightPoint = Bar.PlaceHighlight;
+        BuildFunctions.CreatePoint = BarSprite.CreateBar;
+        BuildFunctions.CheckPoint = BarSprite.CheckObject;
+        BuildFunctions.HighlightPoint = BarSprite.PlaceHighlight;
     }
 
     public void DemolishOnClick()

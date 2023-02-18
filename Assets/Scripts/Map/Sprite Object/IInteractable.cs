@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
 
 /// <summary>
 /// Interface for <see cref="SpriteObject"/>s that can be interacted with by <see cref="Pawn"/>s.

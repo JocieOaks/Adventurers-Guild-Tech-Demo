@@ -3,9 +3,9 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 /// <summary>
-/// The <see cref="Wall"/> class is the <see cref="SpriteObject"/> that corresponds to <see cref="WallNode"/>.
+/// The <see cref="WallSprite"/> class is the <see cref="SpriteObject"/> that corresponds to <see cref="WallBlocker"/>.
 /// </summary>
-public class Wall : LinearSpriteObject
+public class WallSprite : LinearSpriteObject
 {
     static readonly Vector2[] _colliderXBase = new Vector2[]
     {
@@ -62,22 +62,22 @@ public class Wall : LinearSpriteObject
 
     bool _isFullWall;
 
-    Wall _nextDoorWall;
+    WallSprite _nextDoorWall;
 
     SortingGroup _sortingGroup;
 
-    WallNode _wall;
+    WallBlocker _wall;
 
     WallMaterial _wallMaterial;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="Wall"/> that does not have a corresponding <see cref="WallNode"/>.
+    /// Initializes a new instance of <see cref="WallSprite"/> that does not have a corresponding <see cref="WallBlocker"/>.
     /// </summary>
     /// <param name="position">The position of the world sprite in the <see cref="Map"/> coordinate system.</param>
     /// <param name="alignment">Vertical or horizontal alignment of the wall.</param>
     /// <param name="height">Height of the wall.</param>
     /// <param name="wallMaterial"><see cref="global::WallMaterial"/> of the wall.</param>
-    public Wall(Vector3Int position, MapAlignment alignment, int height, WallMaterial wallMaterial) :
+    public WallSprite(Vector3Int position, MapAlignment alignment, int height, WallMaterial wallMaterial) :
         base(height, new Sprite[] { Graphics.WallSprites[GetSpriteType(position, 0, alignment), wallMaterial], Graphics.WallSprites[GetSpriteType(position, 0, alignment), wallMaterial] }, alignment == MapAlignment.XEdge ? Direction.North : Direction.East, position, "Wall", new Vector3Int(alignment == MapAlignment.XEdge ? 1 : 0, alignment == MapAlignment.YEdge ? 1 : 0, height), false)
     {
         _wallMaterial = wallMaterial;
@@ -110,26 +110,26 @@ public class Wall : LinearSpriteObject
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="Wall"/> that already has a corresponding <see cref="WallNode"/>.
+    /// Initializes a new instance of <see cref="WallSprite"/> that already has a corresponding <see cref="WallBlocker"/>.
     /// </summary>
     /// <param name="position">The position of the world sprite in the <see cref="Map"/> coordinate system.</param>
     /// <param name="alignment">Vertical or horizontal alignment of the wall.</param>
     /// <param name="height">Height of the wall.</param>
     /// <param name="wallMaterial"><see cref="global::WallMaterial"/> of the wall.</param>
-    /// <param name="wall">The <see cref="WallNode"/> that this <see cref="Wall"/> corresponds to.</param>
-    public Wall(Vector3Int position, MapAlignment alignment, int height, WallMaterial wallMaterial, WallNode wall) : this(position, alignment, height, wallMaterial)
+    /// <param name="wall">The <see cref="WallBlocker"/> that this <see cref="WallSprite"/> corresponds to.</param>
+    public WallSprite(Vector3Int position, MapAlignment alignment, int height, WallMaterial wallMaterial, WallBlocker wall) : this(position, alignment, height, wallMaterial)
     {
         _wall = wall;
         OnConfirmingObjects();
     }
 
-    /// <value>The <see cref="AccentMaterial"/> for a door, if the <see cref="Wall"/> has one.</value>
+    /// <value>The <see cref="AccentMaterial"/> for a door, if the <see cref="WallSprite"/> has one.</value>
     public static AccentMaterial DoorMaterial { get; private set; } = AccentMaterial.Stone;
 
-    /// <value>The height of the <see cref="Wall"/>.</value>
+    /// <value>The height of the <see cref="WallSprite"/>.</value>
     public static int WallHeight { get; private set; } = 6;
 
-    /// <value>The <see cref="global::WallMaterial"/> the <see cref="Wall"/> is made of, determining its <see cref="Sprite"/>s.</value>
+    /// <value>The <see cref="global::WallMaterial"/> the <see cref="WallSprite"/> is made of, determining its <see cref="Sprite"/>s.</value>
     public static WallMaterial WallMaterial { get; private set; } = WallMaterial.Brick;
 
     /// <inheritdoc/>
@@ -161,13 +161,13 @@ public class Wall : LinearSpriteObject
         }
     }
 
-    /// <value>Returns the position in <see cref="Map"/> coordinates and <see cref="MapAlignment"/> of the <see cref="Wall"/>.</value>
+    /// <value>Returns the position in <see cref="Map"/> coordinates and <see cref="MapAlignment"/> of the <see cref="WallSprite"/>.</value>
     public (Vector3Int, MapAlignment) GetPosition => (WorldPosition, Alignment);
 
-    /// <value>True if the <see cref="Wall"/> is part of a doorway.</value>
+    /// <value>True if the <see cref="WallSprite"/> is part of a doorway.</value>
     public bool IsDoor => _doorSprite != null && _doorSprite.enabled && !_highlightDoor;
 
-    /// <value>Represents whether in the current viewing mode, all of the <see cref="Wall"/>'s <see cref="Sprite"/>s should be visible or just the base.</value>
+    /// <value>Represents whether in the current viewing mode, all of the <see cref="WallSprite"/>'s <see cref="Sprite"/>s should be visible or just the base.</value>
     public bool IsFullWall
     {
         get => _isFullWall;
@@ -201,7 +201,7 @@ public class Wall : LinearSpriteObject
     /// <inheritdoc/>
     public override Vector3 OffsetVector => 2 * Vector3.up;
 
-    /// <value>Initializes the sprite mask pixels for a <see cref="Wall"/> in the <see cref="MapAlignment.XEdge"/> alignment if they are not alreayd initialized, and returns them.</value>
+    /// <value>Initializes the sprite mask pixels for a <see cref="WallSprite"/> in the <see cref="MapAlignment.XEdge"/> alignment if they are not alreayd initialized, and returns them.</value>
     static bool[,] PixelsX
     {
         get
@@ -212,7 +212,7 @@ public class Wall : LinearSpriteObject
         }
     }
 
-    /// <value>Initializes the sprite mask pixels for a <see cref="Wall"/> in the <see cref="MapAlignment.YEdge"/> alignment if they are not alreayd initialized, and returns them.</value>
+    /// <value>Initializes the sprite mask pixels for a <see cref="WallSprite"/> in the <see cref="MapAlignment.YEdge"/> alignment if they are not alreayd initialized, and returns them.</value>
     static bool[,] PixelsY
     {
         get
@@ -223,7 +223,7 @@ public class Wall : LinearSpriteObject
         }
     }
 
-    /// <value>The <see cref="SpriteRenderer"/> for a door that the <see cref="Wall"/> is a part of.</value>
+    /// <value>The <see cref="SpriteRenderer"/> for a door that the <see cref="WallSprite"/> is a part of.</value>
     SpriteRenderer DoorSprite
     {
         get
@@ -239,60 +239,60 @@ public class Wall : LinearSpriteObject
         }
     }
 
-    /// <value>Gives the x coordinate for the <see cref="Wall"/>.</value>
+    /// <value>Gives the x coordinate for the <see cref="WallSprite"/>.</value>
     int X => WorldPosition.x;
 
-    /// <value>Gives the y coordinate for the <see cref="Wall"/>.</value>
+    /// <value>Gives the y coordinate for the <see cref="WallSprite"/>.</value>
     int Y => WorldPosition.y;
 
-    /// <value>Gives the z coordinate for the <see cref="Wall"/>.</value>
+    /// <value>Gives the z coordinate for the <see cref="WallSprite"/>.</value>
     int Z => WorldPosition.z;
 
     /// <summary>
-    /// Checks if a new <see cref="Door"/> can be placed at a given <see cref="Map"/> position.
+    /// Checks if a new <see cref="DoorConnector"/> can be placed at a given <see cref="Map"/> position.
     /// </summary>
     /// <param name="position"><see cref="Map"/> position to check.</param>
     /// <param name="alignment">The <see cref="MapAlignment"/> to check.</param>
-    /// <returns>Returns true if a <see cref="Door"/> can be created at <c>position</c>.</returns>
+    /// <returns>Returns true if a <see cref="DoorConnector"/> can be created at <c>position</c>.</returns>
     public static bool CheckDoor(Vector3Int position, MapAlignment alignment)
     {
         return Map.Instance.CanPlaceDoor(position, alignment);
     }
 
     /// <summary>
-    /// Checks if a new <see cref="Wall"/> can be created at a given <see cref="Map"/> position.
+    /// Checks if a new <see cref="WallSprite"/> can be created at a given <see cref="Map"/> position.
     /// </summary>
     /// <param name="position"><see cref="Map"/> position to check.</param>
-    /// <returns>Returns true if a <see cref="Wall"/> can be created at <c>position</c>.</returns>
+    /// <returns>Returns true if a <see cref="WallSprite"/> can be created at <c>position</c>.</returns>
     public static bool CheckObject(Vector3Int position)
     {
         return Map.Instance.CanPlaceWall(position, Map.DirectionToEdgeAlignment(BuildFunctions.Direction));
     }
 
     /// <summary>
-    /// Initializes a new <see cref="Door"/> at the given <see cref="Map"/> position.
+    /// Initializes a new <see cref="DoorConnector"/> at the given <see cref="Map"/> position.
     /// </summary>
-    /// <param name="position"><see cref="Map"/> position to create the new <see cref="Door"/>.</param>
-    /// <param name="alignment">The <see cref="MapAlignment"/> to create the new <see cref="Door"/>.</param>
+    /// <param name="position"><see cref="Map"/> position to create the new <see cref="DoorConnector"/>.</param>
+    /// <param name="alignment">The <see cref="MapAlignment"/> to create the new <see cref="DoorConnector"/>.</param>
     public static void CreateDoor(Vector3Int position, MapAlignment alignment)
     {
         Map.Instance.GetWall(alignment, position).WallSprite.AddDoor(3, DoorMaterial);
     }
 
     /// <summary>
-    /// Initializes a new <see cref="Wall"/> at the given <see cref="Map"/> position.
+    /// Initializes a new <see cref="WallSprite"/> at the given <see cref="Map"/> position.
     /// </summary>
-    /// <param name="position"><see cref="Map"/> position to create the new <see cref="Wall"/>.</param>
+    /// <param name="position"><see cref="Map"/> position to create the new <see cref="WallSprite"/>.</param>
     public static void CreateWall(Vector3Int position)
     {
-        new Wall(position, Map.DirectionToEdgeAlignment(BuildFunctions.Direction), WallHeight, WallMaterial);
+        new WallSprite(position, Map.DirectionToEdgeAlignment(BuildFunctions.Direction), WallHeight, WallMaterial);
     }
 
     /// <summary>
-    /// Creates a highlight of a door on the given <see cref="Wall"/>.
+    /// Creates a highlight of a door on the given <see cref="WallSprite"/>.
     /// </summary>
-    /// <param name="wall">The <see cref="Wall"/> on which the door is centered.</param>
-    public static void PlaceDoorHighlight(Wall wall)
+    /// <param name="wall">The <see cref="WallSprite"/> on which the door is centered.</param>
+    public static void PlaceDoorHighlight(WallSprite wall)
     {
         Graphics.Instance.ResetSprite();
         (Vector3Int position, MapAlignment alignment) = wall.GetPosition;
@@ -303,7 +303,7 @@ public class Wall : LinearSpriteObject
     }
 
     /// <summary>
-    /// Places a highlight object with a <see cref="Wall"/> <see cref="Sprite"/> at the given position.
+    /// Places a highlight object with a <see cref="WallSprite"/> <see cref="Sprite"/> at the given position.
     /// </summary>
     /// <param name="highlight">The highlight game object that is being placed.</param>///
     /// <param name="position"><see cref="Map"/> position to place the highlight.</param>
@@ -324,7 +324,7 @@ public class Wall : LinearSpriteObject
     /// <summary>
     /// Adds a door sprite overlaying the wall at the given door position.
     /// </summary>
-    /// <param name="width">The number of <see cref="Wall"/>s over which the door covers.</param>
+    /// <param name="width">The number of <see cref="WallSprite"/>s over which the door covers.</param>
     /// <param name="material">The <see cref="AccentMaterial"/> that the door should be made of.</param>
     /// <param name="highlight">Determines if the door is there permanently, or is just a temporary highlight. Defaults to false.</param>
     /// <exception cref="System.ArgumentException">Throws exception if the door position does not overlap with the wall.</exception>
@@ -335,20 +335,20 @@ public class Wall : LinearSpriteObject
 
         if (Alignment == MapAlignment.XEdge)
         {
-            Wall prev = Map.Instance.GetWall(Alignment, X + end, Y, Z).WallSprite;
+            WallSprite prev = Map.Instance.GetWall(Alignment, X + end, Y, Z).WallSprite;
             for (int i = start; i <= end; i++)
             {
-                Wall current = Map.Instance.GetWall(Alignment, X + i, Y, Z).WallSprite;
+                WallSprite current = Map.Instance.GetWall(Alignment, X + i, Y, Z).WallSprite;
                 current.AddDoorSprite(prev, i == start ? DoorSpriteType.DoorXLeft : i == end ? DoorSpriteType.DoorXRight : DoorSpriteType.DoorXMid, material, new Vector3(-2, -1) * i, highlight);
                 prev = current;
             }
         }
         else
         {
-            Wall prev = Map.Instance.GetWall(Alignment, X, Y + end, Z).WallSprite;
+            WallSprite prev = Map.Instance.GetWall(Alignment, X, Y + end, Z).WallSprite;
             for (int i = start; i <= end; i++)
             {
-                Wall current = Map.Instance.GetWall(Alignment, X, Y + i, Z).WallSprite;
+                WallSprite current = Map.Instance.GetWall(Alignment, X, Y + i, Z).WallSprite;
                 current.AddDoorSprite(prev, i == start ? DoorSpriteType.DoorYRight : i == end ? DoorSpriteType.DoorYLeft : DoorSpriteType.DoorYMid, material, new Vector3(2, -1) * i, highlight);
                 prev = current;
             }
@@ -378,14 +378,14 @@ public class Wall : LinearSpriteObject
     }
 
     /// <summary>
-    /// Sets the <see cref="Wall"/> to a given, temporary highlight color. If the <see cref="Wall"/> is a door, the door frame is highlighted instead.
+    /// Sets the <see cref="WallSprite"/> to a given, temporary highlight color. If the <see cref="WallSprite"/> is a door, the door frame is highlighted instead.
     /// </summary>
     /// <param name="color">Color used to highlight the wall.</param>
     public override void Highlight(Color color)
     {
         if (IsDoor)
         {
-            Wall nextDoor = this;
+            WallSprite nextDoor = this;
             do
             {
                 nextDoor = nextDoor._nextDoorWall;
@@ -399,7 +399,7 @@ public class Wall : LinearSpriteObject
     }
 
     /// <summary>
-    /// Enable or disable the <see cref="SpriteMask"/> for the corner intersection between two <see cref="Wall"/>s.
+    /// Enable or disable the <see cref="SpriteMask"/> for the corner intersection between two <see cref="WallSprite"/>s.
     /// </summary>
     /// <param name="enableMask">Determines whether to enable or disable the <see cref="SpriteMask"/>.</param>
     public void MaskCorner(bool enableMask)
@@ -423,12 +423,12 @@ public class Wall : LinearSpriteObject
     }
 
     /// <summary>
-    /// Removes the door for this <see cref="Wall"/>, and all the other <see cref="Wall"/>s the door occupies.
+    /// Removes the door for this <see cref="WallSprite"/>, and all the other <see cref="WallSprite"/>s the door occupies.
     /// </summary>
     public void RemoveDoor()
     {
-        Wall nextDoor = this;
-        Wall current;
+        WallSprite nextDoor = this;
+        WallSprite current;
         do
         {
             current = nextDoor;
@@ -440,7 +440,7 @@ public class Wall : LinearSpriteObject
     }
 
     /// <summary>
-    /// Called when the <see cref="Wall"/> is at a corner with another <see cref="Wall"/> that is a full wall,
+    /// Called when the <see cref="WallSprite"/> is at a corner with another <see cref="WallSprite"/> that is a full wall,
     /// and <see cref="Graphics.Mode"/> is <see cref="WallMode.Open"/>.
     /// </summary>
     public void SetEdge()
@@ -450,12 +450,12 @@ public class Wall : LinearSpriteObject
 
     /// <summary>
     /// Called when the created <see cref="LinearSpriteObject"/>s are confirmed.
-    /// Creates a new <see cref="WallNode"/> at the given <see cref="Map"/> position if one is not already present.
+    /// Creates a new <see cref="WallBlocker"/> at the given <see cref="Map"/> position if one is not already present.
     /// </summary>
     protected override void OnConfirmingObjects()
     {
         if (_wall == null)
-            _wall = new WallNode(this, WorldPosition, Alignment);
+            _wall = new WallBlocker(this, WorldPosition, Alignment);
 
         for (int i = 0; i < _height; i++)
         {
@@ -535,12 +535,12 @@ public class Wall : LinearSpriteObject
     }
 
     /// <summary>
-    /// Get the index for a <see cref="Wall"/>'s <see cref="Sprite"/>
+    /// Get the index for a <see cref="WallSprite"/>'s <see cref="Sprite"/>
     /// </summary>
-    /// <param name="position">The <see cref="Map"/> position of the <see cref="Wall"/>.</param>
-    /// <param name="height">The height of the <see cref="Sprite"/> on this <see cref="Wall"/></param>
-    /// <param name="alignment">The alignment of the <see cref="Wall"/>.</param>
-    /// <returns>Returns the index of the <see cref="Sprite"/> in a <see cref="Wall"/> at a given location.</returns>
+    /// <param name="position">The <see cref="Map"/> position of the <see cref="WallSprite"/>.</param>
+    /// <param name="height">The height of the <see cref="Sprite"/> on this <see cref="WallSprite"/></param>
+    /// <param name="alignment">The alignment of the <see cref="WallSprite"/>.</param>
+    /// <returns>Returns the index of the <see cref="Sprite"/> in a <see cref="WallSprite"/> at a given location.</returns>
     static int GetSpriteType(Vector3Int position, int height, MapAlignment alignment)
     {
         int mod = alignment == MapAlignment.XEdge ? position.x % 3 : position.y % 3;
@@ -553,15 +553,15 @@ public class Wall : LinearSpriteObject
     }
 
     /// <summary>
-    /// Adds a <see cref="Sprite"/> for a door set in this <see cref="Wall"/>.
+    /// Adds a <see cref="Sprite"/> for a door set in this <see cref="WallSprite"/>.
     /// </summary>
-    /// <param name="nextDoorWall">Reference to another <see cref="Wall"/> that is part of this door. 
-    /// Used to be able to access all the <see cref="Wall"/>s that are part of this door, from any individual <see cref="Wall"/>.</param>
-    /// <param name="doorSpriteType">The <see cref="DoorSpriteType"/> for this <see cref="Wall"/>.</param>
+    /// <param name="nextDoorWall">Reference to another <see cref="WallSprite"/> that is part of this door. 
+    /// Used to be able to access all the <see cref="WallSprite"/>s that are part of this door, from any individual <see cref="WallSprite"/>.</param>
+    /// <param name="doorSpriteType">The <see cref="DoorSpriteType"/> for this <see cref="WallSprite"/>.</param>
     /// <param name="material">The <see cref="AccentMaterial"/> for the door.</param>
     /// <param name="maskPosition">The position of the doors <see cref="SpriteMask"/> relative to <see cref="Transform"/> in scene coordinates.</param>
     /// <param name="highlight">Determines if the door is there permanently, or is just a temporary highlight.</param>
-    void AddDoorSprite(Wall nextDoorWall, DoorSpriteType doorSpriteType, AccentMaterial material, Vector3 maskPosition, bool highlight)
+    void AddDoorSprite(WallSprite nextDoorWall, DoorSpriteType doorSpriteType, AccentMaterial material, Vector3 maskPosition, bool highlight)
     {
         DoorSprite.enabled = true;
 
@@ -590,7 +590,7 @@ public class Wall : LinearSpriteObject
     }
 
     /// <summary>
-    /// Highlights the door on this <see cref="Wall"/>.
+    /// Highlights the door on this <see cref="WallSprite"/>.
     /// </summary>
     /// <param name="color">The <see cref="Color"/> of the highlight.</param>
     void HighlightDoor(Color color)
@@ -662,7 +662,7 @@ public class Wall : LinearSpriteObject
     }
 
     /// <summary>
-    /// Destroy's the <see cref="SpriteRenderer"/> for a door on this <see cref="Wall"/>.
+    /// Destroy's the <see cref="SpriteRenderer"/> for a door on this <see cref="WallSprite"/>.
     /// </summary>
     void RemoveDoorSprite()
     {
@@ -675,7 +675,7 @@ public class Wall : LinearSpriteObject
     }
 
     /// <summary>
-    /// Determines if the <see cref="Wall"/> is a full wall, based on the <see cref="Graphics.Mode"/>.
+    /// Determines if the <see cref="WallSprite"/> is a full wall, based on the <see cref="Graphics.Mode"/>.
     /// </summary>
     void SetWallMode()
     {

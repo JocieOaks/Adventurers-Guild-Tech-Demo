@@ -264,14 +264,14 @@ public class Pawn : MonoBehaviour, IWorldPosition
                         //Determines if the SpriteObject is in front of, or behind the Pawn.
                         //Walls have special rules because they exist on the line between RoomNodes.
                         //Stairs have special rules because the standard evaluation assumes that everything is on a flat plane.
-                        if (spriteObject is Wall wall)
+                        if (spriteObject is WallSprite wall)
                         {
                             relPosition = WorldPosition - spriteObject.WorldPosition - (wall.Alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left);
                         }
                         else
                         {
                             relPosition = WorldPosition - spriteObject.WorldPosition;
-                            if (spriteObject is Stair stair)
+                            if (spriteObject is StairSprite stair)
                             {
                                 if (stair.Direction == Direction.North)
                                 {

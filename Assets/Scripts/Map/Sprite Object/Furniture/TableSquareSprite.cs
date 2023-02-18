@@ -3,22 +3,22 @@ using UnityEngine;
 using Newtonsoft.Json;
 
 /// <summary>
-/// The <see cref="TableSquare"/> class is a <see cref="SpriteObject"/> for square table furniture.
+/// The <see cref="TableSquareSprite"/> class is a <see cref="SpriteObject"/> for square table furniture.
 /// </summary>
 [System.Serializable]
-public class TableSquare : SpriteObject
+public class TableSquareSprite : SpriteObject
 {
     // Initialized the first time GetMaskPixels is called, _pixels are the sprite mask for all TableSquares.
     static bool[,] _pixels;
     static Sprite[] sprites = new Sprite[] { Graphics.Instance.TableSquare[0] };
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TableSquare"/> class.
+    /// Initializes a new instance of the <see cref="TableSquareSprite"/> class.
     /// </summary>
-    /// <param name="direction">The <see cref="Direction"/> the <see cref="TableSquare"/> is facing.</param>
-    /// <param name="worldPosition">The position in <see cref="Map"/> coordinates of the <see cref="TableSquare"/>.</param>
+    /// <param name="direction">The <see cref="Direction"/> the <see cref="TableSquareSprite"/> is facing.</param>
+    /// <param name="worldPosition">The <see cref="IWorldPosition.WorldPosition"/> of the  <see cref="TableSquareSprite"/>.</param>
     [JsonConstructor]
-    public TableSquare(Vector3Int worldPosition)
+    public TableSquareSprite(Vector3Int worldPosition)
         : base(3, sprites, Direction.Undirected, worldPosition, "Square Table", ObjectDimensions, true)
     {
         _spriteRenderers[1].sprite = Graphics.Instance.TableSquare[1];
@@ -27,7 +27,7 @@ public class TableSquare : SpriteObject
         _spriteRenderers[2].sortingOrder = Graphics.GetSortOrder(WorldPosition + 2 * Vector3Int.right);
     }
 
-    /// <value>The 3D dimensions of a <see cref="TableSquare"/> in terms of <see cref="Map"/> coordinates.</value>
+    /// <value>The 3D dimensions of a <see cref="TableSquareSprite"/> in terms of <see cref="Map"/> coordinates.</value>
     public static new Vector3Int ObjectDimensions { get; } = new Vector3Int(3, 3, 2);
 
     /// <inheritdoc/>
@@ -50,26 +50,26 @@ public class TableSquare : SpriteObject
     protected override string ObjectType { get; } = "TableSquare";
 
     /// <summary>
-    /// Checks if a new <see cref="TableSquare"/> can be created at a given <see cref="Map"/> position.
+    /// Checks if a new <see cref="TableSquareSprite"/> can be created at a given <see cref="Map"/> position.
     /// </summary>
     /// <param name="position"><see cref="Map"/> position to check.</param>
-    /// <returns>Returns true a <see cref="TableSquare"/> can be created at <c>position</c>.</returns>
+    /// <returns>Returns true a <see cref="TableSquareSprite"/> can be created at <c>position</c>.</returns>
     public static bool CheckObject(Vector3Int position)
     {
         return Map.Instance.CanPlaceObject(position, ObjectDimensions);
     }
 
     /// <summary>
-    /// Initializes a new <see cref="TableSquare"/> at the given <see cref="Map"/> position.
+    /// Initializes a new <see cref="TableSquareSprite"/> at the given <see cref="Map"/> position.
     /// </summary>
-    /// <param name="position"><see cref="Map"/> position to create the new <see cref="TableSquare"/>.</param>
+    /// <param name="position"><see cref="Map"/> position to create the new <see cref="TableSquareSprite"/>.</param>
     public static void CreateTableSquare(Vector3Int position)
     {
-        new TableSquare(position);
+        new TableSquareSprite(position);
     }
 
     /// <summary>
-    /// Places a highlight object with a <see cref="TableSquare"/> <see cref="Sprite"/> at the given position.
+    /// Places a highlight object with a <see cref="TableSquareSprite"/> <see cref="Sprite"/> at the given position.
     /// </summary>
     /// <param name="highlight">The highlight game object that is being placed.</param>
     /// <param name="position"><see cref="Map"/> position to place the highlight.</param>

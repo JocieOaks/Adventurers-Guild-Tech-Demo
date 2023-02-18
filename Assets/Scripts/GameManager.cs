@@ -297,7 +297,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
         }
     }
 
-    void BuildingDoor(KeyMode mode, Wall spriteObject)
+    void BuildingDoor(KeyMode mode, WallSprite spriteObject)
     {
         switch (mode)
         {
@@ -307,7 +307,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
                     _prevObject = spriteObject;
                     if (spriteObject != null)
                     {
-                        Wall.PlaceDoorHighlight(spriteObject);
+                        WallSprite.PlaceDoorHighlight(spriteObject);
                     }
                     else
                     {
@@ -319,11 +319,11 @@ public class GameManager : MonoBehaviour, IDataPersistence
                 if (spriteObject != null)
                 {
                     (Vector3Int position, MapAlignment alignment) = spriteObject.GetPosition;
-                    if (Wall.CheckDoor(position, alignment))
+                    if (WallSprite.CheckDoor(position, alignment))
                     {
                         _map.PlaceDoor(position, alignment);
 
-                        Wall.CreateDoor(position, alignment);
+                        WallSprite.CreateDoor(position, alignment);
                         _graphics.UpdateGraphics();
                     }
                 }
@@ -524,7 +524,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
         {
             if (node != null && node != RoomNode.Undefined)
             {
-                if (!node.Traversible)
+                if (!node.Traversable)
                 {
                     node.Floor.SpriteRenderer.color = Color.red;
                 }
@@ -661,7 +661,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
                 {
                     if(node != null && node != RoomNode.Undefined) 
                     { 
-                        if(!node.Traversible)
+                        if(!node.Traversable)
                         {
                             node.Floor.SpriteRenderer.color = Color.red;
                         }
@@ -760,7 +760,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
                         BuildingLine(mode);
                         break;
                     case BuildMode.Door:
-                        BuildingDoor(mode, GetMouseOver<Wall>());
+                        BuildingDoor(mode, GetMouseOver<WallSprite>());
                         break;
                     case BuildMode.Area:
                         BuildingArea(mode);

@@ -1,10 +1,10 @@
 ﻿public class TraverseStep : WalkStep
 {
-    ConnectionNode _connection;
+    ConnectingNode _connection;
     Room _oldRoom;
     Room _newRoom;
 
-    public TraverseStep(RoomNode start, ConnectionNode connection, Pawn pawn, TaskStep step) : base(connection.GetRoomNode(start).SurfacePosition, pawn, step)
+    public TraverseStep(RoomNode start, ConnectingNode connection, Pawn pawn, TaskStep step) : base(connection.GetRoomNode(start).SurfacePosition, pawn, step)
     {
         _connection = connection;
         _oldRoom = start.Room;

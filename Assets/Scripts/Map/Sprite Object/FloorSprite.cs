@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// The <see cref="Floor"/> class is a <see cref="SpriteObject"/> for flooring.
-/// It corresponds to <see cref="RoomNode"/>s and every <see cref="RoomNode"/> has a <see cref="Floor"/>.
+/// The <see cref="FloorSprite"/> class is a <see cref="SpriteObject"/> for flooring.
+/// It corresponds to <see cref="RoomNode"/>s and every <see cref="RoomNode"/> has a <see cref="FloorSprite"/>.
 /// </summary>
-public class Floor : AreaSpriteObject
+public class FloorSprite : AreaSpriteObject
 {
     // Initialized the first time GetMaskPixels is called, _pixels are the sprite mask for all Floors.
     static bool[,] _pixels;
     static Sprite[] sprites = new Sprite[] { null };
     bool _enabled = false;
     int _spriteIndex;
-    public Floor(Vector3Int position) : base(1, sprites, Direction.Undirected, position, "Floor", new Vector3Int(1, 1, 0), false)
+    public FloorSprite(Vector3Int position) : base(1, sprites, Direction.Undirected, position, "Floor", new Vector3Int(1, 1, 0), false)
     {
         if (position == Vector3Int.back)
             return;
@@ -25,11 +25,11 @@ public class Floor : AreaSpriteObject
         Graphics.ConfirmingObjects -= OnConfirmingObjects;
     }
 
-    /// <value>The current index for any <see cref="Floor"/>s placed.</value>
+    /// <value>The current index for any <see cref="FloorSprite"/>s placed.</value>
     public static int FloorSpriteIndex { private get; set; } = 0;
 
-    /// <value>Sets whether the <see cref="Floor"/> is active or not.
-    /// Unlike other <see cref="SpriteObject"/>s, the <see cref="Floor"/> class is created for every <see cref="RoomNode"/>,
+    /// <value>Sets whether the <see cref="FloorSprite"/> is active or not.
+    /// Unlike other <see cref="SpriteObject"/>s, the <see cref="FloorSprite"/> class is created for every <see cref="RoomNode"/>,
     /// even if their is no actual floor in that location.</value>
     public bool Enabled
     {
@@ -70,7 +70,7 @@ public class Floor : AreaSpriteObject
         }
     }
 
-    /// <value>The sprite index for the <see cref="Floor"/>. When set, enables the <see cref="Floor"/>.</value>
+    /// <value>The sprite index for the <see cref="FloorSprite"/>. When set, enables the <see cref="FloorSprite"/>.</value>
     public int SpriteIndex
     {
         get { return _spriteIndex; }
@@ -91,22 +91,22 @@ public class Floor : AreaSpriteObject
     }
 
     /// <summary>
-    /// Checks if the <see cref="Floor"/> can be enabled at a given <see cref="Map"/> position.
+    /// Checks if the <see cref="FloorSprite"/> can be enabled at a given <see cref="Map"/> position.
     /// </summary>
     /// <param name="position"><see cref="Map"/> position to check.</param>
-    /// <returns>Returns true if <see cref="Floor"/> is supported at <c>position</c>.</returns>
+    /// <returns>Returns true if <see cref="FloorSprite"/> is supported at <c>position</c>.</returns>
     public static bool CheckObject(Vector3Int position)
     {
         return Map.Instance.IsSupported(position, MapAlignment.Center);
     }
 
     /// <summary>
-    /// Enables the <see cref="Floor"/> at the given <see cref="Map"/> position, but does not confirm it until <see cref="OnConfirmingObjects"/> is called.
+    /// Enables the <see cref="FloorSprite"/> at the given <see cref="Map"/> position, but does not confirm it until <see cref="OnConfirmingObjects"/> is called.
     /// </summary>
-    /// <param name="position">The <see cref="Map"/> position where the <see cref="Floor"/> should be enabled.</param>
+    /// <param name="position">The <see cref="Map"/> position where the <see cref="FloorSprite"/> should be enabled.</param>
     public static void CreateFloor(Vector3Int position)
     {
-        Floor floor = Map.Instance[position].Floor;
+        FloorSprite floor = Map.Instance[position].Floor;
         floor.Sprite = Graphics.Instance.FloorSprites[FloorSpriteIndex];
         floor.SpriteRenderer.color = Graphics.Instance.HighlightColor;
         Graphics.ConfirmingObjects += floor.OnConfirmingObjects;
@@ -114,10 +114,10 @@ public class Floor : AreaSpriteObject
     }
 
     /// <summary>
-    /// Highlights the <see cref="Floor"/> at a given <see cref="Map"/> position.
+    /// Highlights the <see cref="FloorSprite"/> at a given <see cref="Map"/> position.
     /// </summary>
     /// <param name="highlight">Not actually used, but present for delegate pattern matching.</param>
-    /// <param name="position"><see cref="Map"/> position of <see cref="Floor"/> to be highlighted.</param>
+    /// <param name="position"><see cref="Map"/> position of <see cref="FloorSprite"/> to be highlighted.</param>
     public static void PlaceHighlight(SpriteRenderer highlight,Vector3Int position)
     {
         Graphics.Instance.ResetSprite();
@@ -129,7 +129,7 @@ public class Floor : AreaSpriteObject
     }
 
     /// <summary>
-    /// Sets the <see cref="Floor"/> to be disabled, unless the <see cref="Floor"/> is at ground level, in which the sprite is set to ground.
+    /// Sets the <see cref="FloorSprite"/> to be disabled, unless the <see cref="FloorSprite"/> is at ground level, in which the sprite is set to ground.
     /// </summary>
     public override void Destroy()
     {
@@ -140,10 +140,10 @@ public class Floor : AreaSpriteObject
     }
 
     /// <summary>
-    /// Highlights this <see cref="Floor"/>.
+    /// Highlights this <see cref="FloorSprite"/>.
     /// </summary>
     /// <param name="color"><see cref="Color"/> to set the <see cref="SpriteRenderer"/> to.</param>
-    /// <param name="spriteIndex">Sprite index to set this <see cref="Floor"/> to.</param>
+    /// <param name="spriteIndex">Sprite index to set this <see cref="FloorSprite"/> to.</param>
     public void Highlight(Color color, int spriteIndex)
     {
         SpriteRenderer.color = color;
