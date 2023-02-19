@@ -1,13 +1,22 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// The <see cref="WalkStep"/> class is a <see cref="TaskStep"/> for a <see cref="Pawn"/> to move from one <see cref="RoomNode"/> to another nearby <see cref="RoomNode"/>.
+/// </summary>
 public class WalkStep : TaskStep, IDirected
 {
     int _animationOffset;
     Vector3Int _end;
-    Vector3 _step;
     bool _isFinished = false;
-    public Direction Direction { get; }
+    Vector3 _step;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WalkStep"/> class. Checks if the previous <see cref="TaskStep"/> of the <see cref="Pawn"/> 
+    /// is also a <see cref="WalkStep"/> so that the animations work properly.</param>
+    /// </summary>
+    /// <param name="end">The <see cref="Map"/> coordinates of the <see cref="Pawn"/>'s destination. 
+    /// <param name="pawn">The <see cref="Pawn"/> performing the <see cref="WalkStep"/>.</param>
+    /// <param name="step">The previous <see cref="TaskStep"/> to be performing.</param>
     public WalkStep(Vector3Int end, Pawn pawn, TaskStep step) : this(end, pawn)
     {
         if (step is WalkStep walk)
@@ -17,6 +26,11 @@ public class WalkStep : TaskStep, IDirected
         }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WalkStep"/> class.
+    /// </summary>
+    /// <param name="end">The <see cref="Map"/> coordinates of the <see cref="Pawn"/>'s destination.
+    /// <param name="pawn">The <see cref="Pawn"/> performing the <see cref="WalkStep"/>.</param>
     public WalkStep(Vector3Int end, Pawn pawn) : base(pawn)
     {
         _end = end;
@@ -103,6 +117,10 @@ public class WalkStep : TaskStep, IDirected
         }
     }
 
+    /// <inheritdoc/>
+    public Direction Direction { get; }
+
+    /// <inheritdoc/>
     protected override bool _isComplete
     {
         get
@@ -111,6 +129,7 @@ public class WalkStep : TaskStep, IDirected
         }
     }
 
+    /// <inheritdoc/>
     public override void Perform()
     {
         if (!_isComplete)

@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
-using System;
-using Unity.Profiling;
+using UnityEngine.UIElements;
 
+/// <summary>
+/// The <see cref="Planner"/> class is used to decide what <see cref="Task"/>s a <see cref="Pawn"/> should perform.
+/// </summary>
 public class Planner
 {
     (PlanNode node, float utility) best;
@@ -13,14 +14,27 @@ public class Planner
 
     bool reset = false;
 
+    Actor _actor;
+
     WorldState startState;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Planner"/> class.
+    /// </summary>
+    /// <param name="actor">The <see cref="Actor"/> for whom the <see cref="Planner"/> is determining their actions.</param>
+    /// <param name="startTask">The first task the <see cref="Actor"/> is performing, to set the initial <see cref="WorldState"/>.</param>
     public Planner(Actor actor, Task startTask)
     {
         startState = startTask.ChangeWorldState(new WorldState(actor));
         startState.PreviousTask = startTask;
+        _actor = actor;
     }
 
+    /// <summary>
+    /// Called every fixed update to build out the full possibility space for <see cref="Task"/>s the <see cref="Actor"/> could perform in order to find that <see cref="Task"/>s that provide the highest utility.
+    /// Based on the principles behind the A* navigation algorithm.
+    /// </summary>
+    /// <returns>Returns <see cref="WaitForFixedUpdate"/> objects for the <c>StartCoroutine</c> function.</returns>
     public IEnumerator AStar()
     {
         while (true)
@@ -79,27 +93,39 @@ public class Planner
         }
     }
 
-    public Task GetTask(Actor actor)
+    /// <summary>
+    /// Gets the next <see cref="Task"/> for the <see cref="Actor"/> to perform.
+    /// </summary>
+    /// <returns>Returns the <see cref="Task"/> for the <see cref="Actor"/> to perform.</returns>
+    public Task GetTask()
     {
-        if (actor.IsOnQuest)
+        if (_actor.IsOnQuest)
             return new QuestTask();
 
         Task task = best.node.FirstTask;
-        WorldState currentState = new WorldState(actor);
+        WorldState currentState = new WorldState(_actor);
         startState = PlanNode.WorldStateDelta(currentState, task.Time(currentState), task);
         startState.PreviousTask = task;
         reset = true;
         return task;
     }
 
-    public void OverrideTask(Actor actor, Task task)
+    /// <summary>
+    /// Resets the <see cref="Planner"/> for when the <see cref="Actor"/> was forced to perform a particular <see cref="Task"/>.
+    /// </summary>
+    /// <param name="task">The <see cref="Task"/> the <see cref="Actor"/> was forced to perform.</param>
+    public void OverrideTask(Task task)
     {
-        WorldState currentState = new WorldState(actor);
+        WorldState currentState = new WorldState(_actor);
         startState = PlanNode.WorldStateDelta(currentState, task.Time(currentState), task);
         startState.PreviousTask = task;
         reset = true;
     }
 
+    /// <summary>
+    /// Gets the list of all <see cref="Task"/>s the <see cref="Actor"/> can perform.
+    /// </summary>
+    /// <returns>Iterates over all the <see cref="Task"/>s the <see cref="Actor"/> perform.</returns>
     IEnumerable<Task> GetTasks()
     {
         yield return new SleepTask();
@@ -113,13 +139,23 @@ public class Planner
         yield return new LeaveConversationTask();
     }
 
-    public class PlanNode
+    /// <summary>
+    /// The <see cref="PlanNode"/> class is a node for building out chains of <see cref="Task"/>s to determine the optimal <see cref="Task"/>s to perform.
+    /// </summary>
+    class PlanNode
     {
         public Task _task;
         List<GetPayoffDelegate> _payoff;
         float _time;
         float _utility;
         WorldState _worldState;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PlanNode"/> class.
+        /// </summary>
+        /// <param name="previous">The previous <see cref="Task"/> in the chain of <see cref="Task"/>s.</param>
+        /// <param name="task">The <see cref="Task"/> to be performed.</param>
+        /// <param name="startState">The <see cref="global::WorldState"/> before the <see cref="Task"/> is performed.</param>
         public PlanNode(PlanNode previous, Task task, WorldState startState) : this(task, startState)
         {
             Depth = previous.Depth + 1;
@@ -139,6 +175,11 @@ public class Planner
             }
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PlanNode"/> class, starting a new chain of <see cref="Task"/>s.
+        /// </summary>
+        /// <param name="task">The <see cref="Task"/> to be performed.</param>
+        /// <param name="startState">The <see cref="global::WorldState"/> before the <see cref="Task"/> is performed.</param>
         public PlanNode(Task task, WorldState startState)
         {
             Depth = 1;
@@ -165,7 +206,10 @@ public class Planner
             _utility += UtilityDelta(startState, _worldState);
         }
 
+        /// <value>The number of <see cref="Task"/>'s in the chain of <see cref="Task"/>s.</value>
         public int Depth { get; }
+
+        /// <value>The first <see cref="Task"/> in the chain of <see cref="Task"/>s.</value>
         public Task FirstTask
         {
             get
@@ -174,10 +218,19 @@ public class Planner
             }
         }
 
+        /// <value>The first <see cref="PlanNode"/> in the chain.</value>
         public PlanNode Root { get; }
+
+        /// <value>The predicted <see cref="global::WorldState"/> after the <see cref="Task"/> is performed.</value>
         public WorldState WorldState => _worldState;
 
-        //Changes the world state based on the task.
+        /// <summary>
+        /// Creates a new <see cref="global::WorldState"/> based on a given <see cref="Task"/> and the passage of time.
+        /// </summary>
+        /// <param name="startState">The <see cref="global::WorldState"/> before the <see cref="Task"/> is performed.</param>
+        /// <param name="time">The amount of time for the <see cref="Task"/> to be performed.</param>
+        /// <param name="task">The <see cref="Task"/> modifying the <see cref="global::WorldState"/>.</param>
+        /// <returns>Returns the predicted <see cref="global::WorldState"/>.</returns>
         public static WorldState WorldStateDelta(WorldState startState, float time, Task task)
         {
             startState.PrimaryActor.Hunger -= time / 10;
@@ -203,6 +256,10 @@ public class Planner
             return task.ChangeWorldState(startState);
         }
 
+        /// <summary>
+        /// Evaluates the average utility relative to time for the full chain of <see cref="Task"/>s up to this <see cref="PlanNode"/>.
+        /// </summary>
+        /// <returns>Returns the average utility of the full chain of <see cref="PlanNode"/>s that ends with this <see cref="PlanNode"/>.</returns>
         public float GetAverageUtility()
         {
             float utility = _utility;
@@ -243,7 +300,12 @@ public class Planner
             }
         }
 
-        //Finds the amount of utility based on the changes between two world states based on Actor's needs.
+        /// <summary>
+        /// Calculates the baseline change in utility between two <see cref="global::WorldState"/>s, based on the change in the <see cref="Actor"/>'s needs.
+        /// </summary>
+        /// <param name="start">The initial <see cref="global::WorldState"/>.</param>
+        /// <param name="end">The ending <see cref="global::WorldState"/>.</param>
+        /// <returns></returns>
         static float UtilityDelta(WorldState start, WorldState end)
         {
             float utility = 0;

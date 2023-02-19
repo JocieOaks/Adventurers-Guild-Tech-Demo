@@ -1,13 +1,23 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// The <see cref="EatAction"/> class is a <see cref="TaskAction"/> for eating.
+/// </summary>
 public class EatAction : TaskAction
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EatAction"/> class.
+    /// </summary>
+    /// <param name="actor">The <see cref="Actor"/> that is eating.</param>
     public EatAction(Actor actor) : base(actor) {}
 
-    public override bool CanSpeak => true;
-
+    /// <inheritdoc/>
     public override bool CanListen => true;
 
+    /// <inheritdoc/>
+    public override bool CanSpeak => true;
+
+    /// <inheritdoc/>
     public override int Complete()
     {
         if (!_actor.Stats.HasFood)
@@ -24,8 +34,10 @@ public class EatAction : TaskAction
         }
     }
 
+    /// <inheritdoc/>
     public override void Initialize() {}
 
+    /// <inheritdoc/>
     public override void Perform()
     {
         _actor.ChangeNeeds(Needs.Hunger, Time.deltaTime / 1.5f);

@@ -1,20 +1,28 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// The <see cref="SitStep"/> class is a <see cref="TaskStep"/> for a <see cref="Pawn"/> to sit down.
+/// </summary>
 public class SitStep : TaskStep, IDirected
 {
     IOccupied _seat;
-    public Direction Direction { get; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SitStep"/> task.
+    /// </summary>
+    /// <param name="pawn">The <see cref="Pawn"/> that is sitting down.</param>
+    /// <param name="seat">The seat on which the <see cref="Pawn"/> is sitting.</param>
     public SitStep(Pawn pawn, IOccupied seat) : base(pawn)
     {
         _seat = seat;
 
         seat.Enter(pawn);
 
-        if(seat is ChairSprite chair)
+        if (seat is ChairSprite chair)
         {
             Direction = chair.Direction;
         }
-        else if(seat is StoolSprite stool)
+        else if (seat is StoolSprite stool)
         {
             if (Map.Instance[stool.WorldPosition + Map.DirectionToVector(Direction.North) * 2].Occupant is BarSprite)
             {
@@ -39,8 +47,13 @@ public class SitStep : TaskStep, IDirected
         pawn.Stance = Stance.Sit;
     }
 
+    /// <inheritdoc/>
+    public Direction Direction { get; }
+
+    /// <inheritdoc/>
     protected override bool _isComplete => true;
 
+    /// <inheritdoc/>
     public override void Perform()
     {
         period += Time.deltaTime;
@@ -88,6 +101,7 @@ public class SitStep : TaskStep, IDirected
         }
     }
 
+    /// <inheritdoc/>
     protected override void Finish()
     {
         _seat.Exit(_pawn);

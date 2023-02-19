@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 
+/*
 public class RestTask : Task
 {
     Task sleep;
@@ -43,3 +44,4 @@ public class RestTask : Task
             yield return action;
     }
 }
+*/

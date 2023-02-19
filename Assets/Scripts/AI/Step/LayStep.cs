@@ -1,9 +1,18 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// The <see cref="SitStep"/> class is a <see cref="TaskStep"/> for a <see cref="Pawn"/> to lay down.
+/// </summary>
 public class LayStep : TaskStep
 {
 
     BedSprite _bed;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LayStep"/> class.
+    /// </summary>
+    /// <param name="pawn">The <see cref="Pawn"/> that is laying down.</param>
+    /// <param name="bed">The <see cref="BedSprite"/> the <see cref="Pawn"/> is laying in.</param>
     public LayStep(Pawn pawn, BedSprite bed) : base(pawn)
     {
         _bed = bed;
@@ -11,8 +20,10 @@ public class LayStep : TaskStep
         _bed.Enter(pawn);
     }
 
+    /// <inheritdoc/>
     protected override bool _isComplete => true;
 
+    /// <inheritdoc/>
     public override void Perform()
     {
         period += Time.deltaTime;
@@ -29,6 +40,7 @@ public class LayStep : TaskStep
         }
     }
 
+    /// <inheritdoc/>
     protected override void Finish()
     {
         _bed.Exit(_pawn);

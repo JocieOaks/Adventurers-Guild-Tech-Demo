@@ -1,20 +1,30 @@
 ﻿using UnityEngine;
 
+/// <summary>
+/// The <see cref="ApproachAction"/> is a <see cref="TaskAction"/> for a <see cref="Pawn"/> to reposition during a <see cref="Conversation"/> so that it is in a better talking position.
+/// </summary>
 public class ApproachAction : TaskAction
 {
-    public override bool CanSpeak => true;
-
-    public override bool CanListen => true;
-
+    bool _complete = false;
     Conversation _conversation;
 
-    bool _complete = false;
-
-    public ApproachAction(Actor actor, Conversation conversation) : base(actor) 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ApproachAction"/> class.
+    /// </summary>
+    /// <param name="actor">The <see cref="Actor"/> that is repositioning.</param>
+    /// <param name="conversation">The <see cref="Conversation"/> that the <see cref="Actor"/> is in.</param>
+    public ApproachAction(Actor actor, Conversation conversation) : base(actor)
     {
         _conversation = conversation;
     }
 
+    /// <inheritdoc/>
+    public override bool CanListen => true;
+
+    /// <inheritdoc/>
+    public override bool CanSpeak => true;
+
+    /// <inheritdoc/>
     public override int Complete()
     {
         if (!_pawn.IsInConversation)
@@ -22,10 +32,12 @@ public class ApproachAction : TaskAction
         return _complete ? 1 : 0;
     }
 
+    /// <inheritdoc/>
     public override void Initialize()
     {
     }
 
+    /// <inheritdoc/>
     public override void Perform()
     {
         if (_pawn.CurrentStep.IsComplete())

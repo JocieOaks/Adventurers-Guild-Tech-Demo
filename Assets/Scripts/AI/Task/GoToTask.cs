@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+/*
 class GoToTask : Task
 {
     protected override bool? _sitting => null;
@@ -50,3 +51,4 @@ class GoToTask : Task
         return 0;
     }
 }
+*/

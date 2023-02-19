@@ -2,18 +2,19 @@
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
+/// <summary>
+/// The <see cref="WanderTask"/> class is a <see cref="Task"/> for causing a <see cref="Pawn"/> wandering aimlessly.
+/// </summary>
 public class WanderTask : Task
 {
     RoomNode _node;
 
-    protected override bool? _sitting => null;
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WanderTask"/> class.
+    /// </summary>
+    public WanderTask() : base(null, true, null, false) { }
 
-    protected override bool? _standing => true;
-
-    protected override bool? _laying => null;
-
-    protected override bool? _conversing => false;
-
+    /// <inheritdoc/>
     public override WorldState ChangeWorldState(WorldState worldState)
     {
         Sector sector = Map.Instance[worldState.PrimaryActor.Position].Sector;
@@ -29,16 +30,19 @@ public class WanderTask : Task
         return worldState;
     }
 
+    /// <inheritdoc/>
     public override IEnumerable<TaskAction> GetActions(Actor actor)
     {
         yield return new TravelAction(_node.WorldPosition, actor);
     }
 
+    /// <inheritdoc/>
     public override float Time(WorldState worldState)
     {
         return 10;
     }
 
+    /// <inheritdoc/>
     public override float Utility(WorldState worldState)
     {
         return 10;

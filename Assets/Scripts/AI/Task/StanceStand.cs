@@ -1,37 +1,41 @@
 ﻿using System.Collections.Generic;
 
+/// <summary>
+/// The <see cref="StanceStand"/> class is a <see cref="Task"/> for having a <see cref="Pawn"/> transition into <see cref="Stance.Stand"/>.
+/// </summary>
 public class StanceStand : Task
 {
-    protected override bool? _sitting => null;
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StanceStand"/> class.
+    /// </summary>
+    public StanceStand() : base(null, false, null, null) { }
 
-    protected override bool? _standing => false;
-
-    protected override bool? _laying => null;
-
-    protected override bool? _conversing => null;
-
-    public override bool ConditionsMet(WorldState worldState)
-    {
-        return base.ConditionsMet(worldState) && worldState.PreviousTask is not StanceSit && worldState.PreviousTask is not StanceLay;
-    }
-
+    /// <inheritdoc/>
     public override WorldState ChangeWorldState(WorldState worldState)
     {
         worldState.PrimaryActor.Stance = Stance.Stand;
         return worldState;
     }
 
+    /// <inheritdoc/>
+    public override bool ConditionsMet(WorldState worldState)
+    {
+        return base.ConditionsMet(worldState) && worldState.PreviousTask is not StanceSit && worldState.PreviousTask is not StanceLay;
+    }
+    /// <inheritdoc/>
     public override IEnumerable<TaskAction> GetActions(Actor actor)
     {
         //Debug.Log(actor.Stats.Name + " Stand");
         yield return new StandUpAction(actor);
     }
 
+    /// <inheritdoc/>
     public override float Time(WorldState worldState)
     {
         return 1;
     }
 
+    /// <inheritdoc/>
     public override float Utility(WorldState worldState)
     {
         if (worldState.PrimaryActor.Stance == Stance.Lay)
