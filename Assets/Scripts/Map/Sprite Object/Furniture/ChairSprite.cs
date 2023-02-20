@@ -210,8 +210,16 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
         {
             Occupant = null;
         }
-        RoomNode roomNode = InteractionPoints.First(x => x.Traversable);
-        pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
+        RoomNode roomNode = InteractionPoints.FirstOrDefault(x => x.Traversable);
+        if (roomNode == default)
+        {
+            //Emergency option if there's no interaction points to move to.
+            pawn.WorldPositionNonDiscrete = Vector3Int.one;
+        }
+        else
+        {
+            pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
+        }
     }
 
     /// <inheritdoc/>

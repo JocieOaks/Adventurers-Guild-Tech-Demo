@@ -21,8 +21,8 @@ public class WalkStep : TaskStep, IDirected
     {
         if (step is WalkStep walk)
         {
-            period = walk.period;
-            frame = walk.frame;
+            _period = walk._period;
+            _frame = walk._frame;
         }
     }
 
@@ -118,16 +118,16 @@ public class WalkStep : TaskStep, IDirected
         if (!_isComplete)
         {
             _pawn.WorldPositionNonDiscrete += _step * Time.deltaTime;
-            period += Time.deltaTime;
+            _period += Time.deltaTime;
 
-            if (period >= frame * STEPTIME)
+            if (_period >= _frame * STEPTIME)
             {
-                _pawn.SetSprite(_animationOffset + frame);
-                frame++;
-                if (frame == 4)
+                _pawn.SetSprite(_animationOffset + _frame);
+                _frame++;
+                if (_frame == 4)
                 {
-                    period -= 1f;
-                    frame = 0;
+                    _period -= 1f;
+                    _frame = 0;
                 }
             }
         }

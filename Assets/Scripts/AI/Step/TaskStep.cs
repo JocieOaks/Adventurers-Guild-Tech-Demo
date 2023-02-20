@@ -9,8 +9,8 @@ public abstract class TaskStep
     protected const float STEPTIME = 0.25f;
     protected static int[] _idleFrames = new int[] { 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
     protected Pawn _pawn;
-    protected int frame = 0;
-    protected float period = 0f;
+    protected int _frame = 0;
+    protected float _period = 0f;
     bool _finished = false;
 
     /// <summary>

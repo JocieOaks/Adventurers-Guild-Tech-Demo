@@ -25,16 +25,16 @@ public class LayStep : TaskStep
     /// <inheritdoc/>
     public override void Perform()
     {
-        period += Time.deltaTime;
+        _period += Time.deltaTime;
 
-        if (period >= frame * BREATHTIME)
+        if (_period >= _frame * BREATHTIME)
         {
-            _pawn.SetSprite(24 + +_idleFrames[frame]);
-            frame++;
-            if (frame == 22)
+            _pawn.SetSprite(24 + +_idleFrames[_frame]);
+            _frame++;
+            if (_frame == 22)
             {
-                period -= 2.75f;
-                frame = 0;
+                _period -= 2.75f;
+                _frame = 0;
             }
         }
     }

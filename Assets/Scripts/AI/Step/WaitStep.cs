@@ -40,29 +40,29 @@ public class WaitStep : TaskStep, IDirected
     /// <inheritdoc/>
     public override void Perform()
     {
-        period += Time.deltaTime;
+        _period += Time.deltaTime;
 
         try
         {
             if (Direction == Direction.West || Direction == Direction.South)
             {
-                if (period >= frame * BREATHTIME)
+                if (_period >= _frame * BREATHTIME)
                 {
-                    _pawn.SetSprite(animationIndex + _idleFrames[frame]);
-                    frame++;
-                    if (frame == 22)
+                    _pawn.SetSprite(animationIndex + _idleFrames[_frame]);
+                    _frame++;
+                    if (_frame == 22)
                     {
-                        period -= 2.75f;
-                        frame = 0;
+                        _period -= 2.75f;
+                        _frame = 0;
                     }
                 }
             }
             else
             {
-                if (period >= frame * BREATHTIME)
+                if (_period >= _frame * BREATHTIME)
                 {
                     _pawn.SetSprite(animationIndex);
-                    frame += 100;
+                    _frame += 100;
                 }
             }
         }

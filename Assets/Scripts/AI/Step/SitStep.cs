@@ -56,47 +56,47 @@ public class SitStep : TaskStep, IDirected
     /// <inheritdoc/>
     public override void Perform()
     {
-        period += Time.deltaTime;
+        _period += Time.deltaTime;
         if (Direction == Direction.West)
         {
-            if (period >= frame * BREATHTIME)
+            if (_period >= _frame * BREATHTIME)
             {
-                _pawn.SetSprite(24 + _idleFrames[frame]);
-                frame++;
-                if (frame == 22)
+                _pawn.SetSprite(24 + _idleFrames[_frame]);
+                _frame++;
+                if (_frame == 22)
                 {
-                    period -= 2.75f;
-                    frame = 0;
+                    _period -= 2.75f;
+                    _frame = 0;
                 }
             }
         }
         else if (Direction == Direction.South)
         {
-            if (period >= frame * BREATHTIME)
+            if (_period >= _frame * BREATHTIME)
             {
-                _pawn.SetSprite(30 + _idleFrames[frame]);
-                frame++;
-                if (frame == 22)
+                _pawn.SetSprite(30 + _idleFrames[_frame]);
+                _frame++;
+                if (_frame == 22)
                 {
-                    period -= 2.75f;
-                    frame = 0;
+                    _period -= 2.75f;
+                    _frame = 0;
                 }
             }
         }
         else if (Direction == Direction.East)
         {
-            if (period >= frame * BREATHTIME)
+            if (_period >= _frame * BREATHTIME)
             {
                 _pawn.SetSprite(47);
-                frame += 100;
+                _frame += 100;
             }
         }
         else
         {
-            if (period >= frame * BREATHTIME)
+            if (_period >= _frame * BREATHTIME)
             {
                 _pawn.SetSprite(46);
-                frame += 100;
+                _frame += 100;
             }
         }
     }
