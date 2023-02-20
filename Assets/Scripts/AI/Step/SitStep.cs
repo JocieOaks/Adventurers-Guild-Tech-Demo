@@ -5,7 +5,7 @@
 /// </summary>
 public class SitStep : TaskStep, IDirected
 {
-    IOccupied _seat;
+    readonly IOccupied _seat;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SitStep"/> task.

@@ -5,7 +5,7 @@
 /// </summary>
 public class AcquireFoodAction : TaskAction
 {
-    IInteractable _interactable;
+    readonly IInteractable _interactable;
 
     float tick = 0;
 

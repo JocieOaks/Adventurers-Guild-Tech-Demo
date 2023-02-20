@@ -6,7 +6,7 @@
 public class ApproachAction : TaskAction
 {
     bool _complete = false;
-    Conversation _conversation;
+    readonly Conversation _conversation;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ApproachAction"/> class.

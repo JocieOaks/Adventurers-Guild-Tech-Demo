@@ -8,7 +8,7 @@ public class SitDownAction : TaskAction
 
     const float WAITTIME = 0.5f;
     float _period;
-    IOccupied _seat;
+    readonly IOccupied _seat;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SitDownAction"/> class.

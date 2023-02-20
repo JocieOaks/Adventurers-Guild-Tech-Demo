@@ -7,7 +7,7 @@ using UnityEngine;
 /// </summary>
 public class Layer : Room
 {
-    int _layerID;
+    readonly int _layerID;
 
     public Layer(int x, int y, Vector3Int originPosition, int layerID) : base(x, y, originPosition)
     {
@@ -53,7 +53,7 @@ public class Layer : Room
     {
         RoomNode[,] nodes = new RoomNode[endX - originX, endY - originY];
 
-        Room newRoom = new Room(nodes, Origin + new Vector3Int(originX, originY));
+        Room newRoom = new(nodes, Origin + new Vector3Int(originX, originY));
 
         for (int i = originX; i < endX; i++)
             for (int j = originY; j < endY; j++)
@@ -118,7 +118,7 @@ public class Layer : Room
         int flag1 = 1, flag2 = 2;
         int size1 = 0, size2 = 0;
 
-        Queue<RoomNode> queue1 = new Queue<RoomNode>(), queue2 = new Queue<RoomNode>();
+        Queue<RoomNode> queue1 = new(), queue2 = new();
 
         queue1.Enqueue(a);
         (int x, int y) = a.Coords;

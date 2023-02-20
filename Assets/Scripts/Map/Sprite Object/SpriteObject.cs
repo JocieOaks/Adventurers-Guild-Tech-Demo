@@ -14,11 +14,11 @@ using Newtonsoft.Json;
 [JsonSubTypes.JsonSubtypes.KnownSubType(typeof(TableRoundSprite), "TableRound")]
 [JsonSubTypes.JsonSubtypes.KnownSubType(typeof(TableSquareSprite), "TableSquare")]
 [JsonSubTypes.JsonSubtypes.KnownSubType(typeof(BarSprite), "Bar")]
-public abstract class SpriteObject : IDataPersistence, IWorldPosition
+public abstract class SpriteObject :  ISpriteObject
 {
     [JsonIgnore]
     protected SpriteRenderer[] _spriteRenderers;
-    bool _blocking;
+    readonly bool _blocking;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SpriteObject"/> class.
@@ -54,22 +54,13 @@ public abstract class SpriteObject : IDataPersistence, IWorldPosition
             _spriteRenderers[i].transform.localPosition = Vector3Int.zero;
             _spriteRenderers[i].name = name;
         }
-        switch(direction)
+        Sprite = direction switch
         {
-            case Direction.East:
-                Sprite = sprites[1];
-                break;
-            case Direction.South:
-                Sprite = sprites[2];
-                break;
-            case Direction.West:
-                Sprite = sprites[3];
-                break;
-            default:
-                Sprite = sprites[0];
-                break;
-        }
-        
+            Direction.East => sprites[1],
+            Direction.South => sprites[2],
+            Direction.West => sprites[3],
+            _ => sprites[0],
+        };
         SpriteRenderer.name = name;
         SpriteRenderer.sortingOrder = Graphics.GetSortOrder(position);
 
@@ -94,12 +85,11 @@ public abstract class SpriteObject : IDataPersistence, IWorldPosition
         }
     }
 
-    /// <value>he 3D dimensions of the <see cref="SpriteObject"/> in terms of <see cref="Map"/> coordinates. 
-    /// Normally should be equivalent to <see cref="ObjectDimensions"/> but can be publicly accessed without knowing the <see cref="SpriteObject"/>'s type.</value>
+    /// <inheritdoc/>
     [JsonIgnore]
     public Vector3Int Dimensions { get; }
 
-    /// <value>The pixels blocked by the <see cref="SpriteObject"/>'s sprites as an array of bools. Used by <see cref="Pawn"/> to construct a <see cref="SpriteMask"/> for all objects in front of it.</value>
+    /// <inheritdoc/>
     [JsonIgnore]
     public abstract IEnumerable<bool[,]> GetMaskPixels { get; }
 
@@ -107,7 +97,6 @@ public abstract class SpriteObject : IDataPersistence, IWorldPosition
     [JsonIgnore]
     public INode Node { get; private set; }
 
-    /// <value>Gives the offset for <see cref="GetMaskPixels"/> for <see cref="Pawn"/> when constructing a <see cref="SpriteMask"/> composed of multiple copies of the same <see cref="UnityEngine.Sprite"/>.</value>
     [JsonIgnore]
     public virtual Vector3 OffsetVector => Vector3.zero;
 
@@ -115,7 +104,7 @@ public abstract class SpriteObject : IDataPersistence, IWorldPosition
     [JsonIgnore]
     public Room Room => Node.Room;
 
-    /// <value>Gives the <see cref="UnityEngine.SpriteRenderer"/> for the forward most sprite of the <see cref="SpriteObject"/>.</value>
+    /// <inheritdoc/>
     [JsonIgnore]
     public SpriteRenderer SpriteRenderer => _spriteRenderers[0];
 
@@ -136,14 +125,16 @@ public abstract class SpriteObject : IDataPersistence, IWorldPosition
 
     /// <value>Assign the primary sprite of the <see cref="SpriteObject"/>. Also, configure's <see cref="Collider"/> when the sprite is changed.</value>
     [JsonIgnore]
-    protected Sprite Sprite { get => SpriteRenderer.sprite; 
+    protected Sprite Sprite
+    {
+        get => SpriteRenderer.sprite;
         set
         {
-            if(Collider != null)
+            if (Collider != null)
                 Object.Destroy(Collider);
 
             SpriteRenderer.sprite = value;
-            if(value != null)
+            if (value != null)
                 AddCollider();
         }
     }
@@ -152,9 +143,7 @@ public abstract class SpriteObject : IDataPersistence, IWorldPosition
     [JsonIgnore]
     protected Transform Transform => _spriteRenderers[0].transform;
 
-    /// <summary>
-    /// Destroy's the <see cref="SpriteObject"/> and all of it's <see cref="UnityEngine.SpriteRenderer"/>s.
-    /// </summary>
+    /// <inheritdoc/>
     public virtual void Destroy()
     {
         Graphics.LevelChanged -= OnLevelChanged;
@@ -195,10 +184,7 @@ public abstract class SpriteObject : IDataPersistence, IWorldPosition
         return false;
     }
 
-    /// <summary>
-    /// Sets the <see cref="SpriteObject"/> to a specific highlight color.
-    /// </summary>
-    /// <param name="color">The color to set the <see cref="UnityEngine.SpriteRenderer"/>s.</param>
+    /// <inheritdoc/>
     public virtual void Highlight(Color color)
     {
         for (int i = 0; i < _spriteRenderers.Length; i++)

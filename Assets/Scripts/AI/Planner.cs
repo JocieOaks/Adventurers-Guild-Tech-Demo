@@ -9,12 +9,10 @@ using UnityEngine.UIElements;
 public class Planner
 {
     (PlanNode node, float utility) best;
-
-    PriorityQueue<PlanNode, float> priorityQueue = new PriorityQueue<PlanNode, float>(true);
+    readonly PriorityQueue<PlanNode, float> priorityQueue = new(true);
 
     bool reset = false;
-
-    Actor _actor;
+    readonly Actor _actor;
 
     WorldState startState;
 
@@ -46,7 +44,7 @@ public class Planner
             {
                 if (task.ConditionsMet(startState))
                 {
-                    PlanNode planNode = new PlanNode(task, startState);
+                    PlanNode planNode = new(task, startState);
 
                     float priority = planNode.GetAverageUtility();
 
@@ -75,7 +73,7 @@ public class Planner
                             if (task.ConditionsMet(worldState))
                             {
 
-                                PlanNode planNode = new PlanNode(current, task, worldState);
+                                PlanNode planNode = new(current, task, worldState);
 
                                 float priority = planNode.GetAverageUtility();
 
@@ -103,7 +101,7 @@ public class Planner
             return new QuestTask();
 
         Task task = best.node.FirstTask;
-        WorldState currentState = new WorldState(_actor);
+        WorldState currentState = new(_actor);
         startState = PlanNode.WorldStateDelta(currentState, task.Time(currentState), task);
         startState.PreviousTask = task;
         reset = true;
@@ -116,7 +114,7 @@ public class Planner
     /// <param name="task">The <see cref="Task"/> the <see cref="Actor"/> was forced to perform.</param>
     public void OverrideTask(Task task)
     {
-        WorldState currentState = new WorldState(_actor);
+        WorldState currentState = new(_actor);
         startState = PlanNode.WorldStateDelta(currentState, task.Time(currentState), task);
         startState.PreviousTask = task;
         reset = true;
@@ -145,9 +143,9 @@ public class Planner
     class PlanNode
     {
         public Task _task;
-        List<GetPayoffDelegate> _payoff;
-        float _time;
-        float _utility;
+        readonly List<GetPayoffDelegate> _payoff;
+        readonly float _time;
+        readonly float _utility;
         WorldState _worldState;
 
         /// <summary>
@@ -164,7 +162,7 @@ public class Planner
             _utility += previous._utility;
             _time += previous._time;
 
-            if (task is ISetup)
+            if (task is ISetupTask)
             {
                 if (previous._payoff != null)
                     _payoff.AddRange(previous._payoff);
@@ -196,7 +194,7 @@ public class Planner
                 _utility = _utility * probability + failUtility * (1 - probability);
             }
 
-            if (task is ISetup setup)
+            if (task is ISetupTask setup)
             {
                 _payoff = new List<GetPayoffDelegate>() { setup.Payoff };
             }
@@ -267,10 +265,8 @@ public class Planner
 
             WorldState prevState = _worldState;
 
-            if (_payoff != null)
-            {
-                _payoff.RemoveAll(x => PayoffUtility(x));
-            }
+            _payoff?.RemoveAll(x => PayoffUtility(x));
+            
 
             return utility / time;
 

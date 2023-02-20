@@ -7,7 +7,7 @@ public class LayDownAction : TaskAction
 {
 
     const float WAITTIME = 0.5f;
-    BedSprite _bed;
+    readonly BedSprite _bed;
     float _period;
 
     /// <summary>

@@ -3,9 +3,9 @@
 /// </summary>
 public class TraverseStep : WalkStep
 {
-    ConnectingNode _connection;
-    Room _newRoom;
-    Room _oldRoom;
+    readonly ConnectingNode _connection;
+    readonly Room _newRoom;
+    readonly Room _oldRoom;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TraverseStep"/> class.

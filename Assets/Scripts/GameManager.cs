@@ -19,10 +19,8 @@ public class GameManager : MonoBehaviour, IDataPersistence
     static GameManager _instance;
 
     List<QuestData> _allQuests;
-
-    List<(Actor adventurer, int timeAvailable)> _availableHires = new List<(Actor, int)>();
-
-    List<QuestData> _availableQuests = new List<QuestData>();
+    readonly List<(Actor adventurer, int timeAvailable)> _availableHires = new();
+    readonly List<QuestData> _availableQuests = new();
 
     Camera _camera;
 
@@ -51,8 +49,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
     WallMode _playWallMode;
 
     SpriteObject _prevObject = null;
-
-    List<Quest> _runningQuests = new List<Quest>();
+    readonly List<Quest> _runningQuests = new();
 
     float _time = 0;
 
@@ -185,7 +182,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
             return;
 
         QuestData data = _availableQuests[id];
-        Quest quest = new Quest(data, adventurer);
+        Quest quest = new(data, adventurer);
         adventurer.IsOnQuest = true;
         _runningQuests.Add(quest);
         _availableQuests.Remove(data);
@@ -204,7 +201,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
         yield return new WaitUntil(() => NextTutorialStep);
 
         NextTutorialStep = false;
-        Actor adventurer = new Actor();
+        Actor adventurer = new();
         _availableHires.Add((adventurer, Tick + 500));
         GUI.Instance.BuildHires(_availableHires);
         adventurerTutorial.MoveNext();
@@ -553,7 +550,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
 
         for(int i = 0; i < 3; i++)
         {
-            Actor adventurer = new Actor();
+            Actor adventurer = new();
             _availableHires.Add((adventurer, Tick + 500));
             _lastAdventurerTick = Tick;
         }
@@ -589,7 +586,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
         {
             if (Mathf.Pow(2, (Tick - _lastAdventurerTick) / 10) / 1000 > Random.Range(0, 100))
             {
-                Actor adventurer = new Actor();
+                Actor adventurer = new();
                 _availableHires.Add((adventurer, Tick + 500));
                 GUI.Instance.BuildHires(_availableHires);
                 _lastAdventurerTick = Tick;

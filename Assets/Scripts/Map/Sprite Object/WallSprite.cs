@@ -56,19 +56,17 @@ public class WallSprite : LinearSpriteObject
     SpriteRenderer _doorSprite;
     DoorSpriteType _doorSpriteType;
     bool[,] _fullDoorMask;
-    int _height;
+    readonly int _height;
 
     bool _highlightDoor;
 
     bool _isFullWall;
 
     WallSprite _nextDoorWall;
-
-    SortingGroup _sortingGroup;
+    readonly SortingGroup _sortingGroup;
 
     WallBlocker _wall;
-
-    WallMaterial _wallMaterial;
+    readonly WallMaterial _wallMaterial;
 
     /// <summary>
     /// Initializes a new instance of <see cref="WallSprite"/> that does not have a corresponding <see cref="WallBlocker"/>.

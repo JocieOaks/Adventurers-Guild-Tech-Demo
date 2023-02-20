@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 /// <summary>
@@ -17,14 +16,12 @@ public class WanderTask : Task
     /// <inheritdoc/>
     public override WorldState ChangeWorldState(WorldState worldState)
     {
-        Sector sector = Map.Instance[worldState.PrimaryActor.Position].Sector;
-
         if (_node == null)
         {
             do
             {
                 _node = Map.Instance[Random.Range(0, Map.Instance.MapWidth), Random.Range(0, Map.Instance.MapLength), 0, Random.Range(0, 2)];
-            } while (!_node.Traversable || _node.Sector != sector);
+            } while (!_node.Traversable);
         }
         worldState.PrimaryActor.Position = _node.WorldPosition;
         return worldState;

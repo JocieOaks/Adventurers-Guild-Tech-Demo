@@ -10,7 +10,7 @@ public abstract class ConnectingNode : IDividerNode
 {
     //Dictionary containing the distance from a ConnectionNode to every other ConnectionNode in an adjoining room, as well as the Path to the INode.
     //Used for navigation by precalculating paths.
-    Dictionary<ConnectingNode, (float, IEnumerable<RoomNode>)> _adjoiningConnectionsDictionary;
+    readonly Dictionary<ConnectingNode, (float, IEnumerable<RoomNode>)> _adjoiningConnectionsDictionary;
 
     /// <summary>
     /// Initializes a new reference of the <see cref="ConnectingNode"/> class.
@@ -52,7 +52,7 @@ public abstract class ConnectingNode : IDividerNode
     public MapAlignment Alignment { get; }
 
     /// <value>Property <c>ConnectionNodes</c> represents the <see cref="List{ConnectionNode}"/> of <see cref="ConnectingNode"/>s that share an adjacent room with the <see cref="ConnectingNode"/>.</value>
-    public List<ConnectingNode> ConnectionNodes => new List<ConnectingNode>(_adjoiningConnectionsDictionary.Keys);
+    public List<ConnectingNode> ConnectionNodes => new(_adjoiningConnectionsDictionary.Keys);
 
     /// <inheritdoc/>
     public RoomNode FirstNode { get; }

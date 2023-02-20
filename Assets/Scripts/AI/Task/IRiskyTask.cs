@@ -2,7 +2,7 @@
 /// The <see cref="IRiskyTask"/> interface is for <see cref="Task"/>s the have a potential failure condition, such that utility score predictions have to account for both success and failure.
 /// Currently <see cref="Planner.PlanNode"/> is not capable of calculating a splinter tree for the case in which an <see cref="IRiskyTask"/> is failed.
 /// </summary>
-public interface IRiskyTask
+public interface IRiskyTask : ITask
 {
     /// <summary>
     /// Creates an estimate of the <see cref="WorldState"/> for after the <see cref="IRiskyTask"/> has been performed, in the case that it is unsuccessful.

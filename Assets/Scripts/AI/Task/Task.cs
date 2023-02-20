@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 /// <summary>
 /// The <see cref="Task"/> class is the base class for all long term AI behaviours, consisting of potentiall multiple <see cref="TaskAction"/>s.
 /// </summary>
-public abstract class Task
+public abstract class Task : ITask
 {
     //The following fields are used as flags for the basic conditions for a Task to be performed. The flags are nullible which means that the Task can be performed whether the condition is true or false.
     protected bool? _sitting, _standing, _laying, _conversing;
@@ -25,18 +26,10 @@ public abstract class Task
     }
 
 
-    /// <summary>
-    /// Creates an estimate of the <see cref="WorldState"/> for after the <see cref="Task"/> has been performed.
-    /// </summary>
-    /// <param name="worldState">The predicted <see cref="WorldState"/> for when the <see cref="Task"/> will occur.</param>
-    /// <returns>Creates a new prediction, based on the previously predicted <see cref="WorldState"/> for the new <see cref="WorldState"/> after the <see cref="Task"/> is performed.</returns>
+    /// <inheritdoc/>
     public abstract WorldState ChangeWorldState(WorldState worldState);
 
-    /// <summary>
-    /// Checks the <see cref="WorldState"/> to see if the <see cref="Task"/>'s conditions are met.
-    /// </summary>
-    /// <param name="worldState">The predicted <see cref="WorldState"/> for when the <see cref="Task"/> will occur.</param>
-    /// <returns>Returns true if the conditions are met by <c>worldState</c>.</returns>
+    /// <inheritdoc/>
     public virtual bool ConditionsMet(WorldState worldState)
     {
         Stance stance = worldState.PrimaryActor.Stance;
@@ -51,25 +44,13 @@ public abstract class Task
         return true;
     }
 
-    /// <summary>
-    /// Creates a list of <see cref="TaskAction"/>s to be performed by a <see cref="Actor"/> in order to complete the <see cref="Task"/>.
-    /// </summary>
-    /// <param name="actor">The <see cref="Actor"/> performing the <see cref="Task"/>.</param>
-    /// <returns>Enumerates over the <see cref="TaskAction"/>s to perform the <see cref="Task"/></returns>
+    /// <inheritdoc/>
     public abstract IEnumerable<TaskAction> GetActions(Actor actor);
 
-    /// <summary>
-    /// Gives the estimated time for the <see cref="Task"/> to be completed.
-    /// </summary>
-    /// <param name="worldState">The predicted <see cref="WorldState"/> for when the <see cref="Task"/> will occur.</param>
-    /// <returns>Returns the expected time it will take to perform the <see cref="Task"/> while in the given <see cref="WorldState"/>.</returns>
+    /// <inheritdoc/>
     public abstract float Time(WorldState worldState);
 
-    /// <summary>
-    /// Gives the utility score of the <see cref="Task"/>.
-    /// </summary>
-    /// <param name="worldState">The predicted <see cref="WorldState"/> for when the <see cref="Task"/> will occur.</param>
-    /// <returns>Returns the expected utility for performing the <see cref="Task"/> while in the given <see cref="WorldState"/>.</returns>
+    /// <inheritdoc/>
     public abstract float Utility(WorldState worldState);
 
     /// <summary>
@@ -80,9 +61,15 @@ public abstract class Task
     /// <returns></returns>
     protected static bool InteractablesCondition(WorldState worldState, List<IInteractable> interactables)
     {
-
-        return interactables.Any(x => x.InteractionPoints.Any(y => y.Traversable)) && 
-            (worldState.Conversation == null || interactables.Any(x => worldState.Conversation.InRadius(x.WorldPosition))) && 
-            interactables.Any(x => x.InteractionPoints.Any(y => y.Sector == Map.Instance[worldState.PrimaryActor.Position].Sector));
+        return interactables.Any(x =>
+        {
+            foreach (RoomNode interactionPoint in x.InteractionPoints)
+            {
+                if (interactionPoint.Traversable && Sector.SameSector(x, worldState.PrimaryActor.RoomNode) && (worldState.Conversation == null || worldState.Conversation.InRadius(x.WorldPosition)))
+                    return true;
+            }
+            return false;
+        }
+        );
     }
 }

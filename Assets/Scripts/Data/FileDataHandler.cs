@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
@@ -6,8 +5,8 @@ using Newtonsoft.Json;
 
 public class FileDataHandler
 {
-    string _fileDirectory;
-    string _fileName;
+    readonly string _fileDirectory;
+    readonly string _fileName;
 
     public FileDataHandler(string directory, string filename)
     {
@@ -26,9 +25,9 @@ public class FileDataHandler
             {
                 // load the serialized data from the file
                 string dataToLoad = "";
-                using (FileStream stream = new FileStream(fullPath, FileMode.Open))
+                using (FileStream stream = new(fullPath, FileMode.Open))
                 {
-                    using (StreamReader reader = new StreamReader(stream))
+                    using (StreamReader reader = new(stream))
                     {
                         dataToLoad = reader.ReadToEnd();
                     }
@@ -117,9 +116,9 @@ public class FileDataHandler
             string dataToStore = JsonConvert.SerializeObject(gameData, Formatting.Indented);
 
             // write the serialized data to the file
-            using (FileStream stream = new FileStream(fullPath, FileMode.Create))
+            using (FileStream stream = new(fullPath, FileMode.Create))
             {
-                using (StreamWriter writer = new StreamWriter(stream))
+                using (StreamWriter writer = new(stream))
                 {
                     writer.Write(dataToStore);
                 }

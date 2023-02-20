@@ -13,8 +13,8 @@ public class StairSprite : AreaSpriteObject, IDirected
     static bool[,] _pixelsNorth;
     static bool[,] _pixelsSouth;
     static bool[,] _pixelsWest;
-    static Sprite[] sprites = new Sprite[] { Graphics.Instance.StairsNorth, Graphics.Instance.StairsEast, Graphics.Instance.StairsSouth, Graphics.Instance.StairsWest };
-    SortingGroup _sortingGroup;
+    static readonly Sprite[] sprites = new Sprite[] { Graphics.Instance.StairsNorth, Graphics.Instance.StairsEast, Graphics.Instance.StairsSouth, Graphics.Instance.StairsWest };
+    readonly SortingGroup _sortingGroup;
     StairNode _stair;
 
     /// <summary>

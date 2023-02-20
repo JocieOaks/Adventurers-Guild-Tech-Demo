@@ -87,7 +87,7 @@ namespace JsonSubTypes
 #if NET35
         private static readonly Dictionary<TypeInfo, IEnumerable<object>> _attributesCache = new Dictionary<TypeInfo, IEnumerable<object>>();
 #else
-        private static readonly ConcurrentDictionary<TypeInfo, IEnumerable<object>> _attributesCache = new ConcurrentDictionary<TypeInfo, IEnumerable<object>>();
+        private static readonly ConcurrentDictionary<TypeInfo, IEnumerable<object>> _attributesCache = new();
         private static readonly Func<TypeInfo, IEnumerable<object>> _getCustomAttributes = ti => ti.GetCustomAttributes(false);
 #endif
 
@@ -295,7 +295,7 @@ namespace JsonSubTypes
         {
             var knownSubTypeAttributes = GetTypesByPropertyPresence(parentType);
 
-            HashSet<Type> typesFound = new HashSet<Type>();
+            HashSet<Type> typesFound = new();
             foreach (TypeWithPropertyMatchingAttributes knownTypeItem in knownSubTypeAttributes)
             {
                 Type matchingKnownType = null;

@@ -34,7 +34,7 @@ namespace JsonSubTypes
 
         private readonly bool _addDiscriminatorFirst;
         private readonly bool _serializeDiscriminatorProperty;
-        private readonly Dictionary<Type, object> _supportedTypes = new Dictionary<Type, object>();
+        private readonly Dictionary<Type, object> _supportedTypes = new();
         private readonly NullableDictionary<object, Type> _subTypeMapping;
 
         internal JsonSubtypesByDiscriminatorValueConverter(Type baseType, string discriminatorProperty,

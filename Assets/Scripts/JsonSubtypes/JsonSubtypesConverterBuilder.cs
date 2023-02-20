@@ -29,7 +29,7 @@ namespace JsonSubTypes
     {
         private Type _baseType;
         private string _discriminatorProperty;
-        private readonly NullableDictionary<object, Type> _subTypeMapping = new NullableDictionary<object, Type>();
+        private readonly NullableDictionary<object, Type> _subTypeMapping = new();
         private bool _serializeDiscriminatorProperty;
         private bool _addDiscriminatorFirst = true;
         private Type _fallbackSubtype;

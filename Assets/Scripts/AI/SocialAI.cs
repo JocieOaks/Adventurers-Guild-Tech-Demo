@@ -19,9 +19,9 @@ public enum SpeechType
 /// </summary>
 public class SocialAI
 {
-    Pawn _pawn;
+    readonly Pawn _pawn;
     bool greetLockout = false;
-    ListDictionary lastTimeSpokenTo = new ListDictionary();
+    readonly ListDictionary lastTimeSpokenTo = new();
 
     /// <summary>
     /// Initializes a new instance of <see cref="SocialAI"/>.

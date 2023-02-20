@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 public class DoorConnector : ConnectingNode
 {
-    bool _locked = false;
+    readonly bool _locked = false;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DoorConnector"/> class.

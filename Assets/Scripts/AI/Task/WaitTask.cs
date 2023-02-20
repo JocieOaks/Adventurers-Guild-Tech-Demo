@@ -5,7 +5,7 @@
 /// </summary>
 public class WaitTask : Task
 {
-    float _time;
+    readonly float _time;
 
     /// <summary>
     /// Initializes a new instace of the <see cref="WaitTask"/> class.

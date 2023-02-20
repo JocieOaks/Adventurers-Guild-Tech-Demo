@@ -11,7 +11,7 @@ public class BedSprite : SpriteObject, IOccupied
 {
     // Initialized the first time GetMaskPixels is called, _pixels is the sprite mask for all Beds.
     static bool[,] _pixels;
-    static Sprite[] sprites = new Sprite[] { Graphics.Instance.BedSprite[1] };
+    static readonly Sprite[] sprites = new Sprite[] { Graphics.Instance.BedSprite[1] };
 
     List<RoomNode> _interactionPoints;
 
@@ -158,7 +158,7 @@ public class BedSprite : SpriteObject, IOccupied
     }
 
     /// <inheritdoc/>
-    public void ReserventeractionPoints()
+    public void ReserveInteractionPoints()
     {
         foreach (RoomNode roomNode in InteractionPoints)
         {
@@ -170,6 +170,6 @@ public class BedSprite : SpriteObject, IOccupied
     protected override void OnMapChanging()
     {
         _interactionPoints = null;
-        ReserventeractionPoints();
+        ReserveInteractionPoints();
     }
 }

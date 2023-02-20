@@ -179,7 +179,7 @@ public class Graphics : MonoBehaviour
 
     static Color[] _pawnGradientGreyscale;
 
-    static (int xOffset, int yOffset, int headDirection, bool flipped)[] headTable = new (int, int, int, bool)[] {
+    static readonly (int xOffset, int yOffset, int headDirection, bool flipped)[] headTable = new (int, int, int, bool)[] {
             (24, 48, 0, false), (24, 49, 0, false), (24, 48, 0, false), (24, 49, 0, false),
             (24, 47, 2, true), (24, 48, 2, true), (24, 47, 2, true), (24, 48, 2, true),
             (24, 47, 2, false), (24, 48, 2, false), (24, 47, 2, false), (24, 48, 2, false),
@@ -279,14 +279,14 @@ public class Graphics : MonoBehaviour
 
     public Sprite[] BuildSprites(int skinColor, int hairColor, int hornsColor, bool narrow, bool thick, int ears, bool orc, int hairType, int beardType, int horns, int bodyHair)
     {
-        Texture2D copied = new Texture2D(PawnTextureBodyThick.width, PawnTextureBodyThick.height);
+        Texture2D copied = new(PawnTextureBodyThick.width, PawnTextureBodyThick.height);
         copied.filterMode = FilterMode.Point;
         copied.wrapMode = TextureWrapMode.Clamp;
         Sprite[] sprites = new Sprite[48];
 
-        ListDictionary skinColorMapping = new ListDictionary();
-        ListDictionary hairColorMapping = new ListDictionary();
-        ListDictionary hornColorMapping = new ListDictionary();
+        ListDictionary skinColorMapping = new();
+        ListDictionary hairColorMapping = new();
+        ListDictionary hornColorMapping = new();
 
         int sheetWidth = PawnTextureBodyThick.width;
 
@@ -530,7 +530,7 @@ public class Graphics : MonoBehaviour
             {
                 for (int j = minY < endPosition.y ? minY : endPosition.y; j <= (maxY > endPosition.y ? maxY : endPosition.y); j++)
                 {
-                    Vector3Int position = new Vector3Int(i, j, endPosition.z);
+                    Vector3Int position = new(i, j, endPosition.z);
                     if ((i < minX || i > maxX || j < minY || j > maxY) && BuildFunctions.CheckPoint(position))
                     {
                         BuildFunctions.CreatePoint(position);
@@ -557,7 +557,7 @@ public class Graphics : MonoBehaviour
         {
             for (int j = minY; j <= maxY; j++)
             {
-                Vector3Int position = new Vector3Int(i, j, endPosition.z);
+                Vector3Int position = new(i, j, endPosition.z);
                 if (BuildFunctions.CheckPoint(position))
                 {
                     BuildFunctions.CreatePoint(position);
@@ -597,7 +597,7 @@ public class Graphics : MonoBehaviour
             {
                 for (int i = startX < end ? startX : end; i <= (startX < end ? end : startX); i++)
                 {
-                    Vector3Int position = new Vector3Int(i, startY, z);
+                    Vector3Int position = new(i, startY, z);
                     if ((i < _lineStart || i > _lineEnd) && BuildFunctions.CheckPoint(position))
                     {
                         BuildFunctions.CreatePoint(position);
@@ -611,7 +611,7 @@ public class Graphics : MonoBehaviour
             {
                 for (int i = startY < end ? startY : end; i <= (startY < end ? end : startY); i++)
                 {
-                    Vector3Int position = new Vector3Int(startX, i, z);
+                    Vector3Int position = new(startX, i, z);
                     if ((i < _lineStart || i > _lineEnd) && BuildFunctions.CheckPoint(position))
                     {
                         BuildFunctions.CreatePoint(position);
@@ -755,8 +755,8 @@ public class Graphics : MonoBehaviour
 
     public class Corner : MonoBehaviour
     {
-        static List<int> ignoreIndeces = new List<int>() { 1, 2, 4, 5, 8, 10 };
-        static List<int> maskedIndeces = new List<int>() { 1, 2, 7, 8 };
+        static readonly List<int> ignoreIndeces = new() { 1, 2, 4, 5, 8, 10 };
+        static readonly List<int> maskedIndeces = new() { 1, 2, 7, 8 };
         bool _configuring = false;
         Vector3Int _position;
         int _spriteIndex;
@@ -778,22 +778,14 @@ public class Graphics : MonoBehaviour
                 
                 return -1;
             }
-            switch (index)
+            index -= index switch
             {
-                case int n when n >= 10:
-                    index -= 7;
-                    break;
-                case int n when n >= 8:
-                    index -= 6;
-                    break;
-                case int n when n >= 5:
-                    index -= 5;
-                    break;
-                default:
-                    index -= 3;
-                    break;
-            }
-            if(index < 0)
+                int n when n >= 10 => 7,
+                int n when n >= 8 => 6,
+                int n when n >= 5 => 5,
+                _ => 3,
+            };
+            if (index < 0)
             {
                 return -1;
             }
@@ -926,7 +918,7 @@ public class Graphics : MonoBehaviour
 
     public class SpriteSheet
     {
-        Sprite[,,] _sprites;
+        readonly Sprite[,,] _sprites;
 
         public SpriteSheet(int i, int j)
         {
@@ -949,7 +941,7 @@ public class Graphics : MonoBehaviour
 
     public class SpriteSheet2
     {
-        Sprite[,] _sprites;
+        readonly Sprite[,] _sprites;
 
         public SpriteSheet2(int i, int j)
         {

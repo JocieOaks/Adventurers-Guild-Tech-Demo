@@ -11,7 +11,7 @@ public class StoolSprite : SpriteObject, IOccupied
 {
     // Initialized the first time GetMaskPixels is called, _pixels are the sprite mask for all Stools.
     static bool[,] _pixels;
-    static Sprite[] sprites = new Sprite[] { Graphics.Instance.Stool };
+    static readonly Sprite[] sprites = new Sprite[] { Graphics.Instance.Stool };
 
     List<RoomNode> _interactionPoints;
 
@@ -145,7 +145,7 @@ public class StoolSprite : SpriteObject, IOccupied
     }
 
     /// <inheritdoc/>
-    public void ReserventeractionPoints()
+    public void ReserveInteractionPoints()
     {
         foreach (RoomNode roomNode in InteractionPoints)
         {
@@ -157,6 +157,6 @@ public class StoolSprite : SpriteObject, IOccupied
     protected override void OnMapChanging()
     {
         _interactionPoints = null;
-        ReserventeractionPoints();
+        ReserveInteractionPoints();
     }
 }

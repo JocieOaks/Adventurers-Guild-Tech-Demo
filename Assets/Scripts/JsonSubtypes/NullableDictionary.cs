@@ -7,7 +7,7 @@ namespace JsonSubTypes
     {
         private bool _hasNullKey;
         private TValue _nullKeyValue;
-        private readonly Dictionary<TKey, TValue> _dictionary = new Dictionary<TKey, TValue>();
+        private readonly Dictionary<TKey, TValue> _dictionary = new();
 
         public bool TryGetValue(TKey key, out TValue value)
         {

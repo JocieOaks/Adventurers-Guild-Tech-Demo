@@ -14,7 +14,7 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
     static bool[,] _pixelsNorth;
     static bool[,] _pixelsSouth;
     static bool[,] _pixelsWest;
-    static Sprite[] sprites = new Sprite[] { Graphics.Instance.ChairNorth, Graphics.Instance.ChairEast, Graphics.Instance.ChairSouth, Graphics.Instance.ChairWest };
+    static readonly Sprite[] sprites = new Sprite[] { Graphics.Instance.ChairNorth, Graphics.Instance.ChairEast, Graphics.Instance.ChairSouth, Graphics.Instance.ChairWest };
 
     List<RoomNode> _interactionPoints;
 
@@ -209,14 +209,13 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
         if (pawn == Occupant)
         {
             Occupant = null;
-
-            RoomNode roomNode = InteractionPoints.First();
-            pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
         }
+        RoomNode roomNode = InteractionPoints.First(x => x.Traversable);
+        pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
     }
 
     /// <inheritdoc/>
-    public void ReserventeractionPoints()
+    public void ReserveInteractionPoints()
     {
         foreach (RoomNode roomNode in InteractionPoints)
         {
@@ -228,6 +227,6 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
     protected override void OnMapChanging()
     {
         _interactionPoints = null;
-        ReserventeractionPoints();
+        ReserveInteractionPoints();
     }
 }

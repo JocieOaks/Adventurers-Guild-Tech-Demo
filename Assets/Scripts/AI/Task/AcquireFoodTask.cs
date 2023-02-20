@@ -3,10 +3,10 @@
 /// <summary>
 /// The <see cref="AcquireFoodTask"/> class is a <see cref="Task"/> for having a <see cref="Pawn"/> get food.
 /// </summary>
-public class AcquireFoodTask : Task, ISetup, IRecovery
+public class AcquireFoodTask : Task, ISetupTask, IRecoverableTask
 {
     /// <value>The list of all <see cref="IInteractable"/>s from which a <see cref="Pawn"/> can get food.</value>
-    public static List<IInteractable> FoodSources = new List<IInteractable>();
+    public static List<IInteractable> FoodSources = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AcquireFoodTask"/> class.

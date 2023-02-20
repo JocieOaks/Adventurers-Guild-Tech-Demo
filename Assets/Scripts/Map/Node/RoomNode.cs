@@ -12,12 +12,10 @@ public class RoomNode : INode
 
     static readonly float RAD2 = Mathf.Sqrt(2);
     static readonly float RAD5 = Mathf.Sqrt(5);
-
-    List<INode> _adjacentNodes = new List<INode>();
+    readonly List<INode> _adjacentNodes = new();
 
     Graphics.Corner _corner;
-
-    List<(RoomNode, float)> _nextNodes = new List<(RoomNode, float)>();
+    readonly List<(RoomNode, float)> _nextNodes = new();
 
     bool _nextNodesKnown = false;
 
@@ -219,7 +217,7 @@ public class RoomNode : INode
     /// <value>Returns the <see cref="RoomNode"/> that is north west of this <see cref="RoomNode"/> or null if such a node does not exist or is inaccessible.</value>
     public RoomNode NorthWest => GetNodeAs<RoomNode>(Direction.North)?.GetNodeAs<RoomNode>(Direction.West) ?? GetNodeAs<RoomNode>(Direction.West)?.GetNodeAs<RoomNode>(Direction.North);
 
-    /// <value>Gives the <see cref="SpriteObject"/> that is currently within this <see cref="RoomNode"/> or null if there is none.</value>
+    /// <value>Gives the <see cref="IWorldPosition"/> - typically either <see cref="SpriteObject"/> or <see cref="Pawn"/> - that is currently within this <see cref="RoomNode"/> or null if there is none.</value>
     public IWorldPosition Occupant
     {
         get => _occupant;
@@ -338,19 +336,14 @@ public class RoomNode : INode
     /// <returns></returns>
     public INode GetNode(Direction direction)
     {
-        switch (direction)
+        return direction switch
         {
-            case Direction.North:
-                return _north;
-            case Direction.South:
-                return _south;
-            case Direction.East:
-                return _east;
-            case Direction.West:
-                return _west;
-            default:
-                return null;
-        }
+            Direction.North => _north,
+            Direction.South => _south,
+            Direction.East => _east,
+            Direction.West => _west,
+            _ => null,
+        };
     }
 
     /// <summary>

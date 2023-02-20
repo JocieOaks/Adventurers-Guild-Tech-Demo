@@ -10,9 +10,9 @@ public class Room
 {
 
     protected RoomNode[,] _nodes;
-    protected List<Pawn> _occupants = new List<Pawn>();
+    protected List<Pawn> _occupants = new();
     const float RAD2 = 1.41421356237f;
-    List<ConnectingNode> _connections;
+    readonly List<ConnectingNode> _connections;
     bool _updating = false;
 
     /// <summary>
@@ -115,7 +115,7 @@ public class Room
     /// <returns>Returns true if the two <see cref="RoomNode"/>s should be part of the same <see cref="Room"/>.</returns>
     public void CheckContiguous(RoomNode node1, RoomNode node2)
     {
-        PriorityQueue<RoomNode, float> nodeQueue = new PriorityQueue<RoomNode, float>(false);
+        PriorityQueue<RoomNode, float> nodeQueue = new(false);
         RegisterForUpdate();
 
         RoomNode[,] immediatePredecessor = new RoomNode[Width, Length];
@@ -284,7 +284,7 @@ public class Room
     /// The initial distance may be <see cref="float.PositiveInfinity"/> if no path exists between the two <see cref="IWorldPosition"/>.</returns>
     public IEnumerator Navigate(IWorldPosition start, IWorldPosition end)
     {
-        PriorityQueue<RoomNode, float> nodeQueue = new PriorityQueue<RoomNode, float>(false);
+        PriorityQueue<RoomNode, float> nodeQueue = new(false);
         RoomNode[,] immediatePredecessor = new RoomNode[Map.Instance.MapWidth, Map.Instance.MapLength];
         float[,] g_score = new float[Map.Instance.MapWidth, Map.Instance.MapLength];
 
@@ -457,7 +457,7 @@ public class Room
     {
         RoomNode[,] nodes = new RoomNode[endX - originX, endY - originY];
 
-        Room newRoom = new Room(nodes, Origin + new Vector3Int(originX, originY));
+        Room newRoom = new(nodes, Origin + new Vector3Int(originX, originY));
 
         for (int i = originX; i < endX; i++)
             for (int j = originY; j < endY; j++)
@@ -523,7 +523,7 @@ public class Room
         int flag1 = 1, flag2 = 2;
         int size1 = 0, size2 = 0;
 
-        Queue<RoomNode> queue1 = new Queue<RoomNode>(), queue2 = new Queue<RoomNode>();
+        Queue<RoomNode> queue1 = new(), queue2 = new();
 
         queue1.Enqueue(a);
         (int x, int y) = a.Coords;
@@ -592,7 +592,7 @@ public class Room
     /// <param name="connection2">The second <see cref="ConnectingNode"/></param>
     void ConstructPaths(ConnectingNode connection1, ConnectingNode connection2)
     {
-        List<RoomNode> path = new List<RoomNode>();
+        List<RoomNode> path = new();
         IEnumerator navigationIter = Navigate(connection1, connection2);
         navigationIter.MoveNext();
         float distance = (float)navigationIter.Current;
@@ -647,7 +647,7 @@ public class Room
             return false;
         });
 
-        List<ConnectingNode> doorsToBeEvaluated = new List<ConnectingNode>(_connections);
+        List<ConnectingNode> doorsToBeEvaluated = new(_connections);
 
         foreach (ConnectingNode door in _connections)
         {

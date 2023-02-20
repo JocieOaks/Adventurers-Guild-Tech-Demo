@@ -3,7 +3,7 @@
 /// <summary>
 /// The <see cref="StanceSit"/> class is a <see cref="Task"/> for having a <see cref="Pawn"/> transition into <see cref="Stance.Sit"/>.
 /// </summary>
-public class StanceSit : Task, IRecovery
+public class StanceSit : Task, IRecoverableTask
 {
     IOccupied seat;
 
@@ -13,7 +13,7 @@ public class StanceSit : Task, IRecovery
     public StanceSit() : base(null, true, null, null) { }
 
     /// <value>The list of all <see cref="IInteractable"/>s that can be sat on.</value>
-    public static List<IInteractable> SittingObjects { get; } = new List<IInteractable>();
+    public static List<IInteractable> SittingObjects { get; } = new();
 
     /// <inheritdoc/>
     public override WorldState ChangeWorldState(WorldState worldState)

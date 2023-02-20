@@ -84,7 +84,7 @@ public class GUI : MonoBehaviour
         HiresPanel.SetActive(false);
     }
 
-    List<AdventurerProfileUI> _questAdventurers = new List<AdventurerProfileUI>();
+    readonly List<AdventurerProfileUI> _questAdventurers = new();
 
     public void SelectQuest(int id)
     {
@@ -147,7 +147,7 @@ public class GUI : MonoBehaviour
         popup.QuestComplete(quest);
     }
 
-    List<AdventurerProfileUI> _availableHires = new List<AdventurerProfileUI>();
+    readonly List<AdventurerProfileUI> _availableHires = new();
 
     public void HireAdventurer(Actor adventurer)
     {

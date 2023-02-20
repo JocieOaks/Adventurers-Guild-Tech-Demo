@@ -28,7 +28,7 @@ public class Map : MonoBehaviour, IDataPersistence
     static Map _instance;
     Layer[] _layers;
     List<Room> _rooms;
-    List<Sector> _sectors = new List<Sector>();
+    List<Sector> _sectors = new();
 
 
 
@@ -162,27 +162,18 @@ public class Map : MonoBehaviour, IDataPersistence
 
     public static Vector3Int DirectionToVector(Direction direction)
     {
-        switch (direction)
+        return direction switch
         {
-            case Direction.North:
-                return Vector3Int.up;
-            case Direction.South:
-                return Vector3Int.down;
-            case Direction.East:
-                return Vector3Int.right;
-            case Direction.West:
-                return Vector3Int.left;
-            case Direction.NorthEast:
-                return new Vector3Int(1, 1);
-            case Direction.SouthEast:
-                return new Vector3Int(1, -1);
-            case Direction.NorthWest:
-                return new Vector3Int(-1, 1);
-            case Direction.SouthWest:
-                return new Vector3Int(-1, -1);
-            default:
-                return default;
-        }
+            Direction.North => Vector3Int.up,
+            Direction.South => Vector3Int.down,
+            Direction.East => Vector3Int.right,
+            Direction.West => Vector3Int.left,
+            Direction.NorthEast => new Vector3Int(1, 1),
+            Direction.SouthEast => new Vector3Int(1, -1),
+            Direction.NorthWest => new Vector3Int(-1, 1),
+            Direction.SouthWest => new Vector3Int(-1, -1),
+            _ => default,
+        };
     }
 
     public static MapAlignment DirectionToEdgeAlignment(Direction direction)
@@ -241,39 +232,22 @@ public class Map : MonoBehaviour, IDataPersistence
 
     public static Direction VectorToDir(Vector3 vector)
     {
-        Vector2 gameVector = new Vector2(vector.x, vector.y);
+        Vector2 gameVector = new(vector.x, vector.y);
         int best = 0;
         float best_product = Vector2.Dot(gameVector, new Vector2(1, 1).normalized);
 
         for (int i = 1; i < 8; i++)
         {
-            float value;
-
-            switch (i)
+            var value = i switch
             {
-                case 1:
-                    value = Vector2.Dot(gameVector, new Vector2(1, 0).normalized);
-                    break;
-                case 2:
-                    value = Vector2.Dot(gameVector, new Vector2(1, -1).normalized);
-                    break;
-                case 3:
-                    value = Vector2.Dot(gameVector, new Vector2(0, -1).normalized);
-                    break;
-                case 4:
-                    value = Vector2.Dot(gameVector, new Vector2(-1, -1).normalized);
-                    break;
-                case 5:
-                    value = Vector2.Dot(gameVector, new Vector2(-1, 0).normalized);
-                    break;
-                case 6:
-                    value = Vector2.Dot(gameVector, new Vector2(-1, 1).normalized);
-                    break;
-                default:
-                    value = Vector2.Dot(gameVector, new Vector2(0, 1).normalized);
-                    break;
-            }
-
+                1 => Vector2.Dot(gameVector, new Vector2(1, 0).normalized),
+                2 => Vector2.Dot(gameVector, new Vector2(1, -1).normalized),
+                3 => Vector2.Dot(gameVector, new Vector2(0, -1).normalized),
+                4 => Vector2.Dot(gameVector, new Vector2(-1, -1).normalized),
+                5 => Vector2.Dot(gameVector, new Vector2(-1, 0).normalized),
+                6 => Vector2.Dot(gameVector, new Vector2(-1, 1).normalized),
+                _ => Vector2.Dot(gameVector, new Vector2(0, 1).normalized),
+            };
             if (value > best_product)
             {
                 best_product = value;
@@ -281,26 +255,18 @@ public class Map : MonoBehaviour, IDataPersistence
             }
         }
 
-        switch (best)
+        return best switch
         {
-            case 0:
-                return Direction.NorthEast;
-            case 1:
-                return Direction.East;
-            case 2:
-                return Direction.SouthEast;
-            case 3:
-                return Direction.South;
-            case 4:
-                return Direction.SouthWest;
-            case 5:
-                return Direction.West;
-            case 6:
-                return Direction.NorthWest;
-            case 7:
-                return Direction.North;
-        }
-        return Direction.Undirected;
+            0 => Direction.NorthEast,
+            1 => Direction.East,
+            2 => Direction.SouthEast,
+            3 => Direction.South,
+            4 => Direction.SouthWest,
+            5 => Direction.West,
+            6 => Direction.NorthWest,
+            7 => Direction.North,
+            _ => Direction.Undirected,
+        };
     }
     public void AddRooms(Room room)
     {
@@ -379,9 +345,9 @@ public class Map : MonoBehaviour, IDataPersistence
         Room startingRoom = Instance[startPosition].Room;
         Room endingRoom = end.Room;
 
-        Dictionary<INode, float> g_score = new Dictionary<INode, float>();
+        Dictionary<INode, float> g_score = new();
 
-        PriorityQueue<INode, float> nodeQueue = new PriorityQueue<INode, float>(false);
+        PriorityQueue<INode, float> nodeQueue = new(false);
 
         if (startingRoom == endingRoom)
         {
@@ -592,7 +558,7 @@ public class Map : MonoBehaviour, IDataPersistence
 
     public bool IsSupported(RoomNode node)
     {
-        return true;
+        return !(node == null || node.Room is Layer);
     }
 
     public bool IsSupported(int x, int y, int z, MapAlignment alignment)
@@ -639,7 +605,7 @@ public class Map : MonoBehaviour, IDataPersistence
         {
             for (int j = 0; j < mapLength; j++)
             {
-                RoomNode next = new RoomNode(Instance[0], i, j);
+                RoomNode next = new(Instance[0], i, j);
                 nodes[i, j] = next;
                 if (i > 0)
                 {
@@ -702,11 +668,11 @@ public class Map : MonoBehaviour, IDataPersistence
         Room startingRoom = start.Room;
         Room endingRoom = end.Room;
 
-        Dictionary<IWorldPosition, float> g_score = new Dictionary<IWorldPosition, float>();
-        Dictionary<IWorldPosition, IWorldPosition> immediatePredecessor = new Dictionary<IWorldPosition, IWorldPosition>();
-        Dictionary<(IWorldPosition, IWorldPosition), IEnumerator> paths = new Dictionary<(IWorldPosition, IWorldPosition), IEnumerator>();
+        Dictionary<IWorldPosition, float> g_score = new();
+        Dictionary<IWorldPosition, IWorldPosition> immediatePredecessor = new();
+        Dictionary<(IWorldPosition, IWorldPosition), IEnumerator> paths = new();
 
-        PriorityQueue<(IWorldPosition, IWorldPosition), float> nodeQueue = new PriorityQueue<(IWorldPosition, IWorldPosition), float>(false);
+        PriorityQueue<(IWorldPosition, IWorldPosition), float> nodeQueue = new(false);
 
         Vector3Int endPosition = end.WorldPosition;
 
@@ -913,9 +879,7 @@ public class Map : MonoBehaviour, IDataPersistence
         {
             if (roomA.Length * roomA.Width < roomB.Length * roomB.Width)
             {
-                Room temp = roomA;
-                roomA = roomB;
-                roomB = temp;
+                (roomB, roomA) = (roomA, roomB);
             }
 
             roomA.EnvelopRoom(roomB);
@@ -1019,20 +983,16 @@ public class Map : MonoBehaviour, IDataPersistence
         return Graphics.Corner.GetSpriteIndex(new Vector3Int(x, y, z)) != -1;
     }
 
-    bool WithinConstraints(int x, int y, int z, MapAlignment alignment)
+    bool WithinConstraints(int x, int y, int _, MapAlignment alignment)
     {
         if (x > 0 && y > 0)
 
-            switch(alignment)
+            return alignment switch
             {
-                case MapAlignment.XEdge:
-                    return x < MapWidth && y < MapLength - 1;
-                case MapAlignment.YEdge:
-                    return x < MapWidth - 1 && y < MapLength;
-                default:
-                    return x < MapWidth - 1 && y < MapLength - 1;
-            }
-            
+                MapAlignment.XEdge => x < MapWidth && y < MapLength - 1,
+                MapAlignment.YEdge => x < MapWidth - 1 && y < MapLength,
+                _ => x < MapWidth - 1 && y < MapLength - 1,
+            };
         else
         {
             return false;

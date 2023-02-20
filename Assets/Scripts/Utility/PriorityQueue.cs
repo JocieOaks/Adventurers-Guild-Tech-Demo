@@ -6,14 +6,13 @@ using Unity.Profiling;
 public class PriorityQueue<T1, T2> where T2 : System.IComparable
 {
 
-    static readonly ProfilerMarker s_PopMarker = new ProfilerMarker("PriorityQueue.Pop");
+    static readonly ProfilerMarker s_PopMarker = new("PriorityQueue.Pop");
 
-    static readonly ProfilerMarker s_PushMarker = new ProfilerMarker("PriorityQueue.Push");
+    static readonly ProfilerMarker s_PushMarker = new("PriorityQueue.Push");
 
     //(T1 element, T2 priority)[] _elements = new (T1, T2)[1000];
-    List<(T1 element, T2 priority)> _elements = new List<(T1, T2)>();
-
-    IComparer _getBestPriority;
+    readonly List<(T1 element, T2 priority)> _elements = new();
+    readonly IComparer _getBestPriority;
     /// <summary>
     /// Generates a new <see cref="PriorityQueue{T1, T2}"/>
     /// </summary>

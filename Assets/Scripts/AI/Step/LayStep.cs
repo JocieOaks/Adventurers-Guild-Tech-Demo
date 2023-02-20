@@ -5,8 +5,7 @@
 /// </summary>
 public class LayStep : TaskStep
 {
-
-    BedSprite _bed;
+    readonly BedSprite _bed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LayStep"/> class.

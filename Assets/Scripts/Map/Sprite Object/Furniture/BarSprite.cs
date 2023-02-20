@@ -12,7 +12,7 @@ public class BarSprite : LinearSpriteObject, IInteractable, IDirected
     // Initialized the first time GetMaskPixels is called, _pixelsX and _pixelsY are the sprite mask for all Bars.
     static bool[,] _pixelsX;
     static bool[,] _pixelsY;
-    static Sprite[] sprites = new Sprite[] { Graphics.Instance.BarX[0], Graphics.Instance.BarY[0], Graphics.Instance.BarX[0], Graphics.Instance.BarY[0] };
+    static readonly Sprite[] sprites = new Sprite[] { Graphics.Instance.BarX[0], Graphics.Instance.BarY[0], Graphics.Instance.BarX[0], Graphics.Instance.BarY[0] };
 
     List<RoomNode> _interactionPoints;
 
@@ -182,7 +182,7 @@ public class BarSprite : LinearSpriteObject, IInteractable, IDirected
     }
 
     /// <inheritdoc/>
-    public void ReserventeractionPoints()
+    public void ReserveInteractionPoints()
     { }
 
     /// <inheritdoc/>

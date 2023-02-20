@@ -6,7 +6,7 @@
 public class WaitAction : TaskAction
 {
     float _period = 0;
-    float _time;
+    readonly float _time;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WaitAction"/> class.

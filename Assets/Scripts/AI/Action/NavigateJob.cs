@@ -11,11 +11,12 @@ public struct NavigateJob : IJob
     Vector3Int start;
     NativeArray<(bool isDoor, Vector3Int)> walkingPath;
 
+    /// <inheritdoc/>
     public void Execute()
     {
         RoomNode endNode = Map.Instance[end];
         RoomNode startNode = Map.Instance[start];
-        Stack<INode> nodes = new Stack<INode>();
+        Stack<INode> nodes = new();
         IEnumerator navigationIter;
 
         if (!endNode.Empty)

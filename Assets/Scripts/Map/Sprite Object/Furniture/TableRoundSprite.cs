@@ -10,7 +10,7 @@ public class TableRoundSprite : SpriteObject
 {
     // Initialized the first time GetMaskPixels is called, _pixels are the sprite mask for all TableRounds.
     static bool[,] _pixels;
-    static Sprite[] sprites = new Sprite[] { Graphics.Instance.TableRound[0] };
+    static readonly Sprite[] sprites = new Sprite[] { Graphics.Instance.TableRound[0] };
 
     [JsonConstructor]
 

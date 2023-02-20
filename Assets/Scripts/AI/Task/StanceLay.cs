@@ -3,7 +3,7 @@
 /// <summary>
 /// The <see cref="StanceLay"/> class is a <see cref="Task"/> for having a <see cref="Pawn"/> transition into <see cref="Stance.Lay"/>.
 /// </summary>
-public class StanceLay : Task, IRecovery
+public class StanceLay : Task, IRecoverableTask
 {
     BedSprite bed;
 
@@ -30,7 +30,7 @@ public class StanceLay : Task, IRecovery
     /// <inheritdoc/>
     public override bool ConditionsMet(WorldState worldState)
     {
-        return base.ConditionsMet(worldState) && InteractablesCondition(worldState, LayingObjects) && worldState.PreviousTask is not StanceSit && worldState.PreviousTask is not StanceStand; ;
+        return false;// base.ConditionsMet(worldState) && InteractablesCondition(worldState, LayingObjects) && worldState.PreviousTask is not StanceSit && worldState.PreviousTask is not StanceStand;
     }
 
     /// <inheritdoc/>

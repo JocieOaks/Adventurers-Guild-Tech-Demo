@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 
 /// <summary>
-/// The <see cref="IRecovery"/> interface is for <see cref="Task"/>s that can potentially recover if one of their <see cref="TaskAction"/>s fail.
+/// The <see cref="IRecoverableTask"/> interface is for <see cref="Task"/>s that can potentially recover if one of their <see cref="TaskAction"/>s fail.
 /// </summary>
-public interface IRecovery
+public interface IRecoverableTask : ITask
 {
     /// <summary>
     /// Tries to create a new list of <see cref="TaskAction"/>s to complete the <see cref="Task"/> even if a previous attempt failed.

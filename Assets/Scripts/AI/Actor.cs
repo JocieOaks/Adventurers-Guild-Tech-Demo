@@ -35,17 +35,17 @@ public enum Race
 public class Actor
 {
     //Arrays for random selection of an Actor's physical characteristics.
-    static List<int> s_humanSkinTones = new List<int>() {9, 10, 11, 12, 13, 14, 15, 16, 20};
-    static List<int> s_naturalHairColors = new List<int>() { 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 };
-    static List<int> s_orcSkinTones = new List<int>() { 4, 5, 6, 7, 8, 16 };
-    static List<int> s_tieflingSkinTones = new List<int>() { 0, 1, 2, 3, 17, 18, 19, 20 };
-    static List<int> s_unnaturalHairColors = new List<int>() { 0, 1, 2 };
+    static readonly List<int> s_humanSkinTones = new() {9, 10, 11, 12, 13, 14, 15, 16, 20};
+    static readonly List<int> s_naturalHairColors = new() { 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 };
+    static readonly List<int> s_orcSkinTones = new() { 4, 5, 6, 7, 8, 16 };
+    static readonly List<int> s_tieflingSkinTones = new() { 0, 1, 2, 3, 17, 18, 19, 20 };
+    static readonly List<int> s_unnaturalHairColors = new() { 0, 1, 2 };
 
     bool _isOnQuest = false;
     float _needHunger;
     float _needSleep;
     float _needSocial;
-    Sprite[] _spritesList;
+    readonly Sprite[] _spritesList;
 
     /// <summary>
     /// Intializes a new instance of the <see cref="Actor"/> class, and randomizes it's character data.
@@ -308,15 +308,13 @@ public class Actor
         total += scores[2];
         scores[3] = Mathf.Max(30 - total, 1);
 
-        System.Random rng = new System.Random();
+        System.Random rng = new();
 
         int n = scores.Length;
         while (n > 1)
         {
             int k = Random.Range(0, --n);
-            int temp = scores[n];
-            scores[n] = scores[k];
-            scores[k] = temp;
+            (scores[k], scores[n]) = (scores[n], scores[k]);
         }
 
         Strength = scores[0];

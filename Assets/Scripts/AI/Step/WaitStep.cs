@@ -6,7 +6,7 @@
 public class WaitStep : TaskStep, IDirected
 {
     int animationIndex = 30;
-    RoomNode roomNode;
+    readonly RoomNode roomNode;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WaitStep"/> class. Checks the direction of the previous <see cref="TaskStep"/> if it is <see cref="IDirected"/> 

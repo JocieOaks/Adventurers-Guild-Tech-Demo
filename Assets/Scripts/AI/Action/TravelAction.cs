@@ -10,8 +10,7 @@ using Unity.Jobs;
 public class TravelAction : TaskAction
 {
     bool _ready = false;
-
-    Queue<INode> _walkingPath = new Queue<INode>();
+    readonly Queue<INode> _walkingPath = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TravelAction"/> class
@@ -125,8 +124,8 @@ public class TravelAction : TaskAction
     /// <returns>Returns <see cref="WaitUntil"/> objects for the <c>StartCoroutine</c> function until the <see cref="NavigateJob"/> has completed.</returns>
     IEnumerator Pathfind()
     {
-        NativeArray<(bool isDoor, Vector3Int position)> walkingPath = new NativeArray<(bool, Vector3Int)>(100, Allocator.Persistent);
-        NavigateJob navigate = new NavigateJob(_actor.Stats.Position, Destination, walkingPath);
+        NativeArray<(bool isDoor, Vector3Int position)> walkingPath = new(100, Allocator.Persistent);
+        NavigateJob navigate = new(_actor.Stats.Position, Destination, walkingPath);
         JobHandle navigateJobHandle = navigate.Schedule();
         yield return new WaitUntil(() => navigateJobHandle.IsCompleted);
         navigateJobHandle.Complete();

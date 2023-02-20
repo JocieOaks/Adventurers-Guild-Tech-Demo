@@ -10,8 +10,7 @@ using System.Linq;
 /// </summary>
 public class Conversation
 {
-
-    List<Pawn> _pawns;
+    readonly List<Pawn> _pawns;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Conversation"/> class.

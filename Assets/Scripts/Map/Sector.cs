@@ -61,7 +61,7 @@ public class GraphNode
 /// </summary>
 public class Sector
 {
-    List<INode> _bottlenecks = new List<INode>();
+    readonly List<INode> _bottlenecks = new();
 
     /// <value>The list of bottleneck <see cref="INode"/>s in the <see cref="Sector"/>. If any of the <see cref="INode"/>s are blocked, 
     /// then parts of the <see cref="Sector"/> become inaccessible to one another.</value>
@@ -80,7 +80,7 @@ public class Sector
         {
             RoomNode currentNode = null;
 
-            foreach(RoomNode node in Map.Instance.AllNodes)
+            foreach(RoomNode node in map.AllNodes)
             {
                 //Tries to find a loop of four rooms that are all connected, as such rooms cannot be bottlenecks
                 if(node.Traversable && 
@@ -98,7 +98,7 @@ public class Sector
             }
             if (currentNode == null)
             {
-                foreach (RoomNode node in Map.Instance.AllNodes)
+                foreach (RoomNode node in map.AllNodes)
                 {
                     if (node.Traversable && !sectors.Any(x => x == node.Sector))
                     {
@@ -110,15 +110,15 @@ public class Sector
                     break;
             }
 
-            Sector sector = new Sector();
+            Sector sector = new();
             sectors.Add(sector);
 
             currentNode.Sector = sector;
-            Dictionary<INode, GraphNode> graphNodes = new Dictionary<INode, GraphNode>();
-            Queue<GraphNode> queue = new Queue<GraphNode>();
-            List<GraphNode> endPoints = new List<GraphNode>();
+            Dictionary<INode, GraphNode> graphNodes = new();
+            Queue<GraphNode> queue = new();
+            List<GraphNode> endPoints = new();
 
-            GraphNode current = new GraphNode(currentNode);
+            GraphNode current = new(currentNode);
             graphNodes[currentNode] = current;
 
             queue.Enqueue(current);
@@ -181,7 +181,7 @@ public class Sector
                         if (nextNode is RoomNode roomNode)
                             roomNode.Sector = sector;
 
-                        GraphNode graphNode = new GraphNode(nextNode, current);
+                        GraphNode graphNode = new(nextNode, current);
                         queue.Enqueue(graphNode);
                         graphNodes[nextNode] = graphNode;
                         return true;
@@ -229,6 +229,19 @@ public class Sector
     /// <returns>Returns true if <c>a</c> and <c>b</c> are in the same <see cref="Sector"/>.</returns>
     public static bool SameSector(RoomNode a, RoomNode b)
     {
+        if(a.Occupant is IInteractable interactableA)
+        {
+            if(b.Occupant is IInteractable interactableB)
+            {
+                return interactableA.InteractionPoints.Any(x => interactableB.InteractionPoints.Any(y => x.Sector == y.Sector));
+            }
+            
+            return interactableA.InteractionPoints.Any(x => x.Sector == b.Sector);
+        }
+        if(b.Occupant is IInteractable interactable)
+        {
+            return interactable.InteractionPoints.Any(x => x.Sector == a.Sector);
+        }
         return a.Sector == b.Sector;
     }
 
@@ -240,7 +253,7 @@ public class Sector
     /// <returns>Returns true if <c>a</c> and <c>b</c> are in the same <see cref="Sector"/>.</returns>
     public static bool SameSector(RoomNode a, IDividerNode b)
     {
-        return a.Sector == b.FirstNode.Sector || a.Sector == b.SecondNode.Sector;
+        return SameSector(a, b.FirstNode) || SameSector(a, b.SecondNode);
     }
 
     /// <summary>
@@ -251,9 +264,9 @@ public class Sector
     /// <returns>Returns true if <c>a</c> and <c>b</c> are adjacent to the same <see cref="Sector"/>.</returns>
     public static bool SameSector(IDividerNode a, IDividerNode b)
     {
-        return a.FirstNode.Sector == b.FirstNode.Sector ||
-            a.SecondNode.Sector == b.FirstNode.Sector ||
-            a.FirstNode.Sector == b.SecondNode.Sector ||
-            a.SecondNode.Sector == b.SecondNode.Sector;
+        return SameSector(a.FirstNode, b.FirstNode) ||
+            SameSector(a.SecondNode, b.FirstNode) ||
+            SameSector(a.FirstNode, b.SecondNode) ||
+            SameSector(a.SecondNode, b.SecondNode);
     }
 }

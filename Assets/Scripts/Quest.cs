@@ -13,7 +13,7 @@ public enum QuestLevel
 [System.Serializable]
 public class QuestData
 {
-    static string[] s_levelNames = new string[] { "Menial", "Basic", "Advanced" };
+    static readonly string[] s_levelNames = new string[] { "Menial", "Basic", "Advanced" };
 
     [JsonProperty] public string Name { get; protected set; }
     [JsonProperty] public string Description { get; protected set; }
@@ -81,18 +81,13 @@ public class Quest : QuestData
 
         int diceroll = Random.Range(1, 101);
 
-        switch(diceroll + skillValue)
+        return (float)(diceroll + skillValue) switch
         {
-            case < 20:
-                return (_results[0], 0, - Prestige);
-            case < 40:
-                return (_results[1], Gold / 2, - Prestige / 2);
-            case < 60:
-                return (_results[2], Gold, Prestige);
-            case < 80:
-                return (_results[3], Gold, Prestige * 3 / 2);
-            default:
-                return (_results[4], Gold * 3 / 2, Prestige * 2);
-        }
+            < 20 => (_results[0], 0, -Prestige),
+            < 40 => (_results[1], Gold / 2, -Prestige / 2),
+            < 60 => (_results[2], Gold, Prestige),
+            < 80 => (_results[3], Gold, Prestige * 3 / 2),
+            _ => (_results[4], Gold * 3 / 2, Prestige * 2),
+        };
     }
 }

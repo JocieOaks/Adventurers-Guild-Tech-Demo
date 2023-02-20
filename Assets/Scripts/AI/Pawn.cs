@@ -16,8 +16,8 @@ public enum Stance
 /// </summary>
 public class Pawn : MonoBehaviour, IWorldPosition
 {
-    static readonly Vector3Int s_alignmentVector = new Vector3Int(1, 1);
-    static readonly Vector2 s_maskPivot = new Vector2(36, 18);
+    static readonly Vector3Int s_alignmentVector = new(1, 1);
+    static readonly Vector2 s_maskPivot = new(36, 18);
     
     Actor _actor;
 
@@ -35,7 +35,7 @@ public class Pawn : MonoBehaviour, IWorldPosition
     
     Texture2D _maskTexture;
     
-    List<Collider2D> _overlappingColliders = new List<Collider2D>();
+    readonly List<Collider2D> _overlappingColliders = new();
     
     Planner _planner;
     
@@ -49,7 +49,7 @@ public class Pawn : MonoBehaviour, IWorldPosition
 
     [SerializeField] SpriteRenderer _spriteRenderer;
 
-    Queue<TaskAction> _taskActions = new Queue<TaskAction>();
+    readonly Queue<TaskAction> _taskActions = new();
 
     Vector3 _worldPosition;
 
@@ -58,8 +58,7 @@ public class Pawn : MonoBehaviour, IWorldPosition
         get => _actor; 
         set
         {
-            if(_actor == null)
-                _actor = value;
+            _actor ??= value;
         } 
     }
 
@@ -135,7 +134,7 @@ public class Pawn : MonoBehaviour, IWorldPosition
         set
         {
             _worldPosition = value;
-            Vector3Int nearest = new Vector3Int(Mathf.RoundToInt(value.x), Mathf.RoundToInt(value.y), Mathf.RoundToInt(value.z));
+            Vector3Int nearest = new(Mathf.RoundToInt(value.x), Mathf.RoundToInt(value.y), Mathf.RoundToInt(value.z));
             if (nearest != WorldPosition)
             {
                 CurrentNode = Map.Instance[nearest];
@@ -184,7 +183,7 @@ public class Pawn : MonoBehaviour, IWorldPosition
         CurrentAction = _taskActions.Dequeue();
         CurrentAction.Initialize();
 
-        _planner.OverrideTask(Actor, task);
+        _planner.OverrideTask(task);
     }
     /// <summary>
     /// Displays a speech bubble over the <see cref="Pawn"/>'s <see cref="Sprite"/>, to visually indicate that they are speaking with another <see cref="Pawn"/>.
@@ -355,9 +354,11 @@ public class Pawn : MonoBehaviour, IWorldPosition
         _sortingGroup.sortingLayerName = "Pawn";
         transform.SetParent(_sortingGroup.transform);
 
-        _maskTexture = new Texture2D(72, 96, TextureFormat.ARGB32, false);
-        _maskTexture.filterMode = FilterMode.Point;
-        _maskTexture.wrapMode = TextureWrapMode.Clamp;
+        _maskTexture = new Texture2D(72, 96, TextureFormat.ARGB32, false)
+        {
+            filterMode = FilterMode.Point,
+            wrapMode = TextureWrapMode.Clamp
+        };
 
         _mask = new GameObject(Actor.Name + " Mask").AddComponent<SpriteMask>();
         _mask.transform.SetParent(_sortingGroup.transform);
@@ -386,7 +387,7 @@ public class Pawn : MonoBehaviour, IWorldPosition
             _recovery++;
             _taskActions.Clear();
 
-            if (_currentTask is IRecovery recovery && _recovery < 4)
+            if (_currentTask is IRecoverableTask recovery && _recovery < 4)
             {
                 foreach (TaskAction action in recovery.Recover(Actor, CurrentAction))
                     _taskActions.Enqueue(action);
@@ -397,7 +398,7 @@ public class Pawn : MonoBehaviour, IWorldPosition
                 foreach (TaskAction action in _currentTask.GetActions(Actor))
                     _taskActions.Enqueue(action);
 
-                _planner.OverrideTask(Actor, _currentTask);
+                _planner.OverrideTask(_currentTask);
             }
             CurrentAction = null;
         }
@@ -410,7 +411,7 @@ public class Pawn : MonoBehaviour, IWorldPosition
         {
             if (_taskActions.Count == 0)
             {
-                _currentTask = _planner.GetTask(Actor);
+                _currentTask = _planner.GetTask();
 
                 foreach (TaskAction action in _currentTask.GetActions(Actor))
                     _taskActions.Enqueue(action);

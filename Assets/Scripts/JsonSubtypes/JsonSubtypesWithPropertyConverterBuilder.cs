@@ -8,7 +8,7 @@ namespace JsonSubTypes
     public class JsonSubtypesWithPropertyConverterBuilder
     {
         private readonly Type _baseType;
-        private readonly Dictionary<string, TypeWithPropertyMatchingAttributes> _subTypeMapping = new Dictionary<string, TypeWithPropertyMatchingAttributes>();
+        private readonly Dictionary<string, TypeWithPropertyMatchingAttributes> _subTypeMapping = new();
         private Type _fallbackSubtype;
 
         private JsonSubtypesWithPropertyConverterBuilder(Type baseType)

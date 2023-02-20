@@ -10,7 +10,7 @@ public class FloorSprite : AreaSpriteObject
 {
     // Initialized the first time GetMaskPixels is called, _pixels are the sprite mask for all Floors.
     static bool[,] _pixels;
-    static Sprite[] sprites = new Sprite[] { null };
+    static readonly Sprite[] sprites = new Sprite[] { null };
     bool _enabled = false;
     int _spriteIndex;
     public FloorSprite(Vector3Int position) : base(1, sprites, Direction.Undirected, position, "Floor", new Vector3Int(1, 1, 0), false)

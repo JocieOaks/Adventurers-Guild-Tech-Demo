@@ -61,10 +61,10 @@ enum NodeType
 [System.Serializable]
 public struct SerializableNode
 {
-    [JsonProperty] int _floorIndex;
-    [JsonProperty] int _z;
-    [JsonProperty] NodeType _south;
-    [JsonProperty] NodeType _west;
+    [JsonProperty] readonly int _floorIndex;
+    [JsonProperty] readonly int _z;
+    [JsonProperty] readonly NodeType _south;
+    [JsonProperty] readonly NodeType _west;
     public bool IsUndefined { get; private set; }
 
     //WallMaterial _southWall;
@@ -141,7 +141,7 @@ public struct SerializableNode
         switch (_south)
         {
             case NodeType.Wall:
-                WallBlocker wall = new WallBlocker(node.WorldPosition, MapAlignment.XEdge);
+                WallBlocker wall = new(node.WorldPosition, MapAlignment.XEdge);
                 node.SetNode(Direction.South, wall);
                 break;
             case NodeType.Null:
@@ -154,7 +154,7 @@ public struct SerializableNode
         switch (_west)
         {
             case NodeType.Wall:
-                WallBlocker wall = new WallBlocker(node.WorldPosition, MapAlignment.YEdge);
+                WallBlocker wall = new(node.WorldPosition, MapAlignment.YEdge);
                 node.SetNode(Direction.West,wall);
                 break;
             case NodeType.Null:

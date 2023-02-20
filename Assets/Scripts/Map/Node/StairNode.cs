@@ -5,7 +5,7 @@ using UnityEngine;
 /// </summary>
 public class StairNode : RoomNode, IDirected
 {
-    StairSprite stairSprite;
+    readonly StairSprite stairSprite;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StairNode"/> class that does not already have an associated <see cref="StairSprite"/>.
@@ -52,7 +52,7 @@ public class StairNode : RoomNode, IDirected
     public void Destroy()
     {
         SetZ(Room.Origin.z);
-        RoomNode copy = new RoomNode(this);
+        RoomNode copy = new(this);
         if(copy.TryGetNodeAs(Direction, out LandingConnector landing))
             landing.Disconnect();
     }

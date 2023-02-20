@@ -5,9 +5,9 @@
 /// </summary>
 public class WalkStep : TaskStep, IDirected
 {
-    int _animationOffset;
+    readonly int _animationOffset;
     Vector3Int _end;
-    bool _isFinished = false;
+    readonly bool _isFinished = false;
     Vector3 _step;
 
     /// <summary>
@@ -46,33 +46,16 @@ public class WalkStep : TaskStep, IDirected
 
         for (int i = 1; i < 8; i++)
         {
-            float value;
-
-            switch (i)
+            var value = i switch
             {
-                case 1:
-                    value = Vector2.Dot(gameVector, new Vector2(1, 0).normalized);
-                    break;
-                case 2:
-                    value = Vector2.Dot(gameVector, new Vector2(1, -1).normalized);
-                    break;
-                case 3:
-                    value = Vector2.Dot(gameVector, new Vector2(0, -1).normalized);
-                    break;
-                case 4:
-                    value = Vector2.Dot(gameVector, new Vector2(-1, -1).normalized);
-                    break;
-                case 5:
-                    value = Vector2.Dot(gameVector, new Vector2(-1, 0).normalized);
-                    break;
-                case 6:
-                    value = Vector2.Dot(gameVector, new Vector2(-1, 1).normalized);
-                    break;
-                default:
-                    value = Vector2.Dot(gameVector, new Vector2(0, 1).normalized);
-                    break;
-            }
-
+                1 => Vector2.Dot(gameVector, new Vector2(1, 0).normalized),
+                2 => Vector2.Dot(gameVector, new Vector2(1, -1).normalized),
+                3 => Vector2.Dot(gameVector, new Vector2(0, -1).normalized),
+                4 => Vector2.Dot(gameVector, new Vector2(-1, -1).normalized),
+                5 => Vector2.Dot(gameVector, new Vector2(-1, 0).normalized),
+                6 => Vector2.Dot(gameVector, new Vector2(-1, 1).normalized),
+                _ => Vector2.Dot(gameVector, new Vector2(0, 1).normalized),
+            };
             if (value > best_product)
             {
                 best_product = value;
