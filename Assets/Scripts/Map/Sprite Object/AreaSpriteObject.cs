@@ -17,7 +17,7 @@ public abstract class AreaSpriteObject : SpriteObject
     /// this is the coordinate of the forward most <see cref="RoomNode"/> the object occupies.</param>
     /// <param name="name">The name of the <see cref="AreaSpriteObject"/>.</param>
     /// <param name="dimensions">The 3D dimensions of the <see cref="AreaSpriteObject"/> in <see cref="Map"/> coordinates.</param>
-    /// <param name="blocking">If true, the <see cref="RoomNode"/>s the <see cref="AreaSpriteObject"/> occupies are blocked and thus cannot be traversed by a <see cref="Pawn"/>.</param>
+    /// <param name="blocking">If true, the <see cref="RoomNode"/>s the <see cref="AreaSpriteObject"/> occupies are blocked and thus cannot be traversed by a <see cref="AdventurerPawn"/>.</param>
     public AreaSpriteObject(int spriteCount, Sprite[] sprites, Direction direction, Vector3Int position, string name, Vector3Int dimensions, bool blocking) : base(spriteCount, sprites, direction, position, name, dimensions, blocking)
     {
         SpriteRenderer.color = Graphics.Instance.HighlightColor;

@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 
 /// <summary>
-/// The <see cref="AcquireFoodTask"/> class is a <see cref="Task"/> for having a <see cref="Pawn"/> get food.
+/// The <see cref="AcquireFoodTask"/> class is a <see cref="Task"/> for having a <see cref="AdventurerPawn"/> get food.
 /// </summary>
 public class AcquireFoodTask : Task, ISetupTask, IRecoverableTask
 {
-    /// <value>The list of all <see cref="IInteractable"/>s from which a <see cref="Pawn"/> can get food.</value>
+    /// <value>The list of all <see cref="IInteractable"/>s from which a <see cref="AdventurerPawn"/> can get food.</value>
     public static List<IInteractable> FoodSources = new();
 
     /// <summary>
@@ -66,9 +66,9 @@ public class AcquireFoodTask : Task, ISetupTask, IRecoverableTask
     }
 
     /// <summary>
-    /// Finds the nearest source of food to a <see cref="Pawn"/>.
+    /// Finds the nearest source of food to a <see cref="AdventurerPawn"/>.
     /// </summary>
-    /// <param name="profile">The <see cref="ActorProfile"/> representing the <see cref="Pawn"/>.</param>
+    /// <param name="profile">The <see cref="ActorProfile"/> representing the <see cref="AdventurerPawn"/>.</param>
     /// <returns>Returns the nearest food source.</returns>
     IInteractable GetFoodSource(ActorProfile profile)
     {

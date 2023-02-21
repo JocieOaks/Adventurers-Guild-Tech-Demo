@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 /// <summary>
-/// The <see cref="WaitTask"/> class is a <see cref="Task"/> for a <see cref="Pawn"/> to wait a specified amount of time.
+/// The <see cref="WaitTask"/> class is a <see cref="Task"/> for a <see cref="AdventurerPawn"/> to wait a specified amount of time.
 /// </summary>
 public class WaitTask : Task
 {
@@ -10,7 +10,7 @@ public class WaitTask : Task
     /// <summary>
     /// Initializes a new instace of the <see cref="WaitTask"/> class.
     /// </summary>
-    /// <param name="time">The time in seconds that a <see cref="Pawn"/> should wait.</param>
+    /// <param name="time">The time in seconds that a <see cref="AdventurerPawn"/> should wait.</param>
     public WaitTask(float time) : base(null, null, null, null)
     {
         _time = time;

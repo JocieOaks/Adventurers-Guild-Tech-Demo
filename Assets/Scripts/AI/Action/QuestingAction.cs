@@ -1,5 +1,5 @@
 ﻿/// <summary>
-/// The <see cref="QuestingAction"/> class is a <see cref="TaskAction"/> for when a <see cref="Pawn"/> is on a <see cref="Quest"/>.
+/// The <see cref="QuestingAction"/> class is a <see cref="TaskAction"/> for when a <see cref="AdventurerPawn"/> is on a <see cref="Quest"/>.
 /// </summary>
 public class QuestingAction : TaskAction
 {

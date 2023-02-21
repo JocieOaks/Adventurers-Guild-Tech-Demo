@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
+using System.Numerics;
 
 /// <summary>
 /// The <see cref="TableRoundSprite"/> class is a <see cref="SpriteObject"/> for round table furniture.
@@ -8,10 +9,10 @@ using Newtonsoft.Json;
 [System.Serializable]
 public class TableRoundSprite : SpriteObject
 {
-    // Initialized the first time GetMaskPixels is called, _pixels are the sprite mask for all TableRounds.
-    static bool[,] _pixels;
     static readonly Sprite[] sprites = new Sprite[] { Graphics.Instance.TableRound[0] };
 
+    // Initialized the first time GetMaskPixels is called, _pixels are the sprite mask for all TableRounds.
+    static bool[,] _pixels;
     [JsonConstructor]
 
     /// <summary>
@@ -90,5 +91,20 @@ public class TableRoundSprite : SpriteObject
         }
         else
             highlight.enabled = false;
+    }
+
+    /// <inheritdoc/>
+    public override float SpeedMultiplier(Vector3Int nodePosition)
+    {
+        Vector3Int vector = nodePosition - WorldPosition;
+        if (vector == Vector3Int.one)
+            return 0f;
+        else if (
+        vector.x <= 0 && vector.x < Dimensions.x &&
+        vector.y <= 0 && vector.y < Dimensions.y &&
+        vector.z <= 0 && vector.z < Dimensions.z
+            )
+            return 0;
+        else return 1;
     }
 }

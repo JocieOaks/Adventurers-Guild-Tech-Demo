@@ -176,6 +176,24 @@ public class Map : MonoBehaviour, IDataPersistence
         };
     }
 
+    static readonly float RAD2_2 = Mathf.Sqrt(2) / 2;
+
+    public static Vector3 DirectionToVectorNormalized(Direction direction)
+    {
+        return direction switch
+        {
+            Direction.North => Vector3.up,
+            Direction.South => Vector3.down,
+            Direction.East => Vector3.right,
+            Direction.West => Vector3.left,
+            Direction.NorthEast => new Vector3(RAD2_2, RAD2_2),
+            Direction.SouthEast => new Vector3(RAD2_2, -RAD2_2),
+            Direction.NorthWest => new Vector3(-RAD2_2, RAD2_2),
+            Direction.SouthWest => new Vector3(-RAD2_2, -RAD2_2),
+            _ => default,
+        };
+    }
+
     public static MapAlignment DirectionToEdgeAlignment(Direction direction)
     {
         return (direction == Direction.North || direction == Direction.South) ? MapAlignment.XEdge : MapAlignment.YEdge;
@@ -230,23 +248,29 @@ public class Map : MonoBehaviour, IDataPersistence
         return new Vector3Int(Mathf.RoundToInt(x), Mathf.RoundToInt(y), level);
     }
 
-    public static Direction VectorToDir(Vector3 vector)
-    {
+    public static Direction VectorToDirection(Vector3 vector, bool cardinal = false)
+    { 
         Vector2 gameVector = new(vector.x, vector.y);
-        int best = 0;
-        float best_product = Vector2.Dot(gameVector, new Vector2(1, 1).normalized);
 
-        for (int i = 1; i < 8; i++)
+        if (gameVector == Vector2.zero)
+            return Direction.Undirected;
+
+        int best = 7;
+        float best_product = Vector2.Dot(gameVector, new Vector2(0, 1));
+
+        for (int i = 0; i < 7; i++)
         {
+            if (cardinal && i % 2 == 0)
+                continue;
             var value = i switch
             {
-                1 => Vector2.Dot(gameVector, new Vector2(1, 0).normalized),
-                2 => Vector2.Dot(gameVector, new Vector2(1, -1).normalized),
-                3 => Vector2.Dot(gameVector, new Vector2(0, -1).normalized),
-                4 => Vector2.Dot(gameVector, new Vector2(-1, -1).normalized),
-                5 => Vector2.Dot(gameVector, new Vector2(-1, 0).normalized),
-                6 => Vector2.Dot(gameVector, new Vector2(-1, 1).normalized),
-                _ => Vector2.Dot(gameVector, new Vector2(0, 1).normalized),
+                1 => Vector2.Dot(gameVector, new Vector2(1, 0)),
+                2 => Vector2.Dot(gameVector, new Vector2(RAD2_2, -RAD2_2)),
+                3 => Vector2.Dot(gameVector, new Vector2(0, -1)),
+                4 => Vector2.Dot(gameVector, new Vector2(-RAD2_2, -RAD2_2)),
+                5 => Vector2.Dot(gameVector, new Vector2(-1, 0)),
+                6 => Vector2.Dot(gameVector, new Vector2(-RAD2_2, RAD2_2)),
+                _ => Vector2.Dot(gameVector, new Vector2(RAD2_2, RAD2_2)),
             };
             if (value > best_product)
             {
@@ -653,12 +677,12 @@ public class Map : MonoBehaviour, IDataPersistence
     }
 
     /// <summary>
-    /// Finds the shortest path for an <see cref="Pawn"/> to take to travel from one <see cref="RoomNode"/> to another.
+    /// Finds the shortest path for an <see cref="AdventurerPawn"/> to take to travel from one <see cref="RoomNode"/> to another.
     /// Assumes that the <see cref="RoomNode"/>s are in differnt <see cref="Room"/>s.
     /// </summary>
-    /// <param name="start">The <see cref="RoomNode"/> the <see cref="Pawn"/> is starting in</param>
-    /// <param name="end">The <see cref="RoomNode"/> the <see cref="Pawn"/> wishes to end in.</param>
-    /// <returns>Returns a <see cref="IEnumerable"/> of <see cref="ConnectingNode"/>s designating the path for the <see cref="Pawn"/> to take, or null if no path exists.</returns>
+    /// <param name="start">The <see cref="RoomNode"/> the <see cref="AdventurerPawn"/> is starting in</param>
+    /// <param name="end">The <see cref="RoomNode"/> the <see cref="AdventurerPawn"/> wishes to end in.</param>
+    /// <returns>Returns a <see cref="IEnumerable"/> of <see cref="ConnectingNode"/>s designating the path for the <see cref="AdventurerPawn"/> to take, or null if no path exists.</returns>
     public IEnumerator NavigateBetweenRooms(IWorldPosition start, IWorldPosition end)
     {
 

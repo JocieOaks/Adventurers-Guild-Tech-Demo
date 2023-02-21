@@ -2,7 +2,7 @@
 using UnityEngine;
 
 /// <summary>
-/// The <see cref="WanderTask"/> class is a <see cref="Task"/> for causing a <see cref="Pawn"/> wandering aimlessly.
+/// The <see cref="WanderTask"/> class is a <see cref="Task"/> for causing a <see cref="AdventurerPawn"/> wandering aimlessly.
 /// </summary>
 public class WanderTask : Task
 {

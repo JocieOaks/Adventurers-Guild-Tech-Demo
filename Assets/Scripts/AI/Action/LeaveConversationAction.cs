@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// The <see cref="LeaveConversationAction"/> class is a <see cref="TaskAction"/> for a <see cref="Pawn"/> to leave a <see cref="Conversation"/>.
+/// The <see cref="LeaveConversationAction"/> class is a <see cref="TaskAction"/> for a <see cref="AdventurerPawn"/> to leave a <see cref="Conversation"/>.
 /// </summary>
 public class LeaveConversationAction : TaskAction
 {

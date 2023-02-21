@@ -9,10 +9,10 @@ using System.Linq;
 [System.Serializable]
 public class StoolSprite : SpriteObject, IOccupied
 {
-    // Initialized the first time GetMaskPixels is called, _pixels are the sprite mask for all Stools.
-    static bool[,] _pixels;
     static readonly Sprite[] sprites = new Sprite[] { Graphics.Instance.Stool };
 
+    // Initialized the first time GetMaskPixels is called, _pixels are the sprite mask for all Stools.
+    static bool[,] _pixels;
     List<RoomNode> _interactionPoints;
 
     /// <summary>
@@ -138,9 +138,16 @@ public class StoolSprite : SpriteObject, IOccupied
         if (pawn == Occupant)
         {
             Occupant = null;
-
-            RoomNode roomNode = InteractionPoints.First();
-            pawn.WorldPositionNonDiscrete = roomNode.WorldPosition; 
+        }
+        RoomNode roomNode = InteractionPoints.FirstOrDefault(x => x.Traversable);
+        if (roomNode == default)
+        {
+            //Emergency option if there's no interaction points to move to.
+            pawn.WorldPositionNonDiscrete = Vector3Int.one;
+        }
+        else
+        {
+            pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
         }
     }
 
@@ -151,6 +158,14 @@ public class StoolSprite : SpriteObject, IOccupied
         {
             roomNode.Reserved = true;
         }
+    }
+
+    /// <inheritdoc/>
+    public override float SpeedMultiplier(Vector3Int nodePosition)
+    {
+        if (nodePosition == WorldPosition)
+            return 0.5f;
+        else return 1;
     }
 
     /// <inheritdoc/>

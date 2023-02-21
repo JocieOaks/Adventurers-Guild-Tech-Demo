@@ -83,4 +83,21 @@ public class StairNode : RoomNode, IDirected
         }
         return default(T);
     }
+
+    public Vector3 StairPosition(Vector3 pawnPosition)
+    {
+        float z = Direction switch
+        {
+            Direction.North => Mathf.Clamp(pawnPosition.y + 0.5f - WorldPosition.y, 0f, 1f) + WorldPosition.z,
+            Direction.South => Mathf.Clamp(pawnPosition.y + 0.5f - WorldPosition.y, -1f, 0f) + WorldPosition.z,
+            Direction.West => Mathf.Clamp(pawnPosition.x + 0.5f - WorldPosition.x, -1f, 0f) + WorldPosition.z,
+            Direction.East => Mathf.Clamp(pawnPosition.x + 0.5f - WorldPosition.x, 0f, 1f) + WorldPosition.z,
+            _ => WorldPosition.z
+        };
+
+        return new Vector3(pawnPosition.x, pawnPosition.y, z);
+    }
+
+    /// <inheritdoc/>
+    public override float SpeedMultiplier => base.SpeedMultiplier * 0.75f;
 }

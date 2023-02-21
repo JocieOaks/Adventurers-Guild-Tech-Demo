@@ -25,4 +25,22 @@ public interface IDividerNode : INode
     {
         return FirstNode.Room == room || SecondNode.Room == room;
     }
+
+    /// <summary>
+    /// Gives the <see cref="RoomNode"/> that is on the other side of the <see cref="IDividerNode"/> from <see cref="RoomNode"/>.
+    /// </summary>
+    /// <param name="node"><see cref="RoomNode"/> that is being evaluated.</param>
+    /// <returns>Returns the <see cref="RoomNode"/> that is on the opposite side of the <see cref="IDividerNode"/>.</returns>
+    /// <exception cref="System.ArgumentException">Throws this error if the given <see cref="RoomNode"/> is not one of the two <see cref="RoomNode"/>s connected by the <see cref="ConnectingNode"/>.</exception>
+    RoomNode GetOppositeRoomNode(RoomNode node)
+    {
+        if (node == FirstNode)
+            return SecondNode;
+        else if (node == SecondNode)
+            return FirstNode;
+        else
+        {
+            throw new System.ArgumentException();
+        }
+    }
 }

@@ -13,10 +13,10 @@ public abstract class Task : ITask
     /// <summary>
     /// Initializes a new instance of the <see cref="Task"/> class, and sets the conditional flags.
     /// </summary>
-    /// <param name="sitting">Determines whether a <see cref="Task"/> should be performed while the <see cref="Pawn"/> is in <see cref="Stance.Sit"/>. Can be null.</param>
-    /// <param name="standing">Determines whether a <see cref="Task"/> should be performed while the <see cref="Pawn"/> is in <see cref="Stance.Stand"/>. Can be null.</param>
-    /// <param name="laying">Determines whether a <see cref="Task"/> should be performed while the <see cref="Pawn"/> is in <see cref="Stance.Lay"/>. Can be null.</param>
-    /// <param name="conversing">Determines whether a <see cref="Task"/> should be performed while the <see cref="Pawn"/> is in a <see cref="Conversation"/>. Can be null.</param>
+    /// <param name="sitting">Determines whether a <see cref="Task"/> should be performed while the <see cref="AdventurerPawn"/> is in <see cref="Stance.Sit"/>. Can be null.</param>
+    /// <param name="standing">Determines whether a <see cref="Task"/> should be performed while the <see cref="AdventurerPawn"/> is in <see cref="Stance.Stand"/>. Can be null.</param>
+    /// <param name="laying">Determines whether a <see cref="Task"/> should be performed while the <see cref="AdventurerPawn"/> is in <see cref="Stance.Lay"/>. Can be null.</param>
+    /// <param name="conversing">Determines whether a <see cref="Task"/> should be performed while the <see cref="AdventurerPawn"/> is in a <see cref="Conversation"/>. Can be null.</param>
     protected Task(bool? sitting, bool? standing, bool? laying, bool? conversing)
     {
         _sitting = sitting;

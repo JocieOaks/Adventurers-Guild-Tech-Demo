@@ -10,19 +10,20 @@ public class RoomNode : INode
 {
 
 
-    static readonly float RAD2 = Mathf.Sqrt(2);
-    static readonly float RAD5 = Mathf.Sqrt(5);
+    static readonly float RAD2_2 = Mathf.Sqrt(2) / 2;
+    static readonly float RAD6_4 = Mathf.Sqrt(5) / 4;
     readonly List<INode> _adjacentNodes = new();
 
-    Graphics.Corner _corner;
     readonly List<(RoomNode, float)> _nextNodes = new();
-
+    Graphics.Corner _corner;
     bool _nextNodesKnown = false;
 
     INode _north, _south, _east, _west;
 
     IWorldPosition _occupant;
 
+    float? _speed = null;
+    float? _speedInverse = null;
     bool? _traversible;
 
     /// <summary>
@@ -73,7 +74,7 @@ public class RoomNode : INode
         {
             yield return _north;
             yield return _south;
-            yield return _east; 
+            yield return _east;
             yield return _west;
         }
     }
@@ -105,7 +106,7 @@ public class RoomNode : INode
     /// <value> Returns the <see cref="global::FloorSprite"/> <see cref="SpriteObject"/> associated with this <see cref="RoomNode"/>.</value>
     public FloorSprite Floor { get; }
 
-    /// <value>The <see cref="List{T}"/> of all <see cref="RoomNode"/>'s that are a single step away from this <see cref="RoomNode"/> in terms of <see cref="Pawn"/> navigation.
+    /// <value>The <see cref="List{T}"/> of all <see cref="RoomNode"/>'s that are a single step away from this <see cref="RoomNode"/> in terms of <see cref="AdventurerPawn"/> navigation.
     /// If the list is not already made it will be created.</value>
     public IEnumerable NextNodes
     {
@@ -119,24 +120,24 @@ public class RoomNode : INode
 
                     bool isTraversibleNorth = TryGetNodeAs(Direction.North, out RoomNode north) && north.Traversable;
                     bool isTraversibleSouth = TryGetNodeAs(Direction.South, out RoomNode south) && south.Traversable;
-                    bool isTraversibleEast = TryGetNodeAs<RoomNode>(Direction.East, out RoomNode east) && east.Traversable;
-                    bool isTraversibleWest = TryGetNodeAs<RoomNode>(Direction.West, out RoomNode west)&& west.Traversable;
+                    bool isTraversibleEast = TryGetNodeAs(Direction.East, out RoomNode east) && east.Traversable;
+                    bool isTraversibleWest = TryGetNodeAs(Direction.West, out RoomNode west) && west.Traversable;
 
                     if (isTraversibleNorth)
                     {
-                        _nextNodes.Add((north, 1));
+                        _nextNodes.Add((north, (SpeedInverse + north.SpeedInverse) / 2));
                     }
                     if (isTraversibleSouth)
                     {
-                        _nextNodes.Add((south, 1));
+                        _nextNodes.Add((south, (SpeedInverse + south.SpeedInverse) / 2));
                     }
                     if (isTraversibleEast)
                     {
-                        _nextNodes.Add((east, 1));
+                        _nextNodes.Add((east, (SpeedInverse + east.SpeedInverse) / 2));
                     }
                     if (isTraversibleWest)
                     {
-                        _nextNodes.Add((west, 1));
+                        _nextNodes.Add((west, (SpeedInverse + west.SpeedInverse) / 2));
                     }
 
                     bool isTraversibleNorthEast = NorthEast?.Traversable ?? false;
@@ -146,60 +147,60 @@ public class RoomNode : INode
 
                     if (isTraversibleNorthEast)
                     {
-                        _nextNodes.Add((NorthEast, RAD2));
+                        _nextNodes.Add((NorthEast, RAD2_2 * (SpeedInverse + NorthEast.SpeedInverse)));
                     }
                     if (isTraversibleNorthWest)
                     {
-                        _nextNodes.Add((NorthWest, RAD2));
+                        _nextNodes.Add((NorthWest, RAD2_2 * (SpeedInverse + NorthWest.SpeedInverse)));
                     }
                     if (isTraversibleSouthEast)
                     {
-                        _nextNodes.Add((SouthEast, RAD2));
+                        _nextNodes.Add((SouthEast, RAD2_2 * (SpeedInverse + SouthEast.SpeedInverse)));
                     }
                     if (isTraversibleSouthWest)
                     {
-                        _nextNodes.Add((SouthWest, RAD2));
+                        _nextNodes.Add((SouthWest, RAD2_2 * (SpeedInverse + SouthWest.SpeedInverse)));
                     }
 
                     if (isTraversibleNorth && isTraversibleNorthEast)
                     {
                         if (NorthEast.TryGetNodeAs(Direction.North, out RoomNode northNorthEast) && northNorthEast.Traversable)
-                            _nextNodes.Add((northNorthEast, RAD5));
+                            _nextNodes.Add((northNorthEast, RAD6_4 * (SpeedInverse + north.SpeedInverse + NorthEast.SpeedInverse + northNorthEast.SpeedInverse)));
                     }
                     if (isTraversibleNorth && isTraversibleNorthWest)
                     {
                         if (NorthWest.TryGetNodeAs(Direction.North, out RoomNode northNorthWest) && northNorthWest.Traversable)
-                            _nextNodes.Add((northNorthWest, RAD5));
+                            _nextNodes.Add((northNorthWest, RAD6_4 * (SpeedInverse + north.SpeedInverse + NorthWest.SpeedInverse + northNorthWest.SpeedInverse)));
                     }
                     if (isTraversibleSouth && isTraversibleSouthEast)
                     {
                         if (SouthEast.TryGetNodeAs(Direction.South, out RoomNode southSouthEast) && southSouthEast.Traversable)
-                            _nextNodes.Add((southSouthEast, RAD5));
+                            _nextNodes.Add((southSouthEast, RAD6_4 * (SpeedInverse + south.SpeedInverse + SouthEast.SpeedInverse + southSouthEast.SpeedInverse)));
                     }
                     if (isTraversibleSouth && isTraversibleSouthWest)
                     {
                         if (SouthWest.TryGetNodeAs(Direction.South, out RoomNode southSouthWest) && southSouthWest.Traversable)
-                            _nextNodes.Add((southSouthWest, RAD5));
+                            _nextNodes.Add((southSouthWest, RAD6_4 * (SpeedInverse + south.SpeedInverse + SouthWest.SpeedInverse + southSouthWest.SpeedInverse)));
                     }
                     if (isTraversibleEast && isTraversibleNorthEast)
                     {
                         if (NorthEast.TryGetNodeAs(Direction.East, out RoomNode eastNorthEast) && eastNorthEast.Traversable)
-                            _nextNodes.Add((eastNorthEast, RAD5));
+                            _nextNodes.Add((eastNorthEast, RAD6_4 * (SpeedInverse + east.SpeedInverse + NorthEast.SpeedInverse + eastNorthEast.SpeedInverse)));
                     }
                     if (isTraversibleWest && isTraversibleNorthWest)
                     {
                         if (NorthWest.TryGetNodeAs(Direction.West, out RoomNode westNorthWest) && westNorthWest.Traversable)
-                            _nextNodes.Add((westNorthWest, RAD5));
+                            _nextNodes.Add((westNorthWest, RAD6_4 * (SpeedInverse + west.SpeedInverse + NorthWest.SpeedInverse + westNorthWest.SpeedInverse)));
                     }
                     if (isTraversibleEast && isTraversibleSouthEast)
                     {
                         if (SouthEast.TryGetNodeAs(Direction.East, out RoomNode eastSouthEast) && eastSouthEast.Traversable)
-                            _nextNodes.Add((eastSouthEast, RAD5));
+                            _nextNodes.Add((eastSouthEast, RAD6_4 * (SpeedInverse + east.SpeedInverse + SouthEast.SpeedInverse + eastSouthEast.SpeedInverse)));
                     }
                     if (isTraversibleWest && isTraversibleSouthWest)
                     {
                         if (SouthWest.TryGetNodeAs(Direction.West, out RoomNode westSouthWest) && westSouthWest.Traversable)
-                            _nextNodes.Add((westSouthWest, RAD5));
+                            _nextNodes.Add((westSouthWest, RAD6_4 * (SpeedInverse + west.SpeedInverse + SouthWest.SpeedInverse + westSouthWest.SpeedInverse)));
                     }
                 }
             }
@@ -217,7 +218,10 @@ public class RoomNode : INode
     /// <value>Returns the <see cref="RoomNode"/> that is north west of this <see cref="RoomNode"/> or null if such a node does not exist or is inaccessible.</value>
     public RoomNode NorthWest => GetNodeAs<RoomNode>(Direction.North)?.GetNodeAs<RoomNode>(Direction.West) ?? GetNodeAs<RoomNode>(Direction.West)?.GetNodeAs<RoomNode>(Direction.North);
 
-    /// <value>Gives the <see cref="IWorldPosition"/> - typically either <see cref="SpriteObject"/> or <see cref="Pawn"/> - that is currently within this <see cref="RoomNode"/> or null if there is none.</value>
+    /// <inheritdoc/>
+    public bool Obstructed => !Floor.Enabled || RoomNodeSpeed == 0;
+
+    /// <value>Gives the <see cref="IWorldPosition"/> - typically either <see cref="SpriteObject"/> or <see cref="AdventurerPawn"/> - that is currently within this <see cref="RoomNode"/> or null if there is none.</value>
     public IWorldPosition Occupant
     {
         get => _occupant;
@@ -225,12 +229,12 @@ public class RoomNode : INode
         {
             _occupant = value;
             UpdateNearbyNodes();
-            if(value is SpriteObject)
+            if (value is SpriteObject)
                 Room.RegisterForUpdate();
         }
     }
 
-    /// <value>When true, this <see cref="RoomNode"/> cannot be blocked by <see cref="Pawn"/>'s performing the <see cref="WaitStep"/>, normally because this <see cref="RoomNode"/> is a major navigation path.</value>
+    /// <value>When true, this <see cref="RoomNode"/> cannot be blocked by <see cref="AdventurerPawn"/>'s performing the <see cref="WaitStep"/>, normally because this <see cref="RoomNode"/> is a major navigation path.</value>
     public bool Reserved { get; set; }
 
     /// <inheritdoc/>
@@ -248,16 +252,36 @@ public class RoomNode : INode
     /// <value>Returns the <see cref="RoomNode"/> that is south west of this <see cref="RoomNode"/> or null if such a node does not exist or is inaccessible.</value>
     public RoomNode SouthWest => GetNodeAs<RoomNode>(Direction.South)?.GetNodeAs<RoomNode>(Direction.West) ?? GetNodeAs<RoomNode>(Direction.West)?.GetNodeAs<RoomNode>(Direction.South);
 
+    /// <value>Gives the speed multiplier to a <see cref="Pawn"/> trying to pass through this <see cref="RoomNode"/>.</value>
+    public virtual float SpeedMultiplier
+    {
+        get
+        {
+            if (_speed == null)
+            {
+                _speed = 0;
+                _speed += GetNodeSpeed(Direction.North);
+                _speed += GetNodeSpeed(Direction.South);
+                _speed += GetNodeSpeed(Direction.East);
+                _speed += GetNodeSpeed(Direction.West);
+                _speed += GetNodeSpeed(Direction.NorthEast);
+                _speed += GetNodeSpeed(Direction.NorthWest);
+                _speed += GetNodeSpeed(Direction.SouthEast);
+                _speed += GetNodeSpeed(Direction.SouthWest);
+                _speed *= RoomNodeSpeed / 8;
+            }
+
+            return _speed.Value;
+
+        }
+    }
+
     /// <value>The <see cref="Map"/> position of the walkable surface of this <see cref="RoomNode"/>. May or may not be equal to <see cref="WorldPosition"/>.</value>
     public virtual Vector3Int SurfacePosition => WorldPosition;
 
     //Obstructed and Traversable are typically opposites, but have subtle differences, specifically for RoomNodes.
     //Because Pawns take up a three by three area, all 9 RoomNode tiles that they are ocupying must not be Obstructed in order for the Pawn to stand there.
     //Therefore, it is possible for a RoomNode to not be Obstructed, but also not be Traversible.
-
-    /// <inheritdoc/>
-    public bool Obstructed => /*this == Undefined || this == Invalid || */ !Floor.Enabled || !Empty;
-
     /// <inheritdoc/>
     public bool Traversable
     {
@@ -282,7 +306,7 @@ public class RoomNode : INode
                 }
                 return _traversible.Value;
             }
-            catch(System.NullReferenceException e)
+            catch (System.NullReferenceException e)
             {
                 throw e;
             }
@@ -291,6 +315,35 @@ public class RoomNode : INode
 
     /// <inheritdoc/>
     public Vector3Int WorldPosition => Room.GetWorldPosition(this);
+
+    /// <value>Gives the speed multiplier just from this <see cref="RoomNode"/>.</value>
+    float RoomNodeSpeed
+    {
+        get
+        {
+            if (!Empty)
+            {
+                if (Occupant is SpriteObject spriteObject)
+                    return spriteObject.SpeedMultiplier(WorldPosition);
+
+                return 0;
+            }
+            return 1;
+        }
+    }
+
+    /// <value>Gives the inverse of <see cref="SpeedMultiplier"/>.</value>
+    float SpeedInverse
+    {
+        get
+        {
+            if(_speedInverse == null)
+            {
+                _speedInverse = 1 / SpeedMultiplier;
+            }
+            return _speedInverse.Value;
+        }
+    }
 
     /// <summary>
     /// Evaluates if a given path of <see cref="RoomNode"/>'s remains valid.
@@ -342,8 +395,35 @@ public class RoomNode : INode
             Direction.South => _south,
             Direction.East => _east,
             Direction.West => _west,
-            _ => null,
+            Direction.Undirected => this,
+            _ => throw new System.ArgumentException("Not a valid direction for GetNode()")
         };
+    }
+
+    public RoomNode GetRoomNode(Direction direction)
+    { 
+        switch(direction)
+        {
+            case Direction.North:
+            case Direction.South:
+            case Direction.East:
+            case Direction.West:
+                INode node = GetNode(direction);
+                if (node is IDividerNode divider)
+                    return divider.GetOppositeRoomNode(this);
+                else
+                    return node as RoomNode;
+            default:
+                return direction switch
+                {
+                    Direction.NorthEast => NorthEast,
+                    Direction.SouthEast => SouthEast,
+                    Direction.NorthWest => NorthWest,
+                    Direction.SouthWest => SouthWest,
+                    Direction.Undirected => this,
+                    _ => throw new System.ArgumentException("Not a valid direction for GetRoomNode()")
+                };
+        }
     }
 
     /// <summary>
@@ -534,7 +614,36 @@ public class RoomNode : INode
                     return false;
                 return !cornerNode.Obstructed && !cornerNode._north.Obstructed && !cornerNode._east.Obstructed;
         }
-        throw new System.ArgumentException();
+        throw new System.ArgumentException("Invalid Direction for CornerAccessible()");
+    }
+
+    float GetNodeSpeed(Direction direction)
+    {
+        Vector3Int vector = Map.DirectionToVector(direction);
+        RoomNode roomNode = this;
+        if (vector.x != 0)
+        {
+            INode node = GetNode(vector.x > 0 ? Direction.East : Direction.West);
+            if (node is IDividerNode divider)
+            {
+                roomNode = divider.GetOppositeRoomNode(this);
+            }
+            else
+                roomNode = node as RoomNode;
+        }
+
+        if (vector.y != 0)
+        {
+            INode node = GetNode(vector.y > 0 ? Direction.North : Direction.South);
+            if (node is IDividerNode divider)
+            {
+                roomNode = divider.GetOppositeRoomNode(this);
+            }
+            else
+                roomNode = node as RoomNode;
+        }
+
+        return roomNode.RoomNodeSpeed;
     }
     /// <summary>
     /// Notifies all nearby <see cref="RoomNode"/>s that they will need to update their <see cref="NextNodes"/> and <see cref="AdjacentNodes"/>lists (including itself).
@@ -554,7 +663,11 @@ public class RoomNode : INode
             for(int j = -1; j <= 1; j++)
             {
                 if (Map.Instance[WorldPosition + new Vector3Int(i, j)] != null)
+                {
                     Map.Instance[WorldPosition + new Vector3Int(i, j)]._traversible = null;
+                    Map.Instance[WorldPosition + new Vector3Int(i, j)]._speed = null;
+                    Map.Instance[WorldPosition + new Vector3Int(i, j)]._speedInverse = null;
+                }
                 Map.Instance[WorldPosition + new Vector3Int(i, j)]?._adjacentNodes.Clear();
             }
         }

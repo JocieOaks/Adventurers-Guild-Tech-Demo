@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// The <see cref="SleepAction"/> class is a <see cref="TaskAction"/> for when a <see cref="Pawn"/> is sleeping.
+/// The <see cref="SleepAction"/> class is a <see cref="TaskAction"/> for when a <see cref="AdventurerPawn"/> is sleeping.
 /// </summary>
 public class SleepAction : TaskAction
 {

@@ -109,7 +109,7 @@ public class Graphics : MonoBehaviour
 
     public Sprite Marker;
 
-    public Pawn PawnPrefab;
+    public AdventurerPawn PawnPrefab;
 
     public Texture2D PawnGradientGreyscale;
 

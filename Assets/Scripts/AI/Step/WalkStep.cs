@@ -11,32 +11,32 @@ public class WalkStep : TaskStep, IDirected
     Vector3 _step;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="WalkStep"/> class. Checks if the previous <see cref="TaskStep"/> of the <see cref="Pawn"/> 
+    /// Initializes a new instance of the <see cref="WalkStep"/> class. Checks if the previous <see cref="TaskStep"/> of the <see cref="AdventurerPawn"/> 
     /// is also a <see cref="WalkStep"/> so that the animations work properly.</param>
     /// </summary>
     /// <param name="end">The <see cref="Map"/> coordinates of the <see cref="Pawn"/>'s destination. 
     /// <param name="pawn">The <see cref="Pawn"/> performing the <see cref="WalkStep"/>.</param>
     /// <param name="step">The previous <see cref="TaskStep"/> to be performing.</param>
-    public WalkStep(Vector3Int end, Pawn pawn, TaskStep step) : this(end, pawn)
+    public WalkStep(Vector3Int end, AdventurerPawn pawn, TaskStep step) : this(end, pawn)
     {
         if (step is WalkStep walk)
         {
-            period = walk.period;
-            frame = walk.frame;
+            _period = walk._period;
+            _frame = walk._frame;
         }
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WalkStep"/> class.
     /// </summary>
-    /// <param name="end">The <see cref="Map"/> coordinates of the <see cref="Pawn"/>'s destination.
-    /// <param name="pawn">The <see cref="Pawn"/> performing the <see cref="WalkStep"/>.</param>
-    public WalkStep(Vector3Int end, Pawn pawn) : base(pawn)
+    /// <param name="end">The <see cref="Map"/> coordinates of the <see cref="AdventurerPawn"/>'s destination.
+    /// <param name="pawn">The <see cref="AdventurerPawn"/> performing the <see cref="WalkStep"/>.</param>
+    public WalkStep(Vector3Int end, AdventurerPawn pawn) : base(pawn)
     {
         _end = end;
 
         Vector3 gameVector = end - pawn.WorldPositionNonDiscrete;
-        _step = gameVector.normalized * pawn.Speed;
+        _step = gameVector.normalized;
 
 
         _isFinished = _step.sqrMagnitude < 0.01;
@@ -100,6 +100,38 @@ public class WalkStep : TaskStep, IDirected
         }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WalkStep"/> class by giving a <see cref="global::Direction"/> that will be traveled indefinitely.
+    /// </summary>
+    /// <param name="direction"><see cref="global::Direction"/> the <see cref="Pawn"/> will walk.</param>
+    /// <param name="pawn">The <see cref="Pawn"/> performing the <see cref="WalkStep"/>.</param>
+    /// <param name="step">The previous <see cref="TaskStep"/> the <see cref="Pawn"/> was performing.</param>
+    public WalkStep(Direction direction, Pawn pawn, TaskStep step) : base(pawn)
+    {
+        Direction = direction;
+
+        if (step is WalkStep walk)
+        {
+            _period = walk._period;
+            _frame = walk._frame;
+        }
+
+        _animationOffset = direction switch
+        {
+            Direction.NorthEast => 0,
+            Direction.East => 36,
+            Direction.SouthEast => 4,
+            Direction.South => 16,
+            Direction.SouthWest => 12,
+            Direction.West => 20,
+            Direction.NorthWest => 8,
+            Direction.North => 40,
+            _ => 0
+        };
+
+        _step = Map.DirectionToVectorNormalized(direction);
+    }
+
     /// <inheritdoc/>
     public Direction Direction { get; }
 
@@ -108,6 +140,9 @@ public class WalkStep : TaskStep, IDirected
     {
         get
         {
+            //If end is not defined, WalkStep continues infinitely and must be changed manually.
+            if(_end == default)
+                return false;
             return Vector3.Dot(_end - _pawn.WorldPositionNonDiscrete, _step) < 0 || _isFinished;
         }
     }
@@ -117,17 +152,17 @@ public class WalkStep : TaskStep, IDirected
     {
         if (!_isComplete)
         {
-            _pawn.WorldPositionNonDiscrete += _step * Time.deltaTime;
-            period += Time.deltaTime;
+            _pawn.WorldPositionNonDiscrete += Time.deltaTime * _pawn.Speed * _step;
+            _period += Time.deltaTime * _pawn.Speed;
 
-            if (period >= frame * STEPTIME)
+            if (_period >= _frame * STEPTIME)
             {
-                _pawn.SetSprite(_animationOffset + frame);
-                frame++;
-                if (frame == 4)
+                _pawn.SetSprite(_animationOffset + _frame);
+                _frame++;
+                if (_frame == 4)
                 {
-                    period -= 1f;
-                    frame = 0;
+                    _period -= 2.5f;
+                    _frame = 0;
                 }
             }
         }

@@ -11,10 +11,10 @@ public interface ISpriteObject : IDataPersistence, IWorldPosition
     /// Normally should be equivalent to <see cref="ObjectDimensions"/> but can be publicly accessed without knowing the <see cref="SpriteObject"/>'s type.</value>
     Vector3Int Dimensions { get; }
 
-    /// <value>The pixels blocked by the <see cref="SpriteObject"/>'s sprites as an array of bools. Used by <see cref="Pawn"/> to construct a <see cref="SpriteMask"/> for all objects in front of it.</value>
+    /// <value>The pixels blocked by the <see cref="SpriteObject"/>'s sprites as an array of bools. Used by <see cref="AdventurerPawn"/> to construct a <see cref="SpriteMask"/> for all objects in front of it.</value>
     IEnumerable<bool[,]> GetMaskPixels { get; }
 
-    /// <value>Gives the offset for <see cref="GetMaskPixels"/> for <see cref="Pawn"/> when constructing a <see cref="SpriteMask"/> composed of multiple copies of the same <see cref="UnityEngine.Sprite"/>.</value>
+    /// <value>Gives the offset for <see cref="GetMaskPixels"/> for <see cref="AdventurerPawn"/> when constructing a <see cref="SpriteMask"/> composed of multiple copies of the same <see cref="UnityEngine.Sprite"/>.</value>
     Vector3 OffsetVector { get; }
 
     /// <value>Gives the <see cref="UnityEngine.SpriteRenderer"/> for the forward most sprite of the <see cref="SpriteObject"/>.</value>
@@ -30,4 +30,11 @@ public interface ISpriteObject : IDataPersistence, IWorldPosition
     /// </summary>
     /// <param name="color">The color to set the <see cref="UnityEngine.SpriteRenderer"/>s.</param>
     void Highlight(Color color);
+
+    /// <summary>
+    /// Calculate's the effect on a <see cref="Pawn"/>'s speed from trying to move through the <see cref="RoomNode"/> at the given position. 
+    /// </summary>
+    /// <param name="nodePosition">The position of the <see cref="RoomNode"/> being evaluated.</param>
+    /// <returns></returns>
+    float SpeedMultiplier(Vector3Int nodePosition);
 }

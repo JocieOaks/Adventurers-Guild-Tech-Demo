@@ -7,6 +7,7 @@ using System.Linq;
 public enum GameMode
 {
     Play,
+    Overview,
     Build
 }
 
@@ -608,6 +609,9 @@ public class GameManager : MonoBehaviour, IDataPersistence
 
         Ticked?.Invoke();
     }
+
+    [SerializeField] PlayerPawn _player;
+
     private void Update()
     {
         if(TICK_TIME < _time)
@@ -687,21 +691,28 @@ public class GameManager : MonoBehaviour, IDataPersistence
 
         float _cameraSpeed = _camera.orthographicSize / 200;
 
-        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
+        if (GameMode != GameMode.Play)
         {
-            _camera.transform.Translate(Vector3.up * _cameraSpeed);
+            if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
+            {
+                _camera.transform.Translate(Vector3.up * _cameraSpeed);
+            }
+            if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+            {
+                _camera.transform.Translate(Vector3.down * _cameraSpeed);
+            }
+            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+            {
+                _camera.transform.Translate(Vector3.left * _cameraSpeed);
+            }
+            if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+            {
+                _camera.transform.Translate(Vector3.right * _cameraSpeed);
+            }
         }
-        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+        else
         {
-            _camera.transform.Translate(Vector3.down * _cameraSpeed);
-        }
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
-        {
-            _camera.transform.Translate(Vector3.left * _cameraSpeed);
-        }
-        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
-        {
-            _camera.transform.Translate(Vector3.right * _cameraSpeed);
+            _camera.transform.position = _player.transform.position + Vector3.back * 10;
         }
 
         if (!_placingLine && !_placingArea)

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 /// <summary>
-/// The <see cref="StanceSit"/> class is a <see cref="Task"/> for having a <see cref="Pawn"/> transition into <see cref="Stance.Sit"/>.
+/// The <see cref="StanceSit"/> class is a <see cref="Task"/> for having a <see cref="AdventurerPawn"/> transition into <see cref="Stance.Sit"/>.
 /// </summary>
 public class StanceSit : Task, IRecoverableTask
 {
@@ -68,9 +68,9 @@ public class StanceSit : Task, IRecoverableTask
     }
 
     /// <summary>
-    /// Finds the nearest seat to a <see cref="Pawn"/>.
+    /// Finds the nearest seat to a <see cref="AdventurerPawn"/>.
     /// </summary>
-    /// <param name="profile">The <see cref="ActorProfile"/> representing the <see cref="Pawn"/>.</param>
+    /// <param name="profile">The <see cref="ActorProfile"/> representing the <see cref="AdventurerPawn"/>.</param>
     /// <returns>Returns the nearest seat.</returns>
     IOccupied GetSeat(ActorProfile profile)
     {

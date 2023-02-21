@@ -5,7 +5,7 @@ using Unity.Collections;
 using Unity.Jobs;
 
 /// <summary>
-/// The <see cref="TravelAction"/> is a <see cref="TaskAction"/> for a <see cref="Pawn"/> to navigate from one position to another.
+/// The <see cref="TravelAction"/> is a <see cref="TaskAction"/> for a <see cref="AdventurerPawn"/> to navigate from one position to another.
 /// </summary>
 public class TravelAction : TaskAction
 {
@@ -91,7 +91,7 @@ public class TravelAction : TaskAction
     /// <inheritdoc/>
     public override void Perform()
     {
-        Pawn pawn = _pawn;
+        AdventurerPawn pawn = _pawn;
         if (_ready && pawn.CurrentStep.IsComplete())
         {
             INode node = _walkingPath.Dequeue();
@@ -119,7 +119,7 @@ public class TravelAction : TaskAction
     }
 
     /// <summary>
-    /// Construct the path for the <see cref="Pawn"/> to follow.
+    /// Construct the path for the <see cref="AdventurerPawn"/> to follow.
     /// </summary>
     /// <returns>Returns <see cref="WaitUntil"/> objects for the <c>StartCoroutine</c> function until the <see cref="NavigateJob"/> has completed.</returns>
     IEnumerator Pathfind()

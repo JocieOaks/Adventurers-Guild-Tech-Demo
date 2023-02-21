@@ -57,10 +57,10 @@ public struct ActorProfile
     /// <value>The <see cref="Actor"/>'s name.</value>
     public string Name { get; }
 
-    /// <value>The map position of the <see cref="Pawn"/> corresponding to the <see cref="Actor"/>.</value>
+    /// <value>The map position of the <see cref="AdventurerPawn"/> corresponding to the <see cref="Actor"/>.</value>
     public Vector3Int Position { get; set; }
 
-    /// <value>The <see cref="global::RoomNode"/> the <see cref="Pawn"/> correspodning to the <see cref="Actor"/> is in.</value>
+    /// <value>The <see cref="global::RoomNode"/> the <see cref="AdventurerPawn"/> correspodning to the <see cref="Actor"/> is in.</value>
     public RoomNode RoomNode => Map.Instance[Position];
 
     /// <value>The <see cref="Actor"/>'s level of tiredness and energy.</value>
@@ -85,9 +85,9 @@ public struct ActorProfile
         }
     }
 
-    /// <value>The speed of the <see cref="Actor"/>'s corresponding <see cref="Pawn"/>.</value>
+    /// <value>The speed of the <see cref="Actor"/>'s corresponding <see cref="AdventurerPawn"/>.</value>
     public float Speed { get; }
 
-    /// <value>The <see cref="Stance"/> of the <see cref="Actor"/>'s corresponding <see cref="Pawn"/>.</value>
+    /// <value>The <see cref="Stance"/> of the <see cref="Actor"/>'s corresponding <see cref="AdventurerPawn"/>.</value>
     public Stance Stance { get; set; }
 }

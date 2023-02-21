@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 /// <summary>
-/// The <see cref="Planner"/> class is used to decide what <see cref="Task"/>s a <see cref="Pawn"/> should perform.
+/// The <see cref="Planner"/> class is used to decide what <see cref="Task"/>s a <see cref="AdventurerPawn"/> should perform.
 /// </summary>
 public class Planner
 {

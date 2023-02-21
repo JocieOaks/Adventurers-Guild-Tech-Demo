@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// The <see cref="WaitAction"/> class is a <see cref="TaskAction"/> for when a <see cref="Pawn"/> is waiting.
+/// The <see cref="WaitAction"/> class is a <see cref="TaskAction"/> for when a <see cref="AdventurerPawn"/> is waiting.
 /// </summary>
 public class WaitAction : TaskAction
 {

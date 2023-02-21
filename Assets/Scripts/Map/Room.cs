@@ -10,7 +10,7 @@ public class Room
 {
 
     protected RoomNode[,] _nodes;
-    protected List<Pawn> _occupants = new();
+    protected List<AdventurerPawn> _occupants = new();
     const float RAD2 = 1.41421356237f;
     readonly List<ConnectingNode> _connections;
     bool _updating = false;
@@ -70,8 +70,8 @@ public class Room
         }
     }
 
-    /// <value>An <see cref="IEnumerable"/> that iterates over all of <see cref="Pawn"/>s that are currently in the <see cref="Room"/>.</value>
-    public IEnumerable<Pawn> Occupants => _occupants;
+    /// <value>An <see cref="IEnumerable"/> that iterates over all of <see cref="AdventurerPawn"/>s that are currently in the <see cref="Room"/>.</value>
+    public IEnumerable<AdventurerPawn> Occupants => _occupants;
 
     ///<value>The <see cref="Map"/> coordinates of the origin point of the <see cref="Room"/>.</value>
     public Vector3Int Origin { get; protected set; }
@@ -167,13 +167,14 @@ public class Room
     }
 
     /// <summary>
-    /// Adds a <see cref="Pawn"/> to the list of occupants in the <see cref="Room"/>.
+    /// Adds a <see cref="AdventurerPawn"/> to the list of occupants in the <see cref="Room"/>.
     /// </summary>
-    /// <param name="pawn">The <see cref="Pawn"/> entering the <see cref="Room"/>.</param>
-    public void EnterRoom(Pawn pawn)
+    /// <param name="pawn">The <see cref="AdventurerPawn"/> entering the <see cref="Room"/>.</param>
+    public void EnterRoom(AdventurerPawn pawn)
     {
         _occupants.Add(pawn);
-        pawn.Social.EnterRoom(this);
+        if(pawn is AdventurerPawn realPawn )
+            realPawn.Social.EnterRoom(this);
     }
 
     /// <summary>
@@ -247,10 +248,10 @@ public class Room
     }
 
     /// <summary>
-    /// Removes a <see cref="Pawn"/> from the list of occupants of the <see cref="Room"/>.
+    /// Removes a <see cref="AdventurerPawn"/> from the list of occupants of the <see cref="Room"/>.
     /// </summary>
-    /// <param name="pawn">The <see cref="Pawn"/> exiting the <see cref="Room"/>.</param>
-    public void ExitRoom(Pawn pawn)
+    /// <param name="pawn">The <see cref="AdventurerPawn"/> exiting the <see cref="Room"/>.</param>
+    public void ExitRoom(AdventurerPawn pawn)
     {
         _occupants.Remove(pawn);
     }
@@ -266,11 +267,11 @@ public class Room
     }
 
     /// <summary>
-    /// Checks if a given <see cref="Pawn"/> is within this <see cref="Room"/>.
+    /// Checks if a given <see cref="AdventurerPawn"/> is within this <see cref="Room"/>.
     /// </summary>
-    /// <param name="pawn">The <see cref="Pawn"/> being checked.</param>
+    /// <param name="pawn">The <see cref="AdventurerPawn"/> being checked.</param>
     /// <returns>Retunrs true if the <c>pawn</c> is in the <see cref="Room"/>.</returns>
-    public bool IsInRoom(Pawn pawn)
+    public bool IsInRoom(AdventurerPawn pawn)
     {
         return _occupants.Any(x => x == pawn);
     }
@@ -302,12 +303,12 @@ public class Room
         {
             if (startConnection.IsWithinSingleRoom)
             {
-                foreach(RoomNode node in startConnection.AdjacentNodes)
+                foreach(INode node in startConnection.AdjacentNodes)
                 {
-                    if(node.Traversable)
-                    {
-                        nodeQueue.Push(node, 0);
-                        (int nodex, int nodey) = node.Coords;
+                    if(node is RoomNode roomNode && roomNode.Traversable)
+                    { 
+                        nodeQueue.Push(roomNode, 0);
+                        (int nodex, int nodey) = roomNode.Coords;
                         g_score[nodex, nodey] = 0;
                     }
                 }

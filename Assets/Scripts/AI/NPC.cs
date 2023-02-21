@@ -1,10 +1,10 @@
 using UnityEngine;
 
 /// <summary>
-/// The <see cref="NPC"/> class is a child of the <see cref="Pawn"/> class where character data is all predetermined in the inspector panel.
+/// The <see cref="NPC"/> class is a child of the <see cref="AdventurerPawn"/> class where character data is all predetermined in the inspector panel.
 /// Used for predefined characters that appear in the game.
 /// </summary>
-public class NPC : Pawn
+public class NPC : AdventurerPawn
 {
     /// <value>The character's name.</value>
     [field: SerializeField] public string CharacterName { get; private set; }

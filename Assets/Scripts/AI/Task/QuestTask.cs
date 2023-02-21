@@ -3,7 +3,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
-/// The <see cref="QuestTask"/> class is a <see cref="Task"/> for having a <see cref="Pawn"/> leave the <see cref="Map"/> to go on a <see cref="Quest"/>.
+/// The <see cref="QuestTask"/> class is a <see cref="Task"/> for having a <see cref="AdventurerPawn"/> leave the <see cref="Map"/> to go on a <see cref="Quest"/>.
 /// </summary>
 public class QuestTask : Task
 {

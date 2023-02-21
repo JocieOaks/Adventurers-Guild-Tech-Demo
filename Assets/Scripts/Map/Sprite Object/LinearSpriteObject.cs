@@ -19,7 +19,7 @@ public abstract class LinearSpriteObject : SpriteObject
     /// <param name="alignment">The <see cref="MapAlignment"/> of the <see cref="LinearSpriteObject"/>.</param>
     /// <param name="name">The name of the <see cref="LinearSpriteObject"/>.</param>
     /// <param name="dimensions">The 3D dimensions of the <see cref="LinearSpriteObject"/> in <see cref="Map"/> coordinates.</param>
-    /// <param name="blocking">If true, the <see cref="RoomNode"/>s the <see cref="LinearSpriteObject"/> occupies are blocked and thus cannot be traversed by a <see cref="Pawn"/>.</param>
+    /// <param name="blocking">If true, the <see cref="RoomNode"/>s the <see cref="LinearSpriteObject"/> occupies are blocked and thus cannot be traversed by a <see cref="AdventurerPawn"/>.</param>
     public LinearSpriteObject(int spriteCount, Sprite[] sprites, Direction direction, Vector3Int position, string name, Vector3Int dimensions, bool blocking) : base(spriteCount, sprites, direction, position, name, dimensions, blocking)
     {
         Alignment = Map.DirectionToEdgeAlignment(direction);

@@ -12,7 +12,7 @@ public interface INode : IWorldPosition
     /// <value>Returns true if the <see cref="INode"/> is blocked and cannot be passed through.</value>
     public bool Obstructed {get;}
 
-    /// <value> Returns true if the <see cref="INode"/> can be passed through by a navigating <see cref="Pawn"/>.</value>
+    /// <value> Returns true if the <see cref="INode"/> can be passed through by a navigating <see cref="AdventurerPawn"/>.</value>
     public bool Traversable => !Obstructed;
 
     //Obstructed and Traversable are typically opposites, but have subtle differences, specifically for RoomNodes.

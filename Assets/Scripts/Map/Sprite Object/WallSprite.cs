@@ -598,7 +598,7 @@ public class WallSprite : LinearSpriteObject
     }
 
     /// <summary>
-    /// Creates the pixel array for a <see cref="Pawn"/>'s <see cref="SpriteMask"/> when this wall is a door.
+    /// Creates the pixel array for a <see cref="AdventurerPawn"/>'s <see cref="SpriteMask"/> when this wall is a door.
     /// </summary>
     void MakeDoorMask()
     {

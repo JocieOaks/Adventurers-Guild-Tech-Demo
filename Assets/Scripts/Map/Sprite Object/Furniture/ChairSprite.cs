@@ -9,13 +9,13 @@ using System.Linq;
 [System.Serializable]
 public class ChairSprite : SpriteObject, IOccupied, IDirected
 {
+    static readonly Sprite[] sprites = new Sprite[] { Graphics.Instance.ChairNorth, Graphics.Instance.ChairEast, Graphics.Instance.ChairSouth, Graphics.Instance.ChairWest };
+
     // Initialized the first time GetMaskPixels is called for each given direction., _pixelsEast, _pixelsNorth, _pixelsSouth, and _pixelsWest are the sprite mask for all Chairs.
     static bool[,] _pixelsEast;
     static bool[,] _pixelsNorth;
     static bool[,] _pixelsSouth;
     static bool[,] _pixelsWest;
-    static readonly Sprite[] sprites = new Sprite[] { Graphics.Instance.ChairNorth, Graphics.Instance.ChairEast, Graphics.Instance.ChairSouth, Graphics.Instance.ChairWest };
-
     List<RoomNode> _interactionPoints;
 
     /// <summary>
@@ -210,8 +210,16 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
         {
             Occupant = null;
         }
-        RoomNode roomNode = InteractionPoints.First(x => x.Traversable);
-        pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
+        RoomNode roomNode = InteractionPoints.FirstOrDefault(x => x.Traversable);
+        if (roomNode == default)
+        {
+            //Emergency option if there's no interaction points to move to.
+            pawn.WorldPositionNonDiscrete = Vector3Int.one;
+        }
+        else
+        {
+            pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
+        }
     }
 
     /// <inheritdoc/>
@@ -221,6 +229,14 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
         {
             roomNode.Reserved = true;
         }
+    }
+
+    /// <inheritdoc/>
+    public override float SpeedMultiplier(Vector3Int nodePosition)
+    {
+        if (nodePosition == WorldPosition)
+            return 0.5f;
+        else return 1;
     }
 
     /// <inheritdoc/>

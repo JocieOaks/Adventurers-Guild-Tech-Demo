@@ -2,7 +2,7 @@
 using UnityEngine;
 
 /// <summary>
-/// The <see cref="ApproachTask"/> class is a <see cref="Task"/> for having a <see cref="Pawn"/> adjust their positiong when having a <see cref="Conversation"/>.
+/// The <see cref="ApproachTask"/> class is a <see cref="Task"/> for having a <see cref="AdventurerPawn"/> adjust their positiong when having a <see cref="Conversation"/>.
 /// </summary>
 public class ApproachTask : Task
 {

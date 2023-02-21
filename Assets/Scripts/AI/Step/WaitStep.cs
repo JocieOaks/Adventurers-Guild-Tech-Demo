@@ -6,7 +6,7 @@
 public class WaitStep : TaskStep, IDirected
 {
     int animationIndex = 30;
-    readonly RoomNode roomNode;
+    readonly RoomNode _roomNode;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WaitStep"/> class. Checks the direction of the previous <see cref="TaskStep"/> if it is <see cref="IDirected"/> 
@@ -25,9 +25,9 @@ public class WaitStep : TaskStep, IDirected
     /// <param name="blocking">Determines if the <see cref="Pawn"/> blocks the <see cref="RoomNode"/> from being traversed by other <see cref="Pawn"/>s.</param>
     public WaitStep(Pawn pawn, Direction direction, bool blocking) : base(pawn)
     {
-        roomNode = pawn.CurrentNode;
+        _roomNode = pawn.CurrentNode;
         if (blocking)
-            roomNode.Occupant = pawn;
+            _roomNode.Occupant = pawn;
         SetDirection(direction);
     }
 
@@ -40,29 +40,29 @@ public class WaitStep : TaskStep, IDirected
     /// <inheritdoc/>
     public override void Perform()
     {
-        period += Time.deltaTime;
+        _period += Time.deltaTime;
 
         try
         {
             if (Direction == Direction.West || Direction == Direction.South)
             {
-                if (period >= frame * BREATHTIME)
+                if (_period >= _frame * BREATHTIME)
                 {
-                    _pawn.SetSprite(animationIndex + _idleFrames[frame]);
-                    frame++;
-                    if (frame == 22)
+                    _pawn.SetSprite(animationIndex + _idleFrames[_frame]);
+                    _frame++;
+                    if (_frame == 22)
                     {
-                        period -= 2.75f;
-                        frame = 0;
+                        _period -= 2.75f;
+                        _frame = 0;
                     }
                 }
             }
             else
             {
-                if (period >= frame * BREATHTIME)
+                if (_period >= _frame * BREATHTIME)
                 {
                     _pawn.SetSprite(animationIndex);
-                    frame += 100;
+                    _frame += 100;
                 }
             }
         }
@@ -106,7 +106,7 @@ public class WaitStep : TaskStep, IDirected
     /// <inheritdoc/>
     protected override void Finish()
     {
-        if(roomNode.Occupant == _pawn)
-            roomNode.Occupant = null;
+        if(Equals(_roomNode.Occupant, _pawn))
+            _roomNode.Occupant = null;
     }
 }

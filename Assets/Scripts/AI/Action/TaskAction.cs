@@ -5,7 +5,7 @@ public abstract class TaskAction
 {
     protected Actor _actor;
 
-    protected Pawn _pawn;
+    protected AdventurerPawn _pawn;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TaskAction"/> class.
@@ -17,10 +17,10 @@ public abstract class TaskAction
         _pawn = actor.Pawn;
     }
 
-    /// <value>Determines whether a <see cref="Pawn"/> can be spoken to while performing this <see cref="TaskAction"/>.</value>
+    /// <value>Determines whether a <see cref="AdventurerPawn"/> can be spoken to while performing this <see cref="TaskAction"/>.</value>
     public abstract bool CanListen { get; }
 
-    /// <value>Determines whether a <see cref="Pawn"/> can speak while performing this <see cref="TaskAction"/>.</value>
+    /// <value>Determines whether a <see cref="AdventurerPawn"/> can speak while performing this <see cref="TaskAction"/>.</value>
     public abstract bool CanSpeak { get; }
 
     /// <summary>
@@ -35,7 +35,7 @@ public abstract class TaskAction
     public abstract void Initialize();
 
     /// <summary>
-    /// Called each Update by the <see cref="Pawn"/> performing the <see cref="TaskAction"/>.
+    /// Called each Update by the <see cref="AdventurerPawn"/> performing the <see cref="TaskAction"/>.
     /// </summary>
     public abstract void Perform();
 }

@@ -169,13 +169,8 @@ public abstract class ConnectingNode : IDividerNode
         }
     }
 
-    /// <summary>
-    /// Gives the <see cref="RoomNode"/> that is connected to the entrance <see cref="RoomNode"/> by the <see cref="ConnectingNode"/>.
-    /// </summary>
-    /// <param name="entrance"><see cref="RoomNode"/> that is where an <see cref="Pawn"/> is entering.</param>
-    /// <returns>Returns the <see cref="RoomNode"/> that the <see cref="Pawn"/> exits when entering the <see cref="ConnectingNode"/> from entrance.</returns>
-    /// <exception cref="System.ArgumentException">Throws this error if the given <see cref="RoomNode"/> is not one of the two <see cref="RoomNode"/>s connected by the <see cref="ConnectingNode"/>.</exception>
-    public virtual RoomNode GetRoomNode(RoomNode entrance)
+    /// <inheritdoc/>
+    public virtual RoomNode GetOppositeRoomNode(RoomNode entrance)
     {
         if (entrance == FirstNode)
             return SecondNode;

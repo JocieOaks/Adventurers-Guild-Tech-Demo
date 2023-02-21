@@ -2,7 +2,7 @@
 using UnityEngine;
 
 /// <summary>
-/// The <see cref="EatTask"/> class is a <see cref="Task"/> for having a <see cref="Pawn"/> eat food.
+/// The <see cref="EatTask"/> class is a <see cref="Task"/> for having a <see cref="AdventurerPawn"/> eat food.
 /// </summary>
 class EatTask : Task
 {

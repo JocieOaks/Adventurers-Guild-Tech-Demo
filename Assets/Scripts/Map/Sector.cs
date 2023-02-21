@@ -56,7 +56,7 @@ public class GraphNode
 /// <summary>
 /// The <see cref="Sector"/> class divides the <see cref="Map"/> into sections where each <see cref="RoomNode"/> in a <see cref="Sector"/> is accessible from any other 
 /// <see cref="RoomNode"/> in a <see cref="Sector"/>. However, <see cref="RoomNode"/>s in two different <see cref="Sector"/>s will be closed off to eachother.
-/// Used to ensure that <see cref="Pawn"/>s will not try to pathfind to locations that are inaccessible to them. 
+/// Used to ensure that <see cref="AdventurerPawn"/>s will not try to pathfind to locations that are inaccessible to them. 
 /// Also, checks for bottleneck points that should not be blocked.
 /// </summary>
 public class Sector

@@ -85,8 +85,8 @@ public class BedSprite : SpriteObject, IOccupied
     [JsonIgnore]
     public bool Occupied => Occupant != null;
     
-    /// <value>The <see cref="Pawn"/> that owns this <see cref="BedSprite"/>.</value>
-    public Pawn Owner { get; private set; }
+    /// <value>The <see cref="AdventurerPawn"/> that owns this <see cref="BedSprite"/>.</value>
+    public AdventurerPawn Owner { get; private set; }
 
     /// <inheritdoc/>
     [JsonProperty]
@@ -150,9 +150,17 @@ public class BedSprite : SpriteObject, IOccupied
     {
         if (pawn == Occupant)
         {
-            pawn.transform.Rotate(0, 0, 55);
             Occupant = null;
-            RoomNode roomNode = InteractionPoints.First();
+        }
+        pawn.transform.Rotate(0, 0, 55);
+        RoomNode roomNode = InteractionPoints.FirstOrDefault(x => x.Traversable);
+        if (roomNode == default)
+        {
+            //Emergency option if there's no interaction points to move to.
+            pawn.WorldPositionNonDiscrete = Vector3Int.one;
+        }
+        else
+        {
             pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
         }
     }

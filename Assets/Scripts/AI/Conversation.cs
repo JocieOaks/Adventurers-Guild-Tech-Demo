@@ -5,21 +5,21 @@ using System.Linq;
 
 
 /// <summary>
-/// The <see cref="Conversation"/> class maintains data for an extended social interaction between two <see cref="Pawn"/>s.
-/// Conversations will eventually be able to occur between more than two <see cref="Pawn"/>s.
+/// The <see cref="Conversation"/> class maintains data for an extended social interaction between two <see cref="AdventurerPawn"/>s.
+/// Conversations will eventually be able to occur between more than two <see cref="AdventurerPawn"/>s.
 /// </summary>
 public class Conversation
 {
-    readonly List<Pawn> _pawns;
+    readonly List<AdventurerPawn> _pawns;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Conversation"/> class.
     /// </summary>
-    /// <param name="a">The first of the two <see cref="Pawn"/>s that started the <see cref="Conversation"/>.</param>
-    /// <param name="b">The second of the two <see cref="Pawn"/>s that started the <see cref="Conversation"/>.</param>
-    public Conversation(Pawn a, Pawn b)
+    /// <param name="a">The first of the two <see cref="AdventurerPawn"/>s that started the <see cref="Conversation"/>.</param>
+    /// <param name="b">The second of the two <see cref="AdventurerPawn"/>s that started the <see cref="Conversation"/>.</param>
+    public Conversation(AdventurerPawn a, AdventurerPawn b)
     {
-        _pawns = new List<Pawn>() { a, b };
+        _pawns = new List<AdventurerPawn>() { a, b };
         GameManager.Ticked += OnTicked;
         GameManager.NonMonoUpdate += Update;
     }
@@ -27,13 +27,13 @@ public class Conversation
     /// <value>The length of time since the <see cref="Conversation"/> was initialized in seconds. Does not count time while the game is paused.</value>
     public int Duration { get; private set; } = 0;
 
-    /// <value>Gives the average position of all the <see cref="Pawn"/>s talking, which is approximated as the "center" of the <see cref="Conversation"/>.</value>
+    /// <value>Gives the average position of all the <see cref="AdventurerPawn"/>s talking, which is approximated as the "center" of the <see cref="Conversation"/>.</value>
     public Vector3Int Nexus
     {
         get
         {
             Vector3Int position = Vector3Int.zero;
-            foreach (Pawn pawn in _pawns)
+            foreach (AdventurerPawn pawn in _pawns)
             {
                 position += pawn.WorldPosition;
             }
@@ -41,18 +41,18 @@ public class Conversation
         }
     }
 
-    /// <value>Provides access to the list of <see cref="Pawn"/>s in the <see cref="Conversation"/>.</value>
+    /// <value>Provides access to the list of <see cref="AdventurerPawn"/>s in the <see cref="Conversation"/>.</value>
     public IEnumerable Pawns
     {
         get
         {
-            foreach (Pawn pawn in _pawns)
+            foreach (AdventurerPawn pawn in _pawns)
                 yield return pawn;
         }
     }
 
     /// <summary>
-    /// Checks if a position is close enough to the <see cref="Conversation"/> for a <see cref="Pawn"/> to go their without needing to leave the <see cref="Conversation"/>.
+    /// Checks if a position is close enough to the <see cref="Conversation"/> for a <see cref="AdventurerPawn"/> to go their without needing to leave the <see cref="Conversation"/>.
     /// </summary>
     /// <param name="position">The map position to evaluate/</param>
     /// <returns>Returns true if the position is acceptably close enough to the <see cref="Conversation"/>.</returns>
@@ -71,11 +71,11 @@ public class Conversation
     }
 
     /// <summary>
-    /// Removes a specified <see cref="Pawn"/> from the <see cref="Conversation"/>.
-    /// If only one <see cref="Pawn"/> remains in the <see cref="Conversation"/>, the <see cref="Conversation"/> will end.
+    /// Removes a specified <see cref="AdventurerPawn"/> from the <see cref="Conversation"/>.
+    /// If only one <see cref="AdventurerPawn"/> remains in the <see cref="Conversation"/>, the <see cref="Conversation"/> will end.
     /// </summary>
-    /// <param name="pawn">The <see cref="Pawn"/> to remove from the <see cref="Conversation"/>.</param>
-    public void Leave(Pawn pawn)
+    /// <param name="pawn">The <see cref="AdventurerPawn"/> to remove from the <see cref="Conversation"/>.</param>
+    public void Leave(AdventurerPawn pawn)
     {
         _pawns.Remove(pawn);
         if (_pawns.Count <= 1)
@@ -114,11 +114,11 @@ public class Conversation
     /// </summary>
     public void Update()
     {
-        foreach (Pawn pawn in _pawns)
+        foreach (AdventurerPawn pawn in _pawns)
         {
             if (pawn.CurrentStep is WaitStep wait)
             {
-                Direction direction = Map.VectorToDir(Nexus - pawn.WorldPosition);
+                Direction direction = Map.VectorToDirection(Nexus - pawn.WorldPosition);
                 wait.SetDirection(direction);
             }
         }

@@ -31,7 +31,7 @@ public abstract class SpriteObject :  ISpriteObject
     /// this is the coordinate of the forward most <see cref="RoomNode"/> the object occupies.</param>
     /// <param name="name">The name of the <see cref="SpriteObject"/>.</param>
     /// <param name="dimensions">The 3D dimensions of the <see cref="SpriteObject"/> in <see cref="Map"/> coordinates.</param>
-    /// <param name="blocking">If true, the <see cref="RoomNode"/>s the <see cref="SpriteObject"/> occupies are blocked and thus cannot be traversed by a <see cref="Pawn"/>.</param>
+    /// <param name="blocking">If true, the <see cref="RoomNode"/>s the <see cref="SpriteObject"/> occupies are blocked and thus cannot be traversed by a <see cref="AdventurerPawn"/>.</param>
     public SpriteObject(int spriteCount, Sprite[] sprites, Direction direction, Vector3Int position, string name, Vector3Int dimensions, bool blocking)
     {
         WorldPosition = position;
@@ -167,9 +167,9 @@ public abstract class SpriteObject :  ISpriteObject
     }
 
     /// <summary>
-    /// Determines if a <see cref="Pawn"/> positioned at the given <see cref="RoomNode"/> would be considered to have successfully navigated to the <see cref="SpriteObject"/>.
+    /// Determines if a <see cref="AdventurerPawn"/> positioned at the given <see cref="RoomNode"/> would be considered to have successfully navigated to the <see cref="SpriteObject"/>.
     /// </summary>
-    /// <param name="node">The <see cref="RoomNode"/> the calling <see cref="Pawn"/> occupies.</param>
+    /// <param name="node">The <see cref="RoomNode"/> the calling <see cref="AdventurerPawn"/> occupies.</param>
     /// <returns>Returns true if the given node is a <see cref="IInteractable.InteractionPoints"/>. Always returns false if <see cref="SpriteObject"/> does not implement the <see cref="IInteractable"/> interface.</returns>
     public bool HasNavigatedTo(RoomNode node)
     {
@@ -202,6 +202,20 @@ public abstract class SpriteObject :  ISpriteObject
     public void SaveData(GameData gameData)
     {
         gameData.SpriteObjects.Add(this);
+    }
+
+    /// <inheritdoc/>
+    public virtual float SpeedMultiplier(Vector3Int nodePosition)
+    {
+        Vector3Int vector = nodePosition - WorldPosition;
+
+        if (
+            vector.x >= 0 && vector.x < Dimensions.x &&
+            vector.y >= 0 && vector.y < Dimensions.y &&
+            vector.z >= 0 && vector.z < Dimensions.z
+            )
+            return 0;
+        else return 1;
     }
 
     /// <summary>
@@ -278,6 +292,22 @@ public abstract class SpriteObject :  ISpriteObject
     }
 
     /// <summary>
+    /// Called when the game camera changes which level it is showing.
+    /// </summary>
+    protected virtual void OnLevelChanged()
+    {
+        int level = GameManager.Instance.IsOnLevel(WorldPosition.z);
+        if (level > 0)
+        {
+            for (int i = 0; i < _spriteRenderers.Length; i++)
+                _spriteRenderers[i].enabled = false;
+        }
+        else
+            for (int i = 0; i < _spriteRenderers.Length; i++)
+                _spriteRenderers[i].enabled = true;
+    }
+
+    /// <summary>
     /// Called whenever the <see cref="Map"/> changes.
     /// </summary>
     protected virtual void OnMapChanging()
@@ -297,23 +327,6 @@ public abstract class SpriteObject :  ISpriteObject
 
         Graphics.ResetingSprite -= ResetSprite;
     }
-
-    /// <summary>
-    /// Called when the game camera changes which level it is showing.
-    /// </summary>
-    protected virtual void OnLevelChanged()
-    {
-        int level = GameManager.Instance.IsOnLevel(WorldPosition.z);
-        if (level > 0)
-        {
-            for (int i = 0; i < _spriteRenderers.Length; i++)
-                _spriteRenderers[i].enabled = false;
-        }
-        else
-            for (int i = 0; i < _spriteRenderers.Length; i++)
-                _spriteRenderers[i].enabled = true;
-    }
-
     /// <summary>
     /// Coroutine called by the <see cref="SpriteObject"/> constructor for processes that have to wait until after the <see cref="Map"/> has completed setup at game start.
     /// </summary>
@@ -337,6 +350,8 @@ public abstract class SpriteObject :  ISpriteObject
 
         GameManager.Instance.ObjectsReady--;
     }
+
+
 
     /// <summary>
     /// The <see cref="SpriteCollider"/> class is used as a component to attach to <see cref="GameObject"/> so that the <see cref="global::SpriteObject"/> can be accessed from the <see cref="GameObject"/>.

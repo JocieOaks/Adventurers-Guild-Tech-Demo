@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// The <see cref="SitStep"/> class is a <see cref="TaskStep"/> for a <see cref="Pawn"/> to sit down.
+/// The <see cref="SitStep"/> class is a <see cref="TaskStep"/> for a <see cref="AdventurerPawn"/> to sit down.
 /// </summary>
 public class SitStep : TaskStep, IDirected
 {
@@ -10,9 +10,9 @@ public class SitStep : TaskStep, IDirected
     /// <summary>
     /// Initializes a new instance of the <see cref="SitStep"/> task.
     /// </summary>
-    /// <param name="pawn">The <see cref="Pawn"/> that is sitting down.</param>
-    /// <param name="seat">The seat on which the <see cref="Pawn"/> is sitting.</param>
-    public SitStep(Pawn pawn, IOccupied seat) : base(pawn)
+    /// <param name="pawn">The <see cref="AdventurerPawn"/> that is sitting down.</param>
+    /// <param name="seat">The seat on which the <see cref="AdventurerPawn"/> is sitting.</param>
+    public SitStep(AdventurerPawn pawn, IOccupied seat) : base(pawn)
     {
         _seat = seat;
 
@@ -56,47 +56,47 @@ public class SitStep : TaskStep, IDirected
     /// <inheritdoc/>
     public override void Perform()
     {
-        period += Time.deltaTime;
+        _period += Time.deltaTime;
         if (Direction == Direction.West)
         {
-            if (period >= frame * BREATHTIME)
+            if (_period >= _frame * BREATHTIME)
             {
-                _pawn.SetSprite(24 + _idleFrames[frame]);
-                frame++;
-                if (frame == 22)
+                _pawn.SetSprite(24 + _idleFrames[_frame]);
+                _frame++;
+                if (_frame == 22)
                 {
-                    period -= 2.75f;
-                    frame = 0;
+                    _period -= 2.75f;
+                    _frame = 0;
                 }
             }
         }
         else if (Direction == Direction.South)
         {
-            if (period >= frame * BREATHTIME)
+            if (_period >= _frame * BREATHTIME)
             {
-                _pawn.SetSprite(30 + _idleFrames[frame]);
-                frame++;
-                if (frame == 22)
+                _pawn.SetSprite(30 + _idleFrames[_frame]);
+                _frame++;
+                if (_frame == 22)
                 {
-                    period -= 2.75f;
-                    frame = 0;
+                    _period -= 2.75f;
+                    _frame = 0;
                 }
             }
         }
         else if (Direction == Direction.East)
         {
-            if (period >= frame * BREATHTIME)
+            if (_period >= _frame * BREATHTIME)
             {
                 _pawn.SetSprite(47);
-                frame += 100;
+                _frame += 100;
             }
         }
         else
         {
-            if (period >= frame * BREATHTIME)
+            if (_period >= _frame * BREATHTIME)
             {
                 _pawn.SetSprite(46);
-                frame += 100;
+                _frame += 100;
             }
         }
     }

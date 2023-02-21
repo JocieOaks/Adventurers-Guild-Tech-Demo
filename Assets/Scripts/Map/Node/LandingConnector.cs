@@ -49,7 +49,7 @@ public class LandingConnector : ConnectingNode, IDirected
     }
 
     /// <inheritdoc/>
-    public override RoomNode GetRoomNode(RoomNode entrance)
+    public override RoomNode GetOppositeRoomNode(RoomNode entrance)
     {
         //Used to correct for the case in which entrance is selected based on coordinate position, instead of the specific RoomNode being entered from, given that a StairNode surface position
         //can be equal to the surface position of a RoomNode on the level above it.

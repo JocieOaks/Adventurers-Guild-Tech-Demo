@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// The <see cref="LayDownAction"/> class is a <see cref="TaskAction"/> for a <see cref="Pawn"/> to lay down.
+/// The <see cref="LayDownAction"/> class is a <see cref="TaskAction"/> for a <see cref="AdventurerPawn"/> to lay down.
 /// </summary>
 public class LayDownAction : TaskAction
 {

@@ -1,22 +1,22 @@
 /// <summary>
-/// The <see cref="TaskStep"/> class is the base class for small single steps for a <see cref="Pawn"/> to take.
-/// <see cref="TaskStep"/> is also responsible for controlling <see cref="Pawn"/> animations.
+/// The <see cref="TaskStep"/> class is the base class for small single steps for a <see cref="AdventurerPawn"/> to take.
+/// <see cref="TaskStep"/> is also responsible for controlling <see cref="AdventurerPawn"/> animations.
 /// </summary>
 public abstract class TaskStep
 {
 
     protected const float BREATHTIME = 0.125f;
-    protected const float STEPTIME = 0.25f;
+    protected const float STEPTIME = 0.625f;
     protected static int[] _idleFrames = new int[] { 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
     protected Pawn _pawn;
-    protected int frame = 0;
-    protected float period = 0f;
+    protected int _frame = 0;
+    protected float _period = 0f;
     bool _finished = false;
 
     /// <summary>
     /// Initializes a new instance of <see cref="TaskStep"/>.
     /// </summary>
-    /// <param name="pawn">The <see cref="Pawn"/> performing the <see cref="TaskStep"/>.</param>
+    /// <param name="pawn">The <see cref="AdventurerPawn"/> performing the <see cref="TaskStep"/>.</param>
     protected TaskStep(Pawn pawn)
     {
         _pawn = pawn;

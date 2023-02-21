@@ -2,7 +2,7 @@
 using UnityEngine;
 
 /// <summary>
-/// The <see cref="SleepTask"/> class is a <see cref="Task"/> for a <see cref="Pawn"/> to sleep.
+/// The <see cref="SleepTask"/> class is a <see cref="Task"/> for a <see cref="AdventurerPawn"/> to sleep.
 /// </summary>
 class SleepTask : Task
 {

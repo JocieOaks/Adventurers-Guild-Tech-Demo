@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// The <see cref="ApproachAction"/> is a <see cref="TaskAction"/> for a <see cref="Pawn"/> to reposition during a <see cref="Conversation"/> so that it is in a better talking position.
+/// The <see cref="ApproachAction"/> is a <see cref="TaskAction"/> for a <see cref="AdventurerPawn"/> to reposition during a <see cref="Conversation"/> so that it is in a better talking position.
 /// </summary>
 public class ApproachAction : TaskAction
 {
@@ -58,7 +58,7 @@ public class ApproachAction : TaskAction
             if (best.position == _pawn.WorldPosition)
             {
                 _complete = true;
-                _pawn.CurrentStep = new WaitStep(_pawn, Map.VectorToDir(_conversation.Nexus - best.position), true);
+                _pawn.CurrentStep = new WaitStep(_pawn, Map.VectorToDirection(_conversation.Nexus - best.position), true);
             }
             else
             {

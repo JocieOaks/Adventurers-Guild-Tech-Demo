@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// The <see cref="SitStep"/> class is a <see cref="TaskStep"/> for a <see cref="Pawn"/> to lay down.
+/// The <see cref="SitStep"/> class is a <see cref="TaskStep"/> for a <see cref="AdventurerPawn"/> to lay down.
 /// </summary>
 public class LayStep : TaskStep
 {
@@ -10,9 +10,9 @@ public class LayStep : TaskStep
     /// <summary>
     /// Initializes a new instance of the <see cref="LayStep"/> class.
     /// </summary>
-    /// <param name="pawn">The <see cref="Pawn"/> that is laying down.</param>
-    /// <param name="bed">The <see cref="BedSprite"/> the <see cref="Pawn"/> is laying in.</param>
-    public LayStep(Pawn pawn, BedSprite bed) : base(pawn)
+    /// <param name="pawn">The <see cref="AdventurerPawn"/> that is laying down.</param>
+    /// <param name="bed">The <see cref="BedSprite"/> the <see cref="AdventurerPawn"/> is laying in.</param>
+    public LayStep(AdventurerPawn pawn, BedSprite bed) : base(pawn)
     {
         _bed = bed;
         pawn.Stance = Stance.Lay;
@@ -25,16 +25,16 @@ public class LayStep : TaskStep
     /// <inheritdoc/>
     public override void Perform()
     {
-        period += Time.deltaTime;
+        _period += Time.deltaTime;
 
-        if (period >= frame * BREATHTIME)
+        if (_period >= _frame * BREATHTIME)
         {
-            _pawn.SetSprite(24 + +_idleFrames[frame]);
-            frame++;
-            if (frame == 22)
+            _pawn.SetSprite(24 + +_idleFrames[_frame]);
+            _frame++;
+            if (_frame == 22)
             {
-                period -= 2.75f;
-                frame = 0;
+                _period -= 2.75f;
+                _frame = 0;
             }
         }
     }

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 /// <summary>
-/// The <see cref="StanceLay"/> class is a <see cref="Task"/> for having a <see cref="Pawn"/> transition into <see cref="Stance.Lay"/>.
+/// The <see cref="StanceLay"/> class is a <see cref="Task"/> for having a <see cref="AdventurerPawn"/> transition into <see cref="Stance.Lay"/>.
 /// </summary>
 public class StanceLay : Task, IRecoverableTask
 {
@@ -12,7 +12,7 @@ public class StanceLay : Task, IRecoverableTask
     /// </summary>
     public StanceLay() : base(null, true, null, null) { }
 
-    /// <value>The list of all <see cref="IInteractable"/>s that can be laid on by a <see cref="Pawn"/>.</value>
+    /// <value>The list of all <see cref="IInteractable"/>s that can be laid on by a <see cref="AdventurerPawn"/>.</value>
     public static List<IInteractable> LayingObjects { get; } = new List<IInteractable>();
 
     /// <inheritdoc/>
@@ -67,9 +67,9 @@ public class StanceLay : Task, IRecoverableTask
     }
 
     /// <summary>
-    /// Finds the nearest bed to a <see cref="Pawn"/>.
+    /// Finds the nearest bed to a <see cref="AdventurerPawn"/>.
     /// </summary>
-    /// <param name="profile">The <see cref="ActorProfile"/> representing the <see cref="Pawn"/>.</param>
+    /// <param name="profile">The <see cref="ActorProfile"/> representing the <see cref="AdventurerPawn"/>.</param>
     /// <returns>Returns the nearest bed.</returns>
     BedSprite GetBed(ActorProfile profile)
     {

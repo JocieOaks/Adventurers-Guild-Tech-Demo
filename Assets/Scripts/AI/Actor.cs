@@ -185,7 +185,7 @@ public class Actor
     public string Name { get; }
 
     /// <value>A reference to the <see cref="Pawn"/> that corresponds to the <see cref="Actor"/>. Can be null.</value>
-    public Pawn Pawn { get; private set; }
+    public AdventurerPawn Pawn { get; private set; }
 
     /// <value>The sprite used for the character when displayed in the UI.</value>
     public Sprite ProfileSprite => _spritesList[30];
