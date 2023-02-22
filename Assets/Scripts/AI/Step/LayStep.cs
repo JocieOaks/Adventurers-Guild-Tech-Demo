@@ -5,8 +5,6 @@
 /// </summary>
 public class LayStep : TaskStep
 {
-    readonly BedSprite _bed;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="LayStep"/> class.
     /// </summary>
@@ -14,9 +12,8 @@ public class LayStep : TaskStep
     /// <param name="bed">The <see cref="BedSprite"/> the <see cref="AdventurerPawn"/> is laying in.</param>
     public LayStep(AdventurerPawn pawn, BedSprite bed) : base(pawn)
     {
-        _bed = bed;
         pawn.Stance = Stance.Lay;
-        _bed.Enter(pawn);
+        bed.Enter(pawn);
     }
 
     /// <inheritdoc/>
@@ -37,11 +34,5 @@ public class LayStep : TaskStep
                 _frame = 0;
             }
         }
-    }
-
-    /// <inheritdoc/>
-    protected override void Finish()
-    {
-        _bed.Exit(_pawn);
     }
 }

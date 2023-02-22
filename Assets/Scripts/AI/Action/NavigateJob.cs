@@ -19,28 +19,7 @@ public struct NavigateJob : IJob
         Stack<INode> nodes = new();
         IEnumerator navigationIter;
 
-        if (!endNode.Empty)
-        {
-            navigationIter = Map.Instance.NavigateBetweenRooms(startNode, endNode.Occupant);
-        }
-        else
-        {
-            if (!endNode.Traversable)
-            {
-                foreach (RoomNode node in new List<RoomNode> { endNode.GetNodeAs<RoomNode>(Direction.North), endNode.GetNodeAs<RoomNode>(Direction.South), endNode.GetNodeAs<RoomNode>(Direction.West), endNode.GetNodeAs<RoomNode>(Direction.East), endNode.NorthEast, endNode.NorthWest, endNode.SouthEast, endNode.SouthWest })
-                {
-                    if (node != null && node.Traversable)
-                    {
-                        endNode = node;
-                        break;
-                    }
-                }
-                if (!endNode.Traversable)
-                    return;
-            }
-
-            navigationIter = Map.Instance.NavigateBetweenRooms(startNode, endNode);
-        }
+        navigationIter = Map.Instance.NavigateBetweenRooms(startNode.Empty ? startNode : startNode.Occupant, endNode.Empty ? endNode : endNode.Occupant);
 
         navigationIter.MoveNext();
         if ((float)navigationIter.Current != float.PositiveInfinity)

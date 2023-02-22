@@ -33,13 +33,22 @@ public class WalkStep : TaskStep, IDirected
     /// <param name="pawn">The <see cref="AdventurerPawn"/> performing the <see cref="WalkStep"/>.</param>
     public WalkStep(Vector3Int end, AdventurerPawn pawn) : base(pawn)
     {
+        if(pawn.Occupying != null)
+        {
+            pawn.Stance = Stance.Stand;
+            pawn.Occupying.Exit(pawn, end);
+        }
+
         _end = end;
 
-        Vector3 gameVector = end - pawn.WorldPositionNonDiscrete;
+        Vector2 gameVector = end - pawn.WorldPositionNonDiscrete;
         _step = gameVector.normalized;
 
-
-        _isFinished = _step.sqrMagnitude < 0.01;
+        if (pawn.WorldPosition == end)
+        {
+            _isFinished = true;
+            return;
+        }
 
         int best = 0;
         float best_product = Vector2.Dot(gameVector, new Vector2(1, 1).normalized);
@@ -159,7 +168,7 @@ public class WalkStep : TaskStep, IDirected
             {
                 _pawn.SetSprite(_animationOffset + _frame);
                 _frame++;
-                if (_frame == 4)
+                if (_frame >= 4)
                 {
                     _period -= 2.5f;
                     _frame = 0;

@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// The <see cref="StanceStand"/> class is a <see cref="Task"/> for having a <see cref="AdventurerPawn"/> transition into <see cref="Stance.Stand"/>.
 /// </summary>
-public class StanceStand : Task
+public class StanceStand : Task, IPlanTask
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="StanceStand"/> class.
@@ -22,11 +23,11 @@ public class StanceStand : Task
     {
         return base.ConditionsMet(worldState) && worldState.PreviousTask is not StanceSit && worldState.PreviousTask is not StanceLay;
     }
+
     /// <inheritdoc/>
     public override IEnumerable<TaskAction> GetActions(Actor actor)
     {
-        //Debug.Log(actor.Stats.Name + " Stand");
-        yield return new StandUpAction(actor);
+        yield break;
     }
 
     /// <inheritdoc/>

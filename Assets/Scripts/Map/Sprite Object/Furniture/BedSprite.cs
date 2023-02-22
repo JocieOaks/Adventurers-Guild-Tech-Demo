@@ -141,27 +141,39 @@ public class BedSprite : SpriteObject, IOccupied
     public void Enter(Pawn pawn)
     {
         pawn.transform.Rotate(0, 0, -55);
-        pawn.WorldPositionNonDiscrete = WorldPosition + Vector3Int.up;
+        pawn.ForcePosition(WorldPosition + Vector3Int.up);
+        pawn.Occupying = this;
         Occupant = pawn;
     }
 
     /// <inheritdoc/>
-    public void Exit(Pawn pawn)
+    public void Exit(Pawn pawn, Vector3Int exitTo = default)
     {
         if (pawn == Occupant)
         {
             Occupant = null;
         }
-        pawn.transform.Rotate(0, 0, 55);
-        RoomNode roomNode = InteractionPoints.FirstOrDefault(x => x.Traversable);
-        if (roomNode == default)
+        if (pawn.Occupying == this)
         {
-            //Emergency option if there's no interaction points to move to.
-            pawn.WorldPositionNonDiscrete = Vector3Int.one;
+            pawn.Occupying = null;
+        }
+        pawn.transform.Rotate(0, 0, 55);
+        if (exitTo != default)
+        {
+            pawn.ForcePosition(exitTo);
         }
         else
         {
-            pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
+            RoomNode roomNode = InteractionPoints.FirstOrDefault(x => x.Traversable);
+            if (roomNode == default)
+            {
+                //Emergency option if there's no interaction points to move to.
+                pawn.ForcePosition(Vector3Int.one);
+            }
+            else
+            {
+                pawn.ForcePosition(roomNode.WorldPosition);
+            }
         }
     }
 

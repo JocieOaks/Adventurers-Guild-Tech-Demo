@@ -5,8 +5,6 @@
 /// </summary>
 public class SitStep : TaskStep, IDirected
 {
-    readonly IOccupied _seat;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="SitStep"/> task.
     /// </summary>
@@ -14,8 +12,6 @@ public class SitStep : TaskStep, IDirected
     /// <param name="seat">The seat on which the <see cref="AdventurerPawn"/> is sitting.</param>
     public SitStep(AdventurerPawn pawn, IOccupied seat) : base(pawn)
     {
-        _seat = seat;
-
         seat.Enter(pawn);
 
         if (seat is ChairSprite chair)
@@ -99,11 +95,5 @@ public class SitStep : TaskStep, IDirected
                 _frame += 100;
             }
         }
-    }
-
-    /// <inheritdoc/>
-    protected override void Finish()
-    {
-        _seat.Exit(_pawn);
     }
 }

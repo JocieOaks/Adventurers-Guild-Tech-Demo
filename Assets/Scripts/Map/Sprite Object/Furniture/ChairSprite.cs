@@ -86,10 +86,10 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
         {
             if (_interactionPoints == null)
             {
-                int minX = -2;
-                int minY = -2;
-                int maxX = 2;
-                int maxY = 2;
+                int minX = -1;
+                int minY = -1;
+                int maxX = 1;
+                int maxY = 1;
 
                 switch (Direction)
                 {
@@ -108,9 +108,9 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
                 }
 
                 _interactionPoints = new List<RoomNode>();
-                for (int i = minX; i < maxX; i++)
+                for (int i = minX; i <= maxX; i++)
                 {
-                    for (int j = minY; j < maxY; j++)
+                    for (int j = minY; j <= maxY; j++)
                     {
                         RoomNode roomNode = Map.Instance[WorldPosition + new Vector3Int(i, j)];
                         if (roomNode.Traversable)
@@ -196,29 +196,38 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
     /// <inheritdoc/>
     public void Enter(Pawn pawn)
     {
-        if (pawn is NPC || Direction == Direction.South || Direction == Direction.West)
-            pawn.WorldPositionNonDiscrete = WorldPosition + Vector3Int.back;
-        else
-            pawn.WorldPositionNonDiscrete = WorldPosition;
+        pawn.ForcePosition(WorldPosition);
+        pawn.Occupying = this;
         Occupant = pawn;
     }
 
     /// <inheritdoc/>
-    public void Exit(Pawn pawn)
+    public void Exit(Pawn pawn, Vector3Int exitTo = default)
     {
         if (pawn == Occupant)
         {
             Occupant = null;
         }
-        RoomNode roomNode = InteractionPoints.FirstOrDefault(x => x.Traversable);
-        if (roomNode == default)
+        if (pawn.Occupying == this)
         {
-            //Emergency option if there's no interaction points to move to.
-            pawn.WorldPositionNonDiscrete = Vector3Int.one;
+            pawn.Occupying = null;
+        }
+        if (exitTo != default)
+        {
+            pawn.ForcePosition(exitTo);
         }
         else
         {
-            pawn.WorldPositionNonDiscrete = roomNode.WorldPosition;
+            RoomNode roomNode = InteractionPoints.FirstOrDefault(x => x.Traversable);
+            if (roomNode == default)
+            {
+                //Emergency option if there's no interaction points to move to.
+                pawn.ForcePosition(Vector3Int.one);
+            }
+            else
+            {
+                pawn.ForcePosition(roomNode);
+            }
         }
     }
 

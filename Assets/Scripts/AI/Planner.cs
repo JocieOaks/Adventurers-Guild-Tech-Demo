@@ -124,7 +124,7 @@ public class Planner
     /// Gets the list of all <see cref="Task"/>s the <see cref="Actor"/> can perform.
     /// </summary>
     /// <returns>Iterates over all the <see cref="Task"/>s the <see cref="Actor"/> perform.</returns>
-    IEnumerable<Task> GetTasks()
+    IEnumerable<ITask> GetTasks()
     {
         yield return new SleepTask();
         yield return new EatTask();
@@ -158,6 +158,12 @@ public class Planner
         {
             Depth = previous.Depth + 1;
             Root = previous.Root;
+
+            if (FirstTask is IPlanTask planTask)
+            {
+                _task = planTask.CreateNestingTask(task);
+                Root = this;
+            }
 
             _utility += previous._utility;
             _time += previous._time;

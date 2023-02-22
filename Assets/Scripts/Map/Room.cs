@@ -10,7 +10,7 @@ public class Room
 {
 
     protected RoomNode[,] _nodes;
-    protected List<AdventurerPawn> _occupants = new();
+    protected List<Pawn> _occupants = new();
     const float RAD2 = 1.41421356237f;
     readonly List<ConnectingNode> _connections;
     bool _updating = false;
@@ -71,7 +71,7 @@ public class Room
     }
 
     /// <value>An <see cref="IEnumerable"/> that iterates over all of <see cref="AdventurerPawn"/>s that are currently in the <see cref="Room"/>.</value>
-    public IEnumerable<AdventurerPawn> Occupants => _occupants;
+    public IEnumerable<Pawn> Occupants => _occupants;
 
     ///<value>The <see cref="Map"/> coordinates of the origin point of the <see cref="Room"/>.</value>
     public Vector3Int Origin { get; protected set; }
@@ -170,7 +170,7 @@ public class Room
     /// Adds a <see cref="AdventurerPawn"/> to the list of occupants in the <see cref="Room"/>.
     /// </summary>
     /// <param name="pawn">The <see cref="AdventurerPawn"/> entering the <see cref="Room"/>.</param>
-    public void EnterRoom(AdventurerPawn pawn)
+    public void EnterRoom(Pawn pawn)
     {
         _occupants.Add(pawn);
         if(pawn is AdventurerPawn realPawn )
@@ -251,7 +251,7 @@ public class Room
     /// Removes a <see cref="AdventurerPawn"/> from the list of occupants of the <see cref="Room"/>.
     /// </summary>
     /// <param name="pawn">The <see cref="AdventurerPawn"/> exiting the <see cref="Room"/>.</param>
-    public void ExitRoom(AdventurerPawn pawn)
+    public void ExitRoom(Pawn pawn)
     {
         _occupants.Remove(pawn);
     }
@@ -299,14 +299,31 @@ public class Room
 
         RoomNode current;
 
-        if (start.Node is ConnectingNode startConnection)
+        if(start is IOccupied occupied)
+        {
+            foreach (INode node in occupied.InteractionPoints)
+            {
+                if (node is RoomNode roomNode && roomNode.Traversable)
+                {
+                    nodeQueue.Push(roomNode, 0);
+                    (int nodex, int nodey) = roomNode.Coords;
+                    g_score[nodex, nodey] = 0;
+                }
+            }
+
+            if (nodeQueue.Empty)
+                yield return float.PositiveInfinity;
+
+            current = nodeQueue.Pop();
+        }
+        else if (start.Node is ConnectingNode startConnection)
         {
             if (startConnection.IsWithinSingleRoom)
             {
-                foreach(INode node in startConnection.AdjacentNodes)
+                foreach (INode node in startConnection.AdjacentNodes)
                 {
-                    if(node is RoomNode roomNode && roomNode.Traversable)
-                    { 
+                    if (node is RoomNode roomNode && roomNode.Traversable)
+                    {
                         nodeQueue.Push(roomNode, 0);
                         (int nodex, int nodey) = roomNode.Coords;
                         g_score[nodex, nodey] = 0;
@@ -326,7 +343,11 @@ public class Room
             }
         }
         else if (start.Node is RoomNode roomNode)
+        {
             current = roomNode;
+            (int nodex, int nodey) = roomNode.Coords;
+            g_score[nodex, nodey] = 0;
+        }
         else
             throw new System.ArgumentException();
 

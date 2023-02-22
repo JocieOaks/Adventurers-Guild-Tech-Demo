@@ -11,6 +11,7 @@ public class TravelAction : TaskAction
 {
     bool _ready = false;
     readonly Queue<INode> _walkingPath = new();
+    RoomNode nextNode;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TravelAction"/> class
@@ -91,21 +92,40 @@ public class TravelAction : TaskAction
     /// <inheritdoc/>
     public override void Perform()
     {
-        AdventurerPawn pawn = _pawn;
-        if (_ready && pawn.CurrentStep.IsComplete())
+        if (_ready && _pawn.CurrentStep.IsComplete())
+        {
+            if (_pawn.CurrentNode != nextNode)
+            {
+                _pawn.CurrentStep = new WalkStep(nextNode.SurfacePosition, _pawn, _pawn.CurrentStep);
+            }
+            else
+            {
+                NextStep();
+            }
+        }
+        else if (_pawn.CurrentStep is WalkStep && _pawn.CurrentStep.IsComplete())
+            _pawn.CurrentStep = new WaitStep(_pawn, _pawn.CurrentStep, false);
+    }
+
+    /// <summary>
+    /// Pulls the next step in the path off the queue and sets the next <see cref="TaskStep"/>.
+    /// </summary>
+    void NextStep()
+    {
+        if (_walkingPath.Count > 0)
         {
             INode node = _walkingPath.Dequeue();
             if (node is RoomNode roomNode)
             {
-                pawn.CurrentStep = new WalkStep(roomNode.SurfacePosition, pawn, pawn.CurrentStep);
+                nextNode = roomNode;
+                _pawn.CurrentStep = new WalkStep(roomNode.SurfacePosition, _pawn, _pawn.CurrentStep);
             }
             else if (node is ConnectingNode connection)
             {
-                pawn.CurrentStep = new TraverseStep(pawn.CurrentNode, connection, pawn, pawn.CurrentStep);
+                nextNode = connection.GetOppositeRoomNode(_pawn.CurrentNode);
+                _pawn.CurrentStep = new TraverseStep(_pawn.CurrentNode, connection, _pawn, _pawn.CurrentStep);
             }
         }
-        else if (_pawn.CurrentStep is WalkStep && pawn.CurrentStep.IsComplete())
-            _pawn.CurrentStep = new WaitStep(_pawn, _pawn.CurrentStep, false);
     }
 
     /// <summary>
@@ -141,6 +161,9 @@ public class TravelAction : TaskAction
         }
 
         walkingPath.Dispose();
+
+        NextStep();
+
         _ready = true;
     }
 }

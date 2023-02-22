@@ -1,4 +1,6 @@
-﻿public interface IOccupied : IInteractable
+﻿using UnityEngine;
+
+public interface IOccupied : IInteractable
 {
     /// <value>The <see cref="AdventurerPawn"/> occuping the <see cref="IOccupied"/>. Null if empty.</value>
     public Pawn Occupant { get; set; }
@@ -16,5 +18,6 @@
     /// that the given <see cref="AdventurerPawn"/> is actually occupying the <see cref="IOccupied"/>.
     /// </summary>
     /// <param name="pawn"><see cref="AdventurerPawn"/> exiting the <see cref="IOccupied"/>.</param>
-    public void Exit(Pawn pawn);
+    /// <param name="exitTo">If not left as default, has <c>pawn</c> move to the specified position.</param>
+    public void Exit(Pawn pawn, Vector3Int exitTo = default);
 }

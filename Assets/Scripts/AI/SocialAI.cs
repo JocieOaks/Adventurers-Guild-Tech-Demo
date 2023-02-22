@@ -1,8 +1,6 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using System.Collections.Specialized;
-using System.Linq;
 
 public enum SpeechType
 {
@@ -53,8 +51,8 @@ public class SocialAI
     /// </summary>
     /// <param name="room">The <see cref="Room"/> the <see cref="AdventurerPawn"/> has enetered.</param>
     public void EnterRoom(Room room)
-    {
-        foreach(AdventurerPawn pawn in GetNearbyPawns())
+    { 
+        foreach (AdventurerPawn pawn in GetNearbyPawns())
         {
             if (CanGreet(pawn))
                 Speak(pawn, SpeechType.Greet);
@@ -97,14 +95,15 @@ public class SocialAI
     /// <returns>The <see cref="AdventurerPawn"/>'s near to the <see cref="AdventurerPawn"/>.</returns>
     IEnumerable GetNearbyPawns(int radius = 10)
     {
-        if (_pawn.CurrentRoom is Layer)
+        if (_pawn.Room is Layer)
         {
             Vector3Int position = _pawn.WorldPosition;
 
-            foreach (AdventurerPawn pawn in _pawn.CurrentRoom.Occupants)
+            foreach (Pawn pawn in _pawn.Room.Occupants)
             {
                 Vector3Int relPosition = position - pawn.WorldPosition;
                 if (pawn != _pawn &&
+                    pawn is AdventurerPawn &&
                     Mathf.Abs(relPosition.x) < radius &&
                     Mathf.Abs(relPosition.y) < radius)
                     yield return pawn;
@@ -112,8 +111,9 @@ public class SocialAI
         }
         else
         {
-            foreach(AdventurerPawn pawn in _pawn.CurrentRoom.Occupants)
-                if(pawn != _pawn)
+
+            foreach (Pawn pawn in _pawn.Room.Occupants)
+                if (pawn != _pawn && pawn is AdventurerPawn)
                     yield return pawn;
         }
     }
@@ -161,7 +161,7 @@ public class SocialAI
     /// </summary>
     void OnTicked()
     {
-        if(_pawn.CurrentRoom is Layer && CanSpeak())
+        if (_pawn.Room is Layer && CanSpeak())
         {
             foreach (AdventurerPawn pawn in GetNearbyPawns())
             {
@@ -175,6 +175,7 @@ public class SocialAI
             int random = Random.Range(0, 15);
             if (random == 0 && CanSpeak())
             {
+
                 foreach (AdventurerPawn pawn in GetNearbyPawns(8))
                 {
                     if (CanSpeakTo(pawn) && Vector3.Dot(Map.DirectionToVector(_pawn.Direction), pawn.WorldPosition - _pawn.WorldPosition) > 0)
@@ -210,7 +211,7 @@ public class SocialAI
         yield return new WaitForSeconds(delay);
         if (CanSpeak())
         {
-            if (_pawn.CurrentRoom.IsInRoom(pawn))
+            if (_pawn.Room.IsInRoom(pawn))
             {
                 switch (type)
                 {

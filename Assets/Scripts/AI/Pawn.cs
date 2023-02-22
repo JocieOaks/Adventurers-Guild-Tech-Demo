@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -28,6 +29,8 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
     SortingGroup _sortingGroup;
     Vector3 _worldPosition;
 
+    public IOccupied Occupying { get; set; }
+
     /// <value> The z coordinate of <see cref="AdventurerPawn"/>'s position.</value>
     public int CurrentLevel => CurrentNode.SurfacePosition.z;
 
@@ -41,9 +44,6 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
             _spriteRenderer.enabled = GameManager.Instance.IsOnLevel(CurrentLevel) <= 0;
         }
     }
-
-    /// <value> The <see cref="Room"/> the <see cref="AdventurerPawn"/> is currently located in.</value>
-    public Room CurrentRoom => CurrentNode.Room;
 
     /// <value> The current <see cref="TaskStep"/> the <see cref="AdventurerPawn"/> is performing.</value>
     public TaskStep CurrentStep { get; set; }
@@ -103,7 +103,15 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
             Vector3Int nearest = new(Mathf.RoundToInt(value.x), Mathf.RoundToInt(value.y), Mathf.RoundToInt(value.z));
             if (nearest.x != WorldPosition.x || nearest.y != WorldPosition.y)
             {
+                Room prevRoom = Room;
+
                 CurrentNode = CurrentNode.GetRoomNode(Map.VectorToDirection(_worldPosition - WorldPosition, true));
+                if (prevRoom != Room)
+                {
+                    prevRoom.ExitRoom(this);
+                    Room.EnterRoom(this);
+                }
+
                 _sortingGroup.sortingOrder = Graphics.GetSortOrder(WorldPosition);
                 BuildSpriteMask();
             }
@@ -115,6 +123,26 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
     /// The name of the <see cref="Pawn"/>.
     /// </summary>
     protected abstract string Name { get; }
+
+    /// <summary>
+    /// Forces the <see cref="Pawn"/> to a specified <see cref="RoomNode"/>, even if it is not adjacent to their previous position.
+    /// </summary>
+    /// <param name="roomNode">The <see cref="RoomNode"/> the <see cref="Pawn"/> is being moved to.</param>
+    public void ForcePosition(RoomNode roomNode)
+    {
+        CurrentNode = roomNode;
+        WorldPositionNonDiscrete = WorldPosition;
+        BuildSpriteMask();
+    }
+
+    /// <summary>
+    /// Forces the <see cref="Pawn"/> to a specified <see cref="Map"/> position, even if it is not adjacent to their previous position.
+    /// </summary>
+    /// <param name="position">The coordinates of the <see cref="RoomNode"/> the <see cref="Pawn"/> is being moved to.</param>
+    public void ForcePosition(Vector3Int position)
+    {
+        ForcePosition(Map.Instance[position]);
+    }
 
     ///<inheritdoc/>
     public bool HasNavigatedTo(RoomNode node)
@@ -221,6 +249,7 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
             _mask.transform.position = Map.MapCoordinatesToSceneCoordinates(WorldPosition);
         }
     }
+
     /// <summary>
     /// Initializes _sortingGroup and the mask elements for the Pawn.
     /// </summary>

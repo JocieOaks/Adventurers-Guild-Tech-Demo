@@ -49,6 +49,18 @@ public abstract class TaskStep
     public abstract void Perform();
 
     /// <summary>
+    /// Forces the <see cref="TaskStep"/> to run <see cref="Finish"/>, even if the <see cref="IsComplete"/> is not true.
+    /// </summary>
+    public void ForceFinish()
+    {
+        if(!_finished)
+        {
+            Finish();
+            _finished = true;
+        }
+    }
+
+    /// <summary>
     /// Called once the <see cref="TaskStep"/> has completed.
     /// </summary>
     protected virtual void Finish() { }

@@ -50,7 +50,7 @@ public class WaitStep : TaskStep, IDirected
                 {
                     _pawn.SetSprite(animationIndex + _idleFrames[_frame]);
                     _frame++;
-                    if (_frame == 22)
+                    if (_frame >= 22)
                     {
                         _period -= 2.75f;
                         _frame = 0;

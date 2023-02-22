@@ -30,7 +30,7 @@ public class StanceLay : Task, IRecoverableTask
     /// <inheritdoc/>
     public override bool ConditionsMet(WorldState worldState)
     {
-        return false;// base.ConditionsMet(worldState) && InteractablesCondition(worldState, LayingObjects) && worldState.PreviousTask is not StanceSit && worldState.PreviousTask is not StanceStand;
+        return base.ConditionsMet(worldState) && InteractablesCondition(worldState, LayingObjects) && worldState.PreviousTask is not StanceSit && worldState.PreviousTask is not StanceStand;
     }
 
     /// <inheritdoc/>

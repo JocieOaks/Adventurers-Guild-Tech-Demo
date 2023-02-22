@@ -69,6 +69,7 @@ public class AdventurerPawn : Pawn
         foreach (TaskAction action in _currentTask.GetActions(Actor))
             _taskActions.Enqueue(action);
 
+        CurrentStep.ForceFinish();
         CurrentStep = new WaitStep(this, null, false);
 
         CurrentAction = _taskActions.Dequeue();
@@ -149,7 +150,20 @@ public class AdventurerPawn : Pawn
         {
             _recovery++;
             _taskActions.Clear();
-
+            if(!CurrentNode.Traversable)
+            {
+                foreach(RoomNode node in CurrentNode.AdjacentNodes)
+                {
+                    if(node.Traversable)
+                    {
+                        ForcePosition(node);
+                        break;
+                    }
+                }
+                if (!CurrentNode.Traversable)
+                    ForcePosition(Vector3Int.one);
+            }
+            
             if (_currentTask is IRecoverableTask recovery && _recovery < 4)
             {
                 foreach (TaskAction action in recovery.Recover(Actor, CurrentAction))
