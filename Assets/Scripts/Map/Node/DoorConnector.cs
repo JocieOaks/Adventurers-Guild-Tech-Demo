@@ -36,6 +36,10 @@ public class DoorConnector : ConnectingNode
 
     /// <value>The <see cref="WallBlocker"/> that this <see cref="DoorConnector"/> is replacing.</value>
     public WallBlocker WallNode { get;}
+
+    /// <inheritdoc/>
+    public override Vector3Int Dimensions => WallNode.Dimensions;
+
     /// <inheritdoc/>
     public override void Disconnect()
     {

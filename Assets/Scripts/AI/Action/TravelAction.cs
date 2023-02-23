@@ -150,7 +150,7 @@ public class TravelAction : TaskAction
         yield return new WaitUntil(() => navigateJobHandle.IsCompleted);
         navigateJobHandle.Complete();
 
-        for (int i = 1; i < walkingPath.Length; i++)
+        for (int i = 0; i < walkingPath.Length; i++)
         {
             if (walkingPath[i] == default)
             {

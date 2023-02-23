@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -11,16 +10,13 @@ using UnityEngine.Rendering;
 public abstract class Pawn : MonoBehaviour, IWorldPosition
 {
     [SerializeField] protected Sprite[] _animationSprites;
+    protected RoomNode _currentNode;
     protected bool _ready = false;
     [SerializeField] protected SpriteRenderer _spriteRenderer;
-    static readonly Vector3Int s_alignmentVector = new(1, 1);
     static readonly Vector2 s_maskPivot = new(36, 18);
 
     readonly List<Collider2D> _overlappingColliders = new();
     [SerializeField] PolygonCollider2D _collider;
-
-    protected RoomNode _currentNode;
-
     SpriteMask _mask;
 
     Color32[] _maskArray;
@@ -28,8 +24,6 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
     Texture2D _maskTexture;
     SortingGroup _sortingGroup;
     Vector3 _worldPosition;
-
-    public IOccupied Occupying { get; set; }
 
     /// <value> The z coordinate of <see cref="AdventurerPawn"/>'s position.</value>
     public int CurrentLevel => CurrentNode.SurfacePosition.z;
@@ -62,9 +56,15 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
         }
     }
 
+    /// <summary>
+    /// The name of the <see cref="Pawn"/>.
+    /// </summary>
+    public abstract string Name { get; }
+
     /// <inheritdoc/>
     public INode Node => CurrentNode;
 
+    public IOccupied Occupying { get; set; }
     /// <inheritdoc/>
     public Room Room => Node.Room;
 
@@ -119,10 +119,8 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
         }
     }
 
-    /// <summary>
-    /// The name of the <see cref="Pawn"/>.
-    /// </summary>
-    protected abstract string Name { get; }
+    /// <inheritdoc/>
+    public Vector3Int Dimensions => new Vector3Int(3,3,5);
 
     /// <summary>
     /// Forces the <see cref="Pawn"/> to a specified <see cref="RoomNode"/>, even if it is not adjacent to their previous position.
@@ -182,62 +180,32 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
                 if (_overlappingColliders[i].TryGetComponent(out SpriteObject.SpriteCollider collider))
                 {
                     SpriteObject spriteObject = collider.SpriteObject;
-                    Vector3Int relPosition;
 
-                    if (spriteObject.SpriteRenderer.enabled)
-                    {
+                    if (spriteObject.SpriteRenderer.enabled && Map.IsInFrontOf(spriteObject, this))
+                    { 
+                        //Builds a flattened 2D array for the SpriteMask by checking the pixels of the SpriteObjects in front of the Pawn.
+                        int transformOffset = 0;
+                        foreach (bool[,] pixelArray in spriteObject.GetMaskPixels)
+                        {
+                            Vector2 pivot = spriteObject.SpriteRenderer.sprite.pivot;
+                            Vector3 relScenePosition = Map.MapCoordinatesToSceneCoordinates(WorldPosition) - (spriteObject.SpriteRenderer.transform.position + transformOffset * spriteObject.OffsetVector);
 
-                        //Determines if the SpriteObject is in front of, or behind the Pawn.
-                        //Walls have special rules because they exist on the line between RoomNodes.
-                        //Stairs have special rules because the standard evaluation assumes that everything is on a flat plane.
-                        if (spriteObject is WallSprite wall)
-                        {
-                            relPosition = WorldPosition - spriteObject.WorldPosition - (wall.Alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left);
-                        }
-                        else
-                        {
-                            relPosition = WorldPosition - spriteObject.WorldPosition;
-                            if (spriteObject is StairSprite stair)
+                            int xOffset = (int)(pivot.x + relScenePosition.x * 6 - s_maskPivot.x);
+                            int yOffset = (int)(pivot.y + relScenePosition.y * 6 - s_maskPivot.y);
+
+                            for (int j = Mathf.Max(0, yOffset); j < Mathf.Min(pixelArray.GetLength(0), yOffset + _maskTexture.height); j++)
                             {
-                                if (stair.Direction == Direction.North)
+                                for (int k = Mathf.Max(0, xOffset); k < Mathf.Min(pixelArray.GetLength(1), xOffset + _maskTexture.width); k++)
                                 {
-                                    relPosition -= Vector3Int.forward * relPosition.y;
-                                }
-                                else if (stair.Direction == Direction.East)
-                                {
-                                    relPosition -= Vector3Int.forward * relPosition.x;
-                                }
-                            }
-                        }
-
-                        //_alignmentVector is a static vector that points from the camera inward. (1,1,0)
-                        //If the dot product of the alignment vector and the relative position of the Pawn to the SpriteObject is positive, it means that the Pawn is further into screen than the SpriteObject
-                        if (relPosition.z - spriteObject.Dimensions.z < 0 && (relPosition.z <= -5 || Vector3.Dot(relPosition, s_alignmentVector) > 0))
-                        {
-
-                            //Builds a flattened 2D array for the SpriteMask by checking the pixels of the SpriteObjects in front of the Pawn.
-                            int transformOffset = 0;
-                            foreach (bool[,] pixelArray in spriteObject.GetMaskPixels)
-                            {
-                                Vector2 pivot = spriteObject.SpriteRenderer.sprite.pivot;
-                                Vector3 relScenePosition = Map.MapCoordinatesToSceneCoordinates(WorldPosition) - (spriteObject.SpriteRenderer.transform.position + transformOffset * spriteObject.OffsetVector);
-
-                                int xOffset = (int)(pivot.x + relScenePosition.x * 6 - s_maskPivot.x);
-                                int yOffset = (int)(pivot.y + relScenePosition.y * 6 - s_maskPivot.y);
-
-                                for (int j = Mathf.Max(0, yOffset); j < Mathf.Min(pixelArray.GetLength(0), yOffset + _maskTexture.height); j++)
-                                {
-                                    for (int k = Mathf.Max(0, xOffset); k < Mathf.Min(pixelArray.GetLength(1), xOffset + _maskTexture.width); k++)
+                                    if (pixelArray[j, k])
                                     {
-                                        if (pixelArray[j, k])
-                                        {
-                                            _maskArray[(j - yOffset) * _maskTexture.width + k - xOffset] = Color.black;
-                                        }
+                                        _maskArray[(j - yOffset) * _maskTexture.width + k - xOffset] = Color.black;
                                     }
                                 }
-                                transformOffset++;
                             }
+                            transformOffset++;
                         }
+                        
                     }
                 }
             }
@@ -280,15 +248,15 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
         _spriteRenderer.enabled = GameManager.Instance.IsOnLevel(CurrentLevel) <= 0;
     }
 
-    /// <summary>
-    /// Initializes the <see cref="AdventurerPawn"/> once the game is ready.
-    /// </summary>
-    /// <returns>Returns <see cref="WaitUntil"/> objects for the <see cref="MonoBehaviour.StartCoroutine(IEnumerator)"/>, until the <see cref="GameManager"/> is ready.</returns>
-    protected abstract IEnumerator Startup();
-
     // Start is called before the first frame update
     protected virtual void Start()
     {
         StartCoroutine(Startup());
     }
+
+    /// <summary>
+    /// Initializes the <see cref="AdventurerPawn"/> once the game is ready.
+    /// </summary>
+    /// <returns>Returns <see cref="WaitUntil"/> objects for the <see cref="MonoBehaviour.StartCoroutine(IEnumerator)"/>, until the <see cref="GameManager"/> is ready.</returns>
+    protected abstract IEnumerator Startup();
 }

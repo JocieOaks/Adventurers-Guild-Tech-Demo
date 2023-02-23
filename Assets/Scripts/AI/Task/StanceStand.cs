@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 /// <summary>
 /// The <see cref="StanceStand"/> class is a <see cref="Task"/> for having a <see cref="AdventurerPawn"/> transition into <see cref="Stance.Stand"/>.
 /// </summary>
-public class StanceStand : Task, IPlanTask
+public class StanceStand : Task, INestingTask
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="StanceStand"/> class.

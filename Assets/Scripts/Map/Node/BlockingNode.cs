@@ -60,6 +60,9 @@ public abstract class BlockingNode : IDividerNode
     public Vector3Int WorldPosition { get; private set; }
 
     /// <inheritdoc/>
+    public abstract Vector3Int Dimensions { get; }
+
+    /// <inheritdoc/>
     public bool HasNavigatedTo(RoomNode node)
     {
         return Map.Instance[WorldPosition] == node || Map.Instance[WorldPosition + (Alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left)] == node;

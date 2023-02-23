@@ -5,15 +5,17 @@
 /// </summary>
 public interface IWorldPosition
 {
-    /// <value>Gives the position of the object in <see cref="Map"/> coordinates.</value>
-    Vector3Int WorldPosition { get; }
-
-    /// <value>Gives the <see cref="global::Room"/> the object currently occupies. Can be <c>null</c> for objects that border two rooms, i.e. <see cref="WallBlocker"/> and <see cref="ConnectingNode"/>.</value>
-    Room Room { get; }
+    /// <value>The 3D dimensions of the <see cref="IWorldPosition"/> in terms of <see cref="Map"/> coordinates. 
+    Vector3Int Dimensions { get; }
 
     /// <value>Gives the <see cref="INode"/> the object currently occupies. <see cref="INode"/> objects return themselves. Everything else returns <see cref="RoomNode"/>.</value>
     INode Node { get; }
 
+    /// <value>Gives the <see cref="global::Room"/> the object currently occupies. Can be <c>null</c> for objects that border two rooms, i.e. <see cref="WallBlocker"/> and <see cref="ConnectingNode"/>.</value>
+    Room Room { get; }
+
+    /// <value>Gives the position of the object in <see cref="Map"/> coordinates.</value>
+    Vector3Int WorldPosition { get; }
     /// <summary>
     /// Method for <see cref="Room.Navigate(IWorldPosition, IWorldPosition)"/>. Determines if the given node is an acceptable endpoint when navigating to this <see cref="IWorldPosition"/>.
     /// </summary>

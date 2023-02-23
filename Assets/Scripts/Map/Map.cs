@@ -29,12 +29,44 @@ public class Map : MonoBehaviour, IDataPersistence
     Layer[] _layers;
     List<Room> _rooms;
     List<Sector> _sectors = new();
+    static readonly Vector3Int s_alignmentVector = new(1, 1);
 
 
 
     /// <value>Accessor for the <see cref="Map"/> singleton instance.</value>
     public static Map Instance => _instance;
     public static bool Ready { get; private set; } = false;
+
+    public static bool IsInFrontOf(IWorldPosition first, IWorldPosition second)
+    {
+        Vector3Int relPosition;
+        //Determines if the first is in front of, or behind the Pawn.
+        //Walls have special rules because they exist on the line between RoomNodes.
+        //Stairs have special rules because the standard evaluation assumes that everything is on a flat plane.
+        if (first is WallSprite wall)
+        {
+            relPosition = second.WorldPosition - first.WorldPosition - (wall.Alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left);
+        }
+        else
+        {
+            relPosition = second.WorldPosition - first.WorldPosition;
+            if (first is StairSprite stair)
+            {
+                if (stair.Direction == Direction.North)
+                {
+                    relPosition -= Vector3Int.forward * relPosition.y;
+                }
+                else if (stair.Direction == Direction.East)
+                {
+                    relPosition -= Vector3Int.forward * relPosition.x;
+                }
+            }
+        }
+
+        //_alignmentVector is a static vector that points from the camera inward. (1,1,0)
+        //If the dot product of the alignment vector and the relative position of the Pawn to the first is positive, it means that the Pawn is further into screen than the first
+        return relPosition.z - first.Dimensions.z < 0 && (-relPosition.z >= second.Dimensions.z || Vector3.Dot(relPosition, s_alignmentVector) > 0);
+    }
 
     public IEnumerable<RoomNode> AllNodes
     {

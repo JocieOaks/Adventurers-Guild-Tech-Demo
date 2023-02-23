@@ -57,7 +57,7 @@ public class PlayerPawn : Pawn
     }
 
     /// <inheritdoc/>
-    protected override string Name => "Player";
+    public override string Name => "Player";
 
     /// <inheritdoc/>
     protected override IEnumerator Startup()
@@ -112,7 +112,7 @@ public class PlayerPawn : Pawn
     // Update is called once per frame
     void Update()
     {
-        if (_ready && !GameManager.Instance.Paused)
+        if (_ready && !GameManager.Instance.Paused && GameManager.Instance.GameMode == GameMode.Play)
         {
             Vector3 movement = Vector3.zero;
             if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))

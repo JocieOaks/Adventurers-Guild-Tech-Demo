@@ -94,10 +94,12 @@ public class WaitStep : TaskStep, IDirected
             case Direction.South:
             case Direction.SouthWest:
                 Direction = Direction.South;
+                _period = Mathf.Clamp(_period, 0, 2.75f);
                 animationIndex = 30;
                 break;
             default:
                 Direction = Direction.West;
+                _period = Mathf.Clamp(_period, 0, 2.75f);
                 animationIndex = 24;
                 break;
         }

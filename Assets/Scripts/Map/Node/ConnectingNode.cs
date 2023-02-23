@@ -83,6 +83,9 @@ public abstract class ConnectingNode : IDividerNode
     /// <inheritdoc/>
     public Vector3Int WorldPosition { get; protected set; }
 
+    /// <inheritdoc/>
+    public abstract Vector3Int Dimensions { get; }
+
     /// <summary>
     /// Appends the list of <see cref="ConnectingNode"/>s that share a bordering <see cref="global::Room"/>. Used for quickly navigating paths that pass through multiple <see cref="global::Room"/>s.
     /// </summary>

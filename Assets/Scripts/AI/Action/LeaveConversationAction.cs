@@ -5,7 +5,7 @@
 /// </summary>
 public class LeaveConversationAction : TaskAction
 {
-    const float DELAY = 0.5f;
+    const float DELAY = 1.0f;
     float _period;
 
     /// <summary>

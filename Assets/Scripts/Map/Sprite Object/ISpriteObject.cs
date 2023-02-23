@@ -7,10 +7,6 @@ using UnityEngine;
 /// </summary>
 public interface ISpriteObject : IDataPersistence, IWorldPosition
 {
-    /// <value>he 3D dimensions of the <see cref="SpriteObject"/> in terms of <see cref="Map"/> coordinates. 
-    /// Normally should be equivalent to <see cref="ObjectDimensions"/> but can be publicly accessed without knowing the <see cref="SpriteObject"/>'s type.</value>
-    Vector3Int Dimensions { get; }
-
     /// <value>The pixels blocked by the <see cref="SpriteObject"/>'s sprites as an array of bools. Used by <see cref="AdventurerPawn"/> to construct a <see cref="SpriteMask"/> for all objects in front of it.</value>
     IEnumerable<bool[,]> GetMaskPixels { get; }
 

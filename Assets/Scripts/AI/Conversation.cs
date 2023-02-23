@@ -32,6 +32,9 @@ public class Conversation
     {
         get
         {
+            if (_pawns.Count == 0)
+                return Vector3Int.zero;
+
             Vector3Int position = Vector3Int.zero;
             foreach (AdventurerPawn pawn in _pawns)
             {

@@ -10,6 +10,9 @@ public class GUI : MonoBehaviour
     public static GUI Instance;
     public AdventurerProfileUI AdventurerProfilePrefab;
 
+    public GameObject DebugPanel;
+    public TextMeshProUGUI DebugPanelText;
+
     void Awake()
     {
         if (Instance == null)
@@ -120,6 +123,18 @@ public class GUI : MonoBehaviour
             _questAdventurer = null;
             StartQuestButton.interactable = false;
         }
+    }
+
+    public void SetDebugPanel(AdventurerPawn pawn)
+    {
+        if (pawn != null)
+        {
+            DebugPanel.gameObject.SetActive(true);
+            DebugPanel.transform.position = Input.mousePosition;
+            DebugPanelText.text = pawn.CurrentTask.GetType().Name + "\n" + pawn.CurrentAction.GetType().Name + "\n" + pawn.CurrentStep.GetType().Name;
+        }
+        else
+            DebugPanel.gameObject.SetActive(false);
     }
 
     public void CloseAdventurerSelect()

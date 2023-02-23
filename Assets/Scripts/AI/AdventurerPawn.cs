@@ -18,7 +18,7 @@ public class AdventurerPawn : Pawn
 {
     readonly Queue<TaskAction> _taskActions = new();
     Actor _actor;
-    Task _currentTask;
+    public Task CurrentTask { get; private set; }
 
     [SerializeField] SpriteRenderer _emoji;
     Planner _planner;
@@ -46,7 +46,8 @@ public class AdventurerPawn : Pawn
     /// <value>The <see cref="SocialAI"/> that runs the <see cref="AdventurerPawn"/>'s social behaviours.</value>
     public SocialAI Social { get; private set; }
 
-    protected override string Name => Actor.Name;
+    /// <inheritdoc/>
+    public override string Name => Actor.Name;
 
     /// <summary>
     /// Sets the <see cref="AdventurerPawn"/> to begin going on a <see cref="Quest"/>
@@ -64,9 +65,9 @@ public class AdventurerPawn : Pawn
     /// <param name="task">The new <see cref="Task"/> for the <see cref="AdventurerPawn"/> to perform.</param>
     public void OverrideTask(Task task)
     {
-        _currentTask = task;
+        CurrentTask = task;
         _taskActions.Clear();
-        foreach (TaskAction action in _currentTask.GetActions(Actor))
+        foreach (TaskAction action in CurrentTask.GetActions(Actor))
             _taskActions.Enqueue(action);
 
         CurrentStep.ForceFinish();
@@ -116,12 +117,12 @@ public class AdventurerPawn : Pawn
     {
         Social = new SocialAI(this);
 
-        _currentTask = new WaitTask(0.5f);
+        CurrentTask = new WaitTask(0.5f);
 
-        _planner = new Planner(Actor, _currentTask);
+        _planner = new Planner(Actor, CurrentTask);
         Map.Instance.StartCoroutine(_planner.AStar());
 
-        foreach (TaskAction action in _currentTask.GetActions(Actor))
+        foreach (TaskAction action in CurrentTask.GetActions(Actor))
             _taskActions.Enqueue(action);
 
         CurrentAction = _taskActions.Dequeue();
@@ -152,7 +153,7 @@ public class AdventurerPawn : Pawn
             _taskActions.Clear();
             if(!CurrentNode.Traversable)
             {
-                foreach(RoomNode node in CurrentNode.AdjacentNodes)
+                foreach(RoomNode node in CurrentNode.NextNodes)
                 {
                     if(node.Traversable)
                     {
@@ -164,18 +165,18 @@ public class AdventurerPawn : Pawn
                     ForcePosition(Vector3Int.one);
             }
             
-            if (_currentTask is IRecoverableTask recovery && _recovery < 4)
+            if (CurrentTask is IRecoverableTask recovery && _recovery < 4)
             {
                 foreach (TaskAction action in recovery.Recover(Actor, CurrentAction))
                     _taskActions.Enqueue(action);
             }
             else
             {
-                _currentTask = new WaitTask(0.5f);
-                foreach (TaskAction action in _currentTask.GetActions(Actor))
+                CurrentTask = new WaitTask(0.5f);
+                foreach (TaskAction action in CurrentTask.GetActions(Actor))
                     _taskActions.Enqueue(action);
 
-                _planner.OverrideTask(_currentTask);
+                _planner.OverrideTask(CurrentTask);
             }
             CurrentAction = null;
         }
@@ -188,9 +189,9 @@ public class AdventurerPawn : Pawn
         {
             if (_taskActions.Count == 0)
             {
-                _currentTask = _planner.GetTask();
+                CurrentTask = _planner.GetTask();
 
-                foreach (TaskAction action in _currentTask.GetActions(Actor))
+                foreach (TaskAction action in CurrentTask.GetActions(Actor))
                     _taskActions.Enqueue(action);
             }
 

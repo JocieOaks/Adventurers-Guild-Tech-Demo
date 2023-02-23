@@ -40,6 +40,9 @@ public class LandingConnector : ConnectingNode, IDirected
     public override bool Obstructed => false;
 
     /// <inheritdoc/>
+    public override Vector3Int Dimensions => Vector3Int.zero;
+
+    /// <inheritdoc/>
     public override void Disconnect()
     {
         FirstNode.ResetConnection(Direction);

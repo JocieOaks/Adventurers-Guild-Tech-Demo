@@ -8,13 +8,13 @@ using UnityEngine.UIElements;
 /// </summary>
 public class Planner
 {
-    (PlanNode node, float utility) best;
-    readonly PriorityQueue<PlanNode, float> priorityQueue = new(true);
+    (PlanNode node, float utility) _best;
+    readonly PriorityQueue<PlanNode, float> _priorityQueue = new(true);
 
-    bool reset = false;
+    bool _reset = false;
     readonly Actor _actor;
 
-    WorldState startState;
+    WorldState _startState;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Planner"/> class.
@@ -23,8 +23,8 @@ public class Planner
     /// <param name="startTask">The first task the <see cref="Actor"/> is performing, to set the initial <see cref="WorldState"/>.</param>
     public Planner(Actor actor, Task startTask)
     {
-        startState = startTask.ChangeWorldState(new WorldState(actor));
-        startState.PreviousTask = startTask;
+        _startState = startTask.ChangeWorldState(new WorldState(actor));
+        _startState.PreviousTask = startTask;
         _actor = actor;
     }
 
@@ -37,34 +37,34 @@ public class Planner
     {
         while (true)
         {
-            reset = false;
-            best = (null, float.NegativeInfinity);
-            priorityQueue.Clear();
+            _reset = false;
+            _best = (null, float.NegativeInfinity);
+            _priorityQueue.Clear();
             foreach (Task task in GetTasks())
             {
-                if (task.ConditionsMet(startState))
+                if (task.ConditionsMet(_startState))
                 {
-                    PlanNode planNode = new(task, startState);
+                    PlanNode planNode = new(task, _startState);
 
                     float priority = planNode.GetAverageUtility();
 
-                    if (best.utility < priority)
+                    if (_best.utility < priority)
                     {
-                        best = (planNode, priority);
+                        _best = (planNode, priority);
                     }
 
-                    priorityQueue.Push(planNode, priority);
+                    _priorityQueue.Push(planNode, priority);
 
                 }
             }
 
             PlanNode current;
-            while (!reset)
+            while (!_reset)
             {
                 yield return new WaitForFixedUpdate();
-                if (priorityQueue.Count > 0)
+                if (_priorityQueue.Count > 0)
                 {
-                    current = priorityQueue.PopMax();
+                    current = _priorityQueue.PopMax();
                     if (current.Depth < 4)
                     {
                         foreach (Task task in GetTasks())
@@ -77,12 +77,12 @@ public class Planner
 
                                 float priority = planNode.GetAverageUtility();
 
-                                if (best.utility < priority)
+                                if (_best.utility < priority)
                                 {
-                                    best = (planNode, priority);
+                                    _best = (planNode, priority);
                                 }
 
-                                priorityQueue.Push(planNode, priority);
+                                _priorityQueue.Push(planNode, priority);
                             }
                         }
                     }
@@ -100,11 +100,11 @@ public class Planner
         if (_actor.IsOnQuest)
             return new QuestTask();
 
-        Task task = best.node.FirstTask;
+        Task task = _best.node.FirstTask;
         WorldState currentState = new(_actor);
-        startState = PlanNode.WorldStateDelta(currentState, task.Time(currentState), task);
-        startState.PreviousTask = task;
-        reset = true;
+        _startState = PlanNode.WorldStateDelta(currentState, task.Time(currentState), task);
+        _startState.PreviousTask = task;
+        _reset = true;
         return task;
     }
 
@@ -115,9 +115,9 @@ public class Planner
     public void OverrideTask(Task task)
     {
         WorldState currentState = new(_actor);
-        startState = PlanNode.WorldStateDelta(currentState, task.Time(currentState), task);
-        startState.PreviousTask = task;
-        reset = true;
+        _startState = PlanNode.WorldStateDelta(currentState, task.Time(currentState), task);
+        _startState.PreviousTask = task;
+        _reset = true;
     }
 
     /// <summary>
@@ -159,9 +159,9 @@ public class Planner
             Depth = previous.Depth + 1;
             Root = previous.Root;
 
-            if (FirstTask is IPlanTask planTask)
+            if (FirstTask is INestingTask planTask)
             {
-                _task = planTask.CreateNestingTask(task);
+                _task = planTask.CreateNestedTask(task);
                 Root = this;
             }
 

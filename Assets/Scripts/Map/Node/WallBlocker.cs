@@ -29,4 +29,7 @@ public class WallBlocker : BlockingNode
     {
         WallSprite = new WallSprite(worldPosition, alignment, 6, WallMaterial.Brick, this);
     }
+
+    /// <inheritdoc/>
+    public override Vector3Int Dimensions => WallSprite.Dimensions;
 }

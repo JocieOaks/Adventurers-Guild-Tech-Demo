@@ -16,7 +16,6 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
     static bool[,] _pixelsNorth;
     static bool[,] _pixelsSouth;
     static bool[,] _pixelsWest;
-    List<RoomNode> _interactionPoints;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ChairSprite"/> class.
@@ -84,41 +83,7 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
     {
         get
         {
-            if (_interactionPoints == null)
-            {
-                int minX = -1;
-                int minY = -1;
-                int maxX = 1;
-                int maxY = 1;
-
-                switch (Direction)
-                {
-                    case Direction.North:
-                        minY = 0;
-                        break;
-                    case Direction.South:
-                        maxY = 0;
-                        break;
-                    case Direction.East:
-                        minX = 0;
-                        break;
-                    case Direction.West:
-                        maxX = 0;
-                        break;
-                }
-
-                _interactionPoints = new List<RoomNode>();
-                for (int i = minX; i <= maxX; i++)
-                {
-                    for (int j = minY; j <= maxY; j++)
-                    {
-                        RoomNode roomNode = Map.Instance[WorldPosition + new Vector3Int(i, j)];
-                        if (roomNode.Traversable)
-                            _interactionPoints.Add(roomNode);
-                    }
-                }
-            }
-            return _interactionPoints;
+            yield return Node as RoomNode;
         }
     }
 
@@ -251,7 +216,6 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
     /// <inheritdoc/>
     protected override void OnMapChanging()
     {
-        _interactionPoints = null;
         ReserveInteractionPoints();
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// The <see cref="LeaveConversationTask"/> class is a <see cref="Task"/> for ending a <see cref="Conversation"/>.
 /// </summary>
-public class LeaveConversationTask : Task
+public class LeaveConversationTask : Task, INestingTask
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="LeaveConversationTask"/>.

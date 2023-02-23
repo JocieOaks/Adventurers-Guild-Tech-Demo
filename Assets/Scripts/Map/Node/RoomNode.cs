@@ -345,6 +345,8 @@ public class RoomNode : INode
         }
     }
 
+    public Vector3Int Dimensions => new Vector3Int(1,1,Room.Height);
+
     /// <summary>
     /// Evaluates if a given path of <see cref="RoomNode"/>'s remains valid.
     /// </summary>

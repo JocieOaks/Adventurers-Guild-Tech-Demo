@@ -13,6 +13,10 @@ public enum GameMode
 
 public class GameManager : MonoBehaviour, IDataPersistence
 {
+    public bool DEBUG;
+
+
+
     const float DOUBLECLICKTIME = 0.5f;
     const float TICK_TIME = 0.2f;
     const float ZOOMMAX = 40;
@@ -453,44 +457,31 @@ public class GameManager : MonoBehaviour, IDataPersistence
 
     }
 
-    SpriteObject GetMouseOver()
+    T GetMouseOver<T>() where T : IWorldPosition
     {
         RaycastHit2D[] hits;
         Vector2 ray = _camera.ScreenToWorldPoint(Input.mousePosition);
-        //Debug.Log(ray);
         hits = Physics2D.RaycastAll(ray, Vector2.zero);
-        SpriteObject nearest = null;
+        T nearest = default;
         foreach (RaycastHit2D hit in hits)
         {
+            T next = default;
             if (hit.collider.TryGetComponent(out SpriteObject.SpriteCollider collider))
             {
                 SpriteObject spriteObject = collider.SpriteObject;
-                if (spriteObject.SpriteRenderer.enabled && (nearest?.SpriteRenderer.sortingOrder ?? -1000) < spriteObject.SpriteRenderer.sortingOrder)
-                    nearest = spriteObject;
+                if (spriteObject is T tObject && spriteObject.SpriteRenderer.enabled)
+                    next = tObject;
             }
+            else if(hit.collider.TryGetComponent(out Pawn pawn))
+            {
+                if (pawn is T tObject && IsOnLevel(pawn.CurrentLevel) <= 0)
+                    next = tObject;
+            }
+            if (!EqualityComparer<T>.Default.Equals(next, default) &&(EqualityComparer<T>.Default.Equals(nearest, default) || Map.IsInFrontOf(next, nearest)))
+                nearest = next;
         }
 
         return nearest;
-    }
-
-    T GetMouseOver<T>() where T : SpriteObject
-    {
-        RaycastHit2D[] hits;
-        Vector2 ray = _camera.ScreenToWorldPoint(Input.mousePosition);
-        //Debug.Log(ray);
-        hits = Physics2D.RaycastAll(ray, Vector2.zero);
-        SpriteObject nearest = null;
-        foreach (RaycastHit2D hit in hits)
-        {
-            if (hit.collider.TryGetComponent(out SpriteObject.SpriteCollider collider))
-            {
-                SpriteObject spriteObject = collider.SpriteObject;
-                if (spriteObject is T && spriteObject.SpriteRenderer.enabled && (nearest?.SpriteRenderer.sortingOrder ?? -1000) < spriteObject.SpriteRenderer.sortingOrder)
-                    nearest = spriteObject;
-            }
-        }
-
-        return nearest as T;
     }
 
     IEnumerator RunQuest(Quest quest)
@@ -610,6 +601,8 @@ public class GameManager : MonoBehaviour, IDataPersistence
         Ticked?.Invoke();
     }
 
+    Pawn _mouseOver;
+
     [SerializeField] PlayerPawn _player;
 
     private void Update()
@@ -647,7 +640,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
                 GUI.Instance.SwitchMode(true);
                 _playWallMode = Graphics.Instance.Mode;
             }
-            else
+            else if(_gameMode == GameMode.Build)
             {
                 _gameMode = GameMode.Play;
                 _graphics.HideHighlight();
@@ -676,6 +669,17 @@ public class GameManager : MonoBehaviour, IDataPersistence
                         }
                     }
                 }
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.O))
+        {
+            if (_gameMode == GameMode.Play)
+                _gameMode = GameMode.Overview;
+            else if (_gameMode == GameMode.Overview)
+            {
+                _gameMode = GameMode.Play;
+                GUI.Instance.SetDebugPanel(null);
             }
         }
 
@@ -751,6 +755,12 @@ public class GameManager : MonoBehaviour, IDataPersistence
                 }
         }
 
+        if(_gameMode == GameMode.Overview && !IsMouseOverUI())
+        {
+            AdventurerPawn pawn = GetMouseOver<AdventurerPawn>();
+            GUI.Instance.SetDebugPanel(pawn);
+        }
+
         if (_gameMode == GameMode.Build)
         {
             if (IsMouseOverUI() && !_placingLine && !_placingArea)
@@ -774,7 +784,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
                         BuildingArea(mode);
                         break;
                     case BuildMode.Demolish:
-                        Demolish(mode, GetMouseOver());
+                        Demolish(mode, GetMouseOver<SpriteObject>());
                         break;
                 }
             }
