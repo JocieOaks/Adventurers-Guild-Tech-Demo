@@ -3,44 +3,41 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
+/* 
+Based on the Save Load System by Trevor Mock
+https://github.com/trevermock/save-load-system
+*/
+
+/// <summary>
+/// The DataPersistenceManager is a singleton class that controls the loading and saving of persistent save data.
+/// </summary>
 public class DataPersistenceManager : MonoBehaviour
 {
-    public static bool SAVE = true;
-    public static bool LOAD = true;
+    const bool LOAD = true;
+    const bool SAVE = true;
+    FileDataHandler dataHandler;
+
+    List<IDataPersistence> dataPersistenceObjects;
+
     [Header("File Storage Config")]
     [SerializeField] private string fileName;
 
-    private GameData gameData;
-    private List<IDataPersistence> dataPersistenceObjects;
+    GameData gameData;
+
+    /// <value>Gives a reference to the <see cref="DataPersistenceManager"/> singleton.</value>
+    public static DataPersistenceManager Instance { get; private set; }
+
+    /// <value>A list of objects that have persistent data but do not inherit from MonoBehaviour and thus cannot be access by <see cref="FindAllDataPersistenceObjects"/>.</value>
     public List<IDataPersistence> NonMonoDataPersistenceObjects { get; } = new List<IDataPersistence>();
-    private FileDataHandler dataHandler;
 
-    public static DataPersistenceManager instance { get; private set; }
-
-    private void Awake()
-    {
-        if (instance != null)
-        {
-            Debug.LogError("Found more than one Data Persistence Manager in the scene.");
-        }
-        instance = this;
-    }
-
-    private void Start()
-    {
-        dataHandler = new FileDataHandler(Application.persistentDataPath, fileName);
-        dataPersistenceObjects = FindAllDataPersistenceObjects();
-        StartCoroutine(LoadGame());
-    }
-
-    public void NewGame()
-    {
-        gameData = dataHandler.LoadNew();
-    }
-
+    /// <summary>
+    /// Called whenever a save file is loaded into the game.
+    /// </summary>
+    /// <returns>Returns a <see cref="WaitUntil"/> object to wait for <see cref="Graphics"/> to be ready.</returns>
     public IEnumerator LoadGame()
     {
         yield return new WaitUntil(() => Graphics.Ready == true);
+
         // load any saved data from a file using the data handler
         gameData = dataHandler.Load();
 
@@ -56,7 +53,8 @@ public class DataPersistenceManager : MonoBehaviour
         gameData.Names = dataHandler.LoadNames();
 
         if (LOAD)
-        { // push the loaded data to all other scripts that need it
+        { 
+            // push the loaded data to all other scripts that need it
             foreach (IDataPersistence dataPersistenceObj in dataPersistenceObjects)
             {
                 dataPersistenceObj.LoadData(gameData);
@@ -69,6 +67,17 @@ public class DataPersistenceManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Loads a new game from the starting save file.
+    /// </summary>
+    public void NewGame()
+    {
+        gameData = dataHandler.LoadNew();
+    }
+
+    /// <summary>
+    /// Save's the game data to an external file.
+    /// </summary>
     public void SaveGame()
     {
         // pass the data to other scripts so they can update it
@@ -87,16 +96,33 @@ public class DataPersistenceManager : MonoBehaviour
             dataHandler.Save(gameData);
     }
 
-    private void OnApplicationQuit()
+    /// <inheritdoc/>
+    private void Awake()
     {
-        //SaveGame();
+        if (Instance != null)
+        {
+            Debug.LogError("Found more than one Data Persistence Manager in the scene.");
+        }
+        Instance = this;
     }
 
-    private List<IDataPersistence> FindAllDataPersistenceObjects()
+    /// <summary>
+    /// Find's all MonoBehaviour objects in the current scene that have the IDataPersistence interface.
+    /// </summary>
+    /// <returns></returns>
+    List<IDataPersistence> FindAllDataPersistenceObjects()
     {
         IEnumerable<IDataPersistence> dataPersistenceObjects = FindObjectsOfType<MonoBehaviour>()
             .OfType<IDataPersistence>();
 
         return new List<IDataPersistence>(dataPersistenceObjects);
+    }
+
+    /// <inheritdoc/>
+    private void Start()
+    {
+        dataHandler = new FileDataHandler(Application.persistentDataPath, fileName);
+        dataPersistenceObjects = FindAllDataPersistenceObjects();
+        StartCoroutine(LoadGame());
     }
 }

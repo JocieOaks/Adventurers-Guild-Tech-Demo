@@ -72,7 +72,7 @@ public abstract class SpriteObject :  ISpriteObject
         GameManager.MapChangingSecond += OnMapChanging;
 
         if (this is not WallSprite && this is not StairSprite && this is not FloorSprite)
-            DataPersistenceManager.instance.NonMonoDataPersistenceObjects.Add(this);
+            DataPersistenceManager.Instance.NonMonoDataPersistenceObjects.Add(this);
     }
 
     /// <value>The 3D dimensions of any <see cref="SpriteObject"/> of this class in terms of <see cref="Map"/> coordinates.</value>
@@ -163,7 +163,7 @@ public abstract class SpriteObject :  ISpriteObject
 
         if (SpriteRenderer != null)
             Object.Destroy(GameObject);
-        DataPersistenceManager.instance.NonMonoDataPersistenceObjects.Remove(this);
+        DataPersistenceManager.Instance.NonMonoDataPersistenceObjects.Remove(this);
     }
 
     /// <summary>

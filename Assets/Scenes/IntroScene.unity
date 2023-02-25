@@ -290,10 +290,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a43c1883c58d475499eb5dc70362c755, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Welcome: {fileID: 376502484}
-  Class: {fileID: 1202338236}
-  Party: {fileID: 454595656}
-  Name: {fileID: 1568701415}
+  _welcome: {fileID: 376502484}
+  _class: {fileID: 1202338236}
+  _party: {fileID: 454595656}
+  _name: {fileID: 1568701415}
 --- !u!114 &12366144
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3900,7 +3900,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 19.25
+  m_fontSize: 19.5
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1

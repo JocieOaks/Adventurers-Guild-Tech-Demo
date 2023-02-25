@@ -160,7 +160,7 @@ public class Room
                 Map.Instance.AddRooms(SplitOffRooms(node1, node2));
                 return;
             }
-            current = nodeQueue.Pop();
+            current = nodeQueue.PopMin();
             (x, y) = current.Coords;
             currentScore = g_score[x, y];
         }
@@ -315,7 +315,7 @@ public class Room
                 if (nodeQueue.Empty)
                     yield return float.PositiveInfinity;
 
-                current = nodeQueue.Pop();
+                current = nodeQueue.PopMin();
             }
             else
             {
@@ -356,7 +356,7 @@ public class Room
             {
                 yield return float.PositiveInfinity;
             }
-            current = nodeQueue.Pop();
+            current = nodeQueue.PopMin();
             (x, y) = current.Coords;
             currentScore = g_score[x, y];
         }

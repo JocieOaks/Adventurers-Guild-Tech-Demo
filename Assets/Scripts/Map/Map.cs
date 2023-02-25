@@ -366,7 +366,7 @@ public class Map : MonoBehaviour, IDataPersistence
 
         while (!nodeQueue.Empty && nodeQueue.Count < 50)
         {
-            INode currentNode = nodeQueue.Pop();
+            INode currentNode = nodeQueue.PopMin();
             if (currentNode == end)
             {
                 return g_score[end];
@@ -690,7 +690,7 @@ public class Map : MonoBehaviour, IDataPersistence
 
         while (!nodeQueue.Empty && nodeQueue.Count < 50)
         {
-            (IWorldPosition prevNode, IWorldPosition current) = nodeQueue.Pop();
+            (IWorldPosition prevNode, IWorldPosition current) = nodeQueue.PopMin();
             if (current == end)
             {
                 if (immediatePredecessor.TryGetValue(end, out IWorldPosition preceding) && preceding == prevNode)
@@ -913,9 +913,7 @@ public class Map : MonoBehaviour, IDataPersistence
                 {
                     if (Instance[j, k, 0, i] != RoomNode.Invalid)
                     {
-                        bool checkSouth = false;
-                        bool checkWest = false;
-                        mapData[i * MapLength * MapWidth + j * MapLength + k] = new SerializableNode(Instance[j, k, 0, i], ref checkSouth, ref checkWest);
+                        mapData[i * MapLength * MapWidth + j * MapLength + k] = new SerializableNode(Instance[j, k, 0, i], out bool checkSouth, out bool checkWest);
 
                         if (Instance[j, k, 0, i] is StairNode stair)
                         {

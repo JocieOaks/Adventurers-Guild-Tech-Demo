@@ -155,20 +155,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 995a7c62d0dd3eb4285026f8b10af816, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  HiresTutorial: {fileID: 2089043071}
-  HireTutorial2: {fileID: 1327178195}
-  AdventurersMessageBox: {fileID: 1307418363}
-  Build1: {fileID: 773764585}
-  Build2: {fileID: 903246242}
-  Build3: {fileID: 1095093372}
-  Quests1: {fileID: 968762575}
-  Quests2: {fileID: 835371260}
-  Quests3: {fileID: 2091981404}
-  Quests4: {fileID: 59545278}
-  Quests5: {fileID: 1297967065}
-  EndMessage: {fileID: 2058117610}
-  AdventurerProfilePrefab: {fileID: 3816315718366574894, guid: eeb5861d0f74f574ba8954704556efa9, type: 3}
-  DoTutorialPanel: {fileID: 1519079847}
+  _adventurerProfilePrefab: {fileID: 0}
+  _doTutorialPanel: {fileID: 0}
+  _hiresTutorial: {fileID: 0}
+  _hireTutorial2: {fileID: 0}
+  _adventurersMessageBox: {fileID: 0}
+  _build1: {fileID: 0}
+  _build2: {fileID: 0}
+  _build3: {fileID: 0}
+  _quests1: {fileID: 0}
+  quests2: {fileID: 0}
+  _quests3: {fileID: 0}
+  _quests4: {fileID: 0}
+  _quests5: {fileID: 0}
+  _endMessage: {fileID: 0}
 --- !u!114 &6986659
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -306,7 +306,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30b8dc50381388c48a90f0fd9665b6af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Header: {fileID: 1594380166}
+  _header: {fileID: 1594380166}
 --- !u!114 &23809309
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3251,10 +3251,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df4f985c66cec6547bb21143d168b04b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Icon: {fileID: 1901910136}
-  Results: {fileID: 1179315280}
-  Gold: {fileID: 1399009178}
-  Prestige: {fileID: 879094181}
+  _icon: {fileID: 0}
+  _results: {fileID: 0}
+  _gold: {fileID: 0}
+  _prestige: {fileID: 0}
 --- !u!114 &540729896
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6675,17 +6675,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76f615d74efa1944ea979c0fe9bcfced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AdventurerProfilePrefab: {fileID: 3816315718366574894, guid: eeb5861d0f74f574ba8954704556efa9, type: 3}
-  QuestPanel: {fileID: 1183373101}
-  AdventurerSelect: {fileID: 980026851}
-  HiresPanel: {fileID: 620254894}
-  ObjectPanel: {fileID: 1054177877}
-  BuildBar: {fileID: 1409532730}
-  BaseBar: {fileID: 691046308}
-  DemolishPanel: {fileID: 849738302}
-  StartQuestButton: {fileID: 1436831425}
-  HirePopup: {fileID: 23809308}
-  popup: {fileID: 540729895}
+  _adventurerProfilePrefab: {fileID: 3816315718366574894, guid: eeb5861d0f74f574ba8954704556efa9, type: 3}
+  _adventurerSelect: {fileID: 980026851}
+  _baseBar: {fileID: 691046308}
+  _buildBar: {fileID: 1409532730}
+  _demolishPanel: {fileID: 849738302}
+  _hirePopup: {fileID: 23809308}
+  _hiresPanel: {fileID: 753548242}
+  _objectPanel: {fileID: 1054177877}
+  _questCompletePopup: {fileID: 540729895}
+  _questPanel: {fileID: 1183373101}
+  _startQuestButton: {fileID: 1436831425}
 --- !u!114 &1075080504
 MonoBehaviour:
   m_ObjectHideFlags: 0

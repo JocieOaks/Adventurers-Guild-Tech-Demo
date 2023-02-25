@@ -49,6 +49,9 @@ public class WallSprite : LinearSpriteObject
 
     static bool[,] _pixelsX;
     static bool[,] _pixelsY;
+    readonly int _height;
+    readonly SortingGroup _sortingGroup;
+    readonly WallMaterial _wallMaterial;
     bool[,] _baseDoorMask;
     SpriteMask _cornerMask;
     SpriteMask _doorMask;
@@ -56,18 +59,12 @@ public class WallSprite : LinearSpriteObject
     SpriteRenderer _doorSprite;
     DoorSpriteType _doorSpriteType;
     bool[,] _fullDoorMask;
-    readonly int _height;
-
     bool _highlightDoor;
 
     bool _isFullWall;
 
     WallSprite _nextDoorWall;
-    readonly SortingGroup _sortingGroup;
-
     WallBlocker _wall;
-    readonly WallMaterial _wallMaterial;
-
     /// <summary>
     /// Initializes a new instance of <see cref="WallSprite"/> that does not have a corresponding <see cref="WallBlocker"/>.
     /// </summary>
@@ -178,7 +175,7 @@ public class WallSprite : LinearSpriteObject
                     _spriteRenderers[i].enabled = true;
 
                 if (_cornerMask != null)
-                    _cornerMask.transform.localPosition = Vector3.up * 2 * (_height - 1);
+                    _cornerMask.transform.localPosition = (_height - 1) * 2 * Vector3.up;
             }
             else
             {
@@ -413,7 +410,7 @@ public class WallSprite : LinearSpriteObject
                 _cornerMask = Object.Instantiate(Graphics.Instance.CornerMaskY, Transform);
 
             if (IsFullWall)
-                _cornerMask.transform.localPosition = Vector3.up * 2 * (_height - 1);
+                _cornerMask.transform.localPosition = (_height - 1) * 2 * Vector3.up;
         }
 
         _cornerMask.enabled = enableMask;
@@ -452,8 +449,7 @@ public class WallSprite : LinearSpriteObject
     /// </summary>
     protected override void OnConfirmingObjects()
     {
-        if (_wall == null)
-            _wall = new WallBlocker(this, WorldPosition, Alignment);
+        _wall ??= new WallBlocker(this, WorldPosition, Alignment);
 
         for (int i = 0; i < _height; i++)
         {
