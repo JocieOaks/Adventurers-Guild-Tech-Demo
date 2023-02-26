@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 
 
@@ -45,38 +47,39 @@ public class Actor
     float _needHunger;
     float _needSleep;
     float _needSocial;
-    readonly Sprite[] _spritesList;
+    NativeArray<Color> _spritePixels;
+    Sprite[] _spritesList;
 
     /// <summary>
     /// Intializes a new instance of the <see cref="Actor"/> class, and randomizes it's character data.
     /// </summary>
-    public Actor()
+    public Actor(out JobHandle job)
     {
         Race = (Race)Random.Range(0, 4);
-        int skin;
-        int hair;
+        int skinColorID;
+        int hairColorID;
         switch (Race)
         {
             case Race.Human:
-                skin = s_humanSkinTones[Random.Range(0, s_humanSkinTones.Count)];
-                hair = s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)];
-                _spritesList = Graphics.Instance.BuildSprites(skin, hair, 0, Random.Range(0, 2) == 0, Random.Range(0, 2) == 0, 2, false, Random.Range(0, 6), Random.Range(0, 1f) < 0.7f ? Random.Range(0, 4) : 4, 4, Random.Range(0f, 1f) < 0.75f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0);
+                skinColorID = s_humanSkinTones[Random.Range(0, s_humanSkinTones.Count)];
+                hairColorID = s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)];
+                job = Graphics.Instance.BuildSprites(skinColorID, hairColorID, 0, Random.Range(0, 2) == 0, Random.Range(0, 2) == 0, 2, false, Random.Range(0, 6), Random.Range(0, 1f) < 0.7f ? Random.Range(0, 4) : 4, 4, Random.Range(0f, 1f) < 0.75f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0, out _spritePixels);
                 break;
             case Race.Elf:
-                skin = s_humanSkinTones[Random.Range(0, s_humanSkinTones.Count)];
-                hair = s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)];
-                _spritesList = Graphics.Instance.BuildSprites(skin, hair, 0, Random.Range(0, 1f) < 0.7f, Random.Range(0, 1f) < 0.3f, 1, false, Random.Range(0, 6), Random.Range(0, 1f) < 0.5f ? Random.Range(0, 4) : 4, 4, Random.Range(0f, 1f) < 0.5f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0);
+                skinColorID = s_humanSkinTones[Random.Range(0, s_humanSkinTones.Count)];
+                hairColorID = s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)];
+                job = Graphics.Instance.BuildSprites(skinColorID, hairColorID, 0, Random.Range(0, 1f) < 0.7f, Random.Range(0, 1f) < 0.3f, 1, false, Random.Range(0, 6), Random.Range(0, 1f) < 0.5f ? Random.Range(0, 4) : 4, 4, Random.Range(0f, 1f) < 0.5f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0, out _spritePixels);
                 break;
             case Race.Orc:
-                skin = s_orcSkinTones[Random.Range(0, s_orcSkinTones.Count)];
-                hair = s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)];
-                _spritesList = Graphics.Instance.BuildSprites(skin, hair, 0, Random.Range(0, 1f) < 0.3f, Random.Range(0, 1f) < 0.7f, 1, true, Random.Range(0, 6), Random.Range(0, 1f) < 0.7f ? Random.Range(0, 4) : 4, 4, Random.Range(0f, 1f) < 0.8f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0);
+                skinColorID = s_orcSkinTones[Random.Range(0, s_orcSkinTones.Count)];
+                hairColorID = s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)];
+                job = Graphics.Instance.BuildSprites(skinColorID, hairColorID, 0, Random.Range(0, 1f) < 0.3f, Random.Range(0, 1f) < 0.7f, 1, true, Random.Range(0, 6), Random.Range(0, 1f) < 0.7f ? Random.Range(0, 4) : 4, 4, Random.Range(0f, 1f) < 0.8f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0, out _spritePixels);
                 break;
-            case Race.Tiefling:
-                skin = Random.Range(0, 1f) < 0.7 ? s_tieflingSkinTones[Random.Range(0, s_tieflingSkinTones.Count)] : s_humanSkinTones[Random.Range(0, s_humanSkinTones.Count)];
-                hair = Random.Range(0, 1f) < 0.4 ? s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)] : s_unnaturalHairColors[Random.Range(0, s_unnaturalHairColors.Count)];
+            default:
+                skinColorID = Random.Range(0, 1f) < 0.7 ? s_tieflingSkinTones[Random.Range(0, s_tieflingSkinTones.Count)] : s_humanSkinTones[Random.Range(0, s_humanSkinTones.Count)];
+                hairColorID = Random.Range(0, 1f) < 0.4 ? s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)] : s_unnaturalHairColors[Random.Range(0, s_unnaturalHairColors.Count)];
                 int ears = Random.Range(0, 1f) < 0.6f ? 1 : Random.Range(0, 1f) < 0.75 ? 0 : 2;
-                _spritesList = Graphics.Instance.BuildSprites(skin, hair, Random.Range(0, 14), Random.Range(0, 2) == 0, Random.Range(0, 2) == 0, ears, Random.Range(0, 1f) < 0.1f, Random.Range(0, 6), Random.Range(0, 1f) < 0.7f ? Random.Range(0, 4) : 4, Random.Range(0, 4), Random.Range(0f, 1f) < 0.75f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0);
+                job = Graphics.Instance.BuildSprites(skinColorID, hairColorID, Random.Range(0, 14), Random.Range(0, 2) == 0, Random.Range(0, 2) == 0, ears, Random.Range(0, 1f) < 0.1f, Random.Range(0, 6), Random.Range(0, 1f) < 0.7f ? Random.Range(0, 4) : 4, Random.Range(0, 4), Random.Range(0f, 1f) < 0.75f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0, out _spritePixels);
                 break;
         }
 
@@ -267,6 +270,15 @@ public class Actor
     }
 
     /// <summary>
+    /// Creates the list of <see cref="Sprite"/>s associated with this <see cref="Actor"/>. Called once <see cref="Graphics.BuildSpriteJob"/> has completed on a worker thread.
+    /// </summary>
+    public void MakeSpritesList()
+    {
+        _spritesList = Graphics.Instance.SliceSprites(_spritePixels.ToArray());
+        _spritePixels.Dispose();
+    }
+
+    /// <summary>
     /// Called once per frame.
     /// Corresponds to the Monobheaviour Update()
     /// </summary>
@@ -307,8 +319,6 @@ public class Actor
         scores[2] = Mathf.Max(Random.Range(1, 8) + (int)((30 - total) / 2f - 4.5), 1);
         total += scores[2];
         scores[3] = Mathf.Max(30 - total, 1);
-
-        System.Random rng = new();
 
         int n = scores.Length;
         while (n > 1)

@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -74,6 +76,10 @@ public class PlayerPawn : Pawn
         Graphics.UpdatedGraphics += BuildSpriteMask;
         Graphics.LevelChangedLate += BuildSpriteMask;
 
+        JobHandle jobHandle;
+
+        NativeArray<Color> pixels;
+
         Race Race = (Race)Random.Range(0, 4);
         int skin;
         int hair;
@@ -82,25 +88,30 @@ public class PlayerPawn : Pawn
             case Race.Human:
                 skin = s_humanSkinTones[Random.Range(0, s_humanSkinTones.Count)];
                 hair = s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)];
-                _animationSprites = Graphics.Instance.BuildSprites(skin, hair, 0, Random.Range(0, 2) == 0, Random.Range(0, 2) == 0, 2, false, Random.Range(0, 6), Random.Range(0, 1f) < 0.7f ? Random.Range(0, 4) : 4, 4, Random.Range(0f, 1f) < 0.75f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0);
+                jobHandle = Graphics.Instance.BuildSprites(skin, hair, 0, Random.Range(0, 2) == 0, Random.Range(0, 2) == 0, 2, false, Random.Range(0, 6), Random.Range(0, 1f) < 0.7f ? Random.Range(0, 4) : 4, 4, Random.Range(0f, 1f) < 0.75f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0, out pixels);
                 break;
             case Race.Elf:
                 skin = s_humanSkinTones[Random.Range(0, s_humanSkinTones.Count)];
                 hair = s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)];
-                _animationSprites = Graphics.Instance.BuildSprites(skin, hair, 0, Random.Range(0, 1f) < 0.7f, Random.Range(0, 1f) < 0.3f, 1, false, Random.Range(0, 6), Random.Range(0, 1f) < 0.5f ? Random.Range(0, 4) : 4, 4, Random.Range(0f, 1f) < 0.5f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0);
+                jobHandle = Graphics.Instance.BuildSprites(skin, hair, 0, Random.Range(0, 1f) < 0.7f, Random.Range(0, 1f) < 0.3f, 1, false, Random.Range(0, 6), Random.Range(0, 1f) < 0.5f ? Random.Range(0, 4) : 4, 4, Random.Range(0f, 1f) < 0.5f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0, out pixels);
                 break;
             case Race.Orc:
                 skin = s_orcSkinTones[Random.Range(0, s_orcSkinTones.Count)];
                 hair = s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)];
-                _animationSprites = Graphics.Instance.BuildSprites(skin, hair, 0, Random.Range(0, 1f) < 0.3f, Random.Range(0, 1f) < 0.7f, 1, true, Random.Range(0, 6), Random.Range(0, 1f) < 0.7f ? Random.Range(0, 4) : 4, 4, Random.Range(0f, 1f) < 0.8f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0);
+                jobHandle = Graphics.Instance.BuildSprites(skin, hair, 0, Random.Range(0, 1f) < 0.3f, Random.Range(0, 1f) < 0.7f, 1, true, Random.Range(0, 6), Random.Range(0, 1f) < 0.7f ? Random.Range(0, 4) : 4, 4, Random.Range(0f, 1f) < 0.8f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0, out pixels);
                 break;
-            case Race.Tiefling:
+            default:
                 skin = Random.Range(0, 1f) < 0.7 ? s_tieflingSkinTones[Random.Range(0, s_tieflingSkinTones.Count)] : s_humanSkinTones[Random.Range(0, s_humanSkinTones.Count)];
                 hair = Random.Range(0, 1f) < 0.4 ? s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)] : s_unnaturalHairColors[Random.Range(0, s_unnaturalHairColors.Count)];
                 int ears = Random.Range(0, 1f) < 0.6f ? 1 : Random.Range(0, 1f) < 0.75 ? 0 : 2;
-                _animationSprites = Graphics.Instance.BuildSprites(skin, hair, Random.Range(0, 14), Random.Range(0, 2) == 0, Random.Range(0, 2) == 0, ears, Random.Range(0, 1f) < 0.1f, Random.Range(0, 6), Random.Range(0, 1f) < 0.7f ? Random.Range(0, 4) : 4, Random.Range(0, 4), Random.Range(0f, 1f) < 0.75f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0);
+                jobHandle = Graphics.Instance.BuildSprites(skin, hair, Random.Range(0, 14), Random.Range(0, 2) == 0, Random.Range(0, 2) == 0, ears, Random.Range(0, 1f) < 0.1f, Random.Range(0, 6), Random.Range(0, 1f) < 0.7f ? Random.Range(0, 4) : 4, Random.Range(0, 4), Random.Range(0f, 1f) < 0.75f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0, out pixels);
                 break;
         }
+
+        yield return new WaitUntil(() => jobHandle.IsCompleted);
+        jobHandle.Complete();
+        _animationSprites = Graphics.Instance.SliceSprites(pixels.ToArray());
+        pixels.Dispose();
 
         CurrentStep = new WaitStep(this, Direction.SouthEast, false);
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Linq;
+using Unity.Jobs;
 
 public enum GameMode
 {
@@ -206,8 +207,12 @@ public class GameManager : MonoBehaviour, IDataPersistence
         yield return new WaitUntil(() => NextTutorialStep);
 
         NextTutorialStep = false;
-        Actor adventurer = new();
+        Actor adventurer = new(out JobHandle jobHandle);
         _availableHires.Add((adventurer, Tick + 500));
+
+        yield return new WaitUntil(() => jobHandle.IsCompleted);
+        jobHandle.Complete();
+        adventurer.MakeSpritesList();
         GUI.Instance.BuildHires(_availableHires);
         adventurerTutorial.MoveNext();
         yield return new WaitUntil(() => NextTutorialStep);
@@ -243,7 +248,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
             questTutorial.MoveNext();
             yield return new WaitUntil(() => NextTutorialStep);
         }
-        TutorialUI.Instance.End();
+        StartCoroutine(TutorialUI.Instance.End());
         Paused = false;
     }
 
@@ -542,13 +547,21 @@ public class GameManager : MonoBehaviour, IDataPersistence
 
         for(int i = 0; i < 3; i++)
         {
-            Actor adventurer = new();
-            _availableHires.Add((adventurer, Tick + 500));
-            _lastAdventurerTick = Tick;
+            StartCoroutine(CreateActor());
         }
-        GUI.Instance.BuildHires(_availableHires);
 
         GameReady = true;
+    }
+
+    IEnumerator CreateActor()
+    {
+        Actor adventurer = new(out JobHandle jobHandle);
+        yield return new WaitUntil(() => jobHandle.IsCompleted);
+        jobHandle.Complete();
+        adventurer.MakeSpritesList();
+        _availableHires.Add((adventurer, Tick + 500));
+        GUI.Instance.BuildHires(_availableHires);
+        _lastAdventurerTick = Tick;
     }
 
     //Timescale: 1 FrameTick == 10 seconds.
@@ -578,10 +591,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
         {
             if (Mathf.Pow(2, (Tick - _lastAdventurerTick) / 10) / 1000 > Random.Range(0, 100))
             {
-                Actor adventurer = new();
-                _availableHires.Add((adventurer, Tick + 500));
-                GUI.Instance.BuildHires(_availableHires);
-                _lastAdventurerTick = Tick;
+                StartCoroutine(CreateActor());
             }
         }
 

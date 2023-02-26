@@ -5,6 +5,9 @@ using UnityEngine;
 using System.Linq;
 using System;
 using UnityEngine.Rendering;
+using Unity.Profiling;
+using Unity.Jobs;
+using Unity.Collections;
 
 public enum AccentMaterial
 {
@@ -109,16 +112,11 @@ public class Graphics : MonoBehaviour
 
     public Sprite Marker;
 
-    public AdventurerPawn PawnPrefab;
-
     public Texture2D PawnGradientGreyscale;
-
     public Texture2D PawnGradientHair;
-
     public Texture2D PawnGradientHorns;
-
     public Texture2D PawnGradientSkin;
-
+    public AdventurerPawn PawnPrefab;
     public Texture2D PawnTextureBeard;
 
     public Texture2D PawnTextureBodyHairMuscular;
@@ -147,16 +145,15 @@ public class Graphics : MonoBehaviour
 
     public Texture2D PawnTextureOrcTeeth;
 
+    public SortingGroup SortingObject;
     public SpriteRenderer SpeechBubble;
 
     public GameObject SpritePrefab;
 
+    public Sprite StairsEast;
     public Sprite StairsNorth;
 
     public Sprite StairsSouth;
-
-    public Sprite StairsEast;
-
     public Sprite StairsWest;
 
     public Sprite Stool;
@@ -172,13 +169,6 @@ public class Graphics : MonoBehaviour
     public Sprite[] UnsortedWallSprites;
 
     public Sprite Wave;
-
-    public SortingGroup SortingObject;
-
-    static Graphics _instance;
-
-    static Color[] _pawnGradientGreyscale;
-
     static readonly (int xOffset, int yOffset, int headDirection, bool flipped)[] headTable = new (int, int, int, bool)[] {
             (24, 48, 0, false), (24, 49, 0, false), (24, 48, 0, false), (24, 49, 0, false),
             (24, 47, 2, true), (24, 48, 2, true), (24, 47, 2, true), (24, 48, 2, true),
@@ -193,7 +183,29 @@ public class Graphics : MonoBehaviour
             (22, 48, 1, false), (22, 49, 1, false), (22, 48, 1, false), (22, 49, 1, false),
             (22, 47, 1, false), (26, 47, 1, true), (26, 39, 1, false), (22, 39, 1, true) };
 
+    static Graphics _instance;
 
+    static Color[] _pawnGradientGreyscale;
+    static Color[] _pawnGradientHair;
+    static Color[] _pawnGradientHorns;
+    static Color[] _pawnGradientSkin;
+    static int _pawnSpriteSheetArrayLength;
+    static int _pawnSpriteSheetHeight;
+    static int _pawnSpriteSheetWidth;
+    static Color[] _pawnTextureBeard;
+    static Color[] _pawnTextureBodyHairMuscular;
+    static Color[] _pawnTextureBodyHairThick;
+    static Color[] _pawnTextureBodyMuscular;
+    static Color[] _pawnTextureBodyThick;
+    static Color[] _pawnTextureChestHairMuscular;
+    static Color[] _pawnTextureChestHairThick;
+    static Color[] _pawnTextureEars;
+    static Color[] _pawnTextureHair;
+    static Color[] _pawnTextureHairFront;
+    static Color[] _pawnTextureHead;
+    static Color[] _pawnTextureHornsBack;
+    static Color[] _pawnTextureHornsFront;
+    static Color[] _pawnTextureOrcTeeth;
     int _lineEnd;
 
     int _lineStart;
@@ -205,50 +217,14 @@ public class Graphics : MonoBehaviour
     Vector3Int areaEnd;
 
     Vector3Int areaStart;
-
-    static Color[] _pawnGradientHair;
-
-    static Color[] _pawnGradientHorns;
-
-    static Color[] _pawnGradientSkin;
-
-    static Color[] _pawnTextureBeard;
-
-    static Color[] _pawnTextureBodyHairMuscular;
-
-    static Color[] _pawnTextureBodyHairThick;
-
-    static Color[] _pawnTextureBodyMuscular;
-
-    static Color[] _pawnTextureBodyThick;
-
-    static Color[] _pawnTextureChestHairMuscular;
-
-    static Color[] _pawnTextureChestHairThick;
-
-    static Color[] _pawnTextureEars;
-
-    static Color[] _pawnTextureHair;
-
-    static Color[] _pawnTextureHairFront;
-
-    static Color[] _pawnTextureHead;
-
-    static Color[] _pawnTextureHornsBack;
-
-    static Color[] _pawnTextureHornsFront;
-
-    static Color[] _pawnTextureOrcTeeth;
-
     public static event Action<Vector3Int, Vector3Int> CheckingAreaConstraints;
 
     public static event Action<int, int> CheckingLineConstraints;
     public static event Action ConfirmingObjects;
 
-    public static event Action LevelChangedLate;
-
     public static event Action LevelChanged;
 
+    public static event Action LevelChangedLate;
     public static event Action ResetingSprite;
 
     public static event Action UpdatedGraphics;
@@ -277,196 +253,11 @@ public class Graphics : MonoBehaviour
         return 1 - 2 * position.x - 2 * position.y + 2 * position.z;
     }
 
-    public Sprite[] BuildSprites(int skinColor, int hairColor, int hornsColor, bool narrow, bool thick, int ears, bool orc, int hairType, int beardType, int horns, int bodyHair)
+    public JobHandle BuildSprites(int skinColor, int hairColor, int hornsColor, bool narrow, bool thick, int ears, bool orc, int hairType, int beardType, int horns, int bodyHair, out NativeArray<Color> pixels)
     {
-        Texture2D copied = new(PawnTextureBodyThick.width, PawnTextureBodyThick.height);
-        copied.filterMode = FilterMode.Point;
-        copied.wrapMode = TextureWrapMode.Clamp;
-        Sprite[] sprites = new Sprite[48];
-
-        ListDictionary skinColorMapping = new();
-        ListDictionary hairColorMapping = new();
-        ListDictionary hornColorMapping = new();
-
-        int sheetWidth = PawnTextureBodyThick.width;
-
-        //horns - 14
-        //hair - 15
-        //skin - 21
-
-        for (int i = 0; i < 5; i++)
-        {
-            skinColorMapping[_pawnGradientGreyscale[i]] = _pawnGradientSkin[skinColor * 5 + i];
-        }
-
-        for (int i = 0; i < 4; i++)
-        {
-            hairColorMapping[_pawnGradientGreyscale[i + 1]] = _pawnGradientHair[hairColor * 4 + i];
-        }
-
-        for (int i = 0; i < 4; i++)
-        {
-            hornColorMapping[_pawnGradientGreyscale[i + 1]] = _pawnGradientHorns[hornsColor * 4 + i];
-        }
-
-
-        for (int i = 0; i < _pawnTextureBodyThick.Length; i++)
-        {
-            Color bodyPixel = Color.clear;
-            if (bodyHair == 1)
-                bodyPixel = thick ? _pawnTextureBodyHairThick[i] : _pawnTextureBodyHairMuscular[i];
-            else if (bodyHair == 2)
-                bodyPixel = thick ? _pawnTextureChestHairThick[i] : _pawnTextureChestHairMuscular[i];
-
-            if (bodyHair == 0 || bodyPixel.a < 0.5f)
-            {
-                bodyPixel = thick ? _pawnTextureBodyThick[i] : _pawnTextureBodyMuscular[i];
-                if (skinColorMapping.Contains(bodyPixel))
-                    bodyPixel = (Color)skinColorMapping[bodyPixel];
-            }
-            else
-            {
-                if (hairColorMapping.Contains(bodyPixel))
-                    bodyPixel = (Color)hairColorMapping[bodyPixel];
-            }
-            copied.SetPixel(i % sheetWidth, i / sheetWidth, bodyPixel);
-            
-        }
-
-        for (int i = 0; i < headTable.Length; i++)
-        {
-            (int x, int y, int headDirection, bool flipped) = headTable[i];
-            x += 64 * (i % 4);
-            y += 64 * (i / 4);
-
-            for (int j = 0; j < 16; j++)
-            {
-                for (int k = 0; k < 16; k++)
-                {
-                    Color headPixel = GetHeadPixel(j, k, headDirection);
-
-                    if (headPixel.a > 0.5f)
-                    {
-                        if (!flipped)
-                            copied.SetPixel(x + j, y + k, headPixel);
-                        else
-                            copied.SetPixel(x + 15 - j, y + k, headPixel);
-                    }
-                }
-            }
-        }
-
-        copied.Apply();
-        for (int i = 0; i < headTable.Length; i++)
-            sprites[i] = Sprite.Create(copied, new Rect(64 * (i % 4), 64 * (i / 4), 64, 64), new Vector2(0.5f, 5f/64), 6);
-
-        return sprites;
-
-        Color GetHeadPixel(int x, int y, int headDirection)
-        {
-            const int HAIROPTIONS = 5;
-            const int HORNOPTIONS = 4;
-            const int BEARDOPTIONS = 4;
-
-            Color headPixel;
-            if (hairType != 5)
-            {
-                headPixel = _pawnTextureHairFront[(y + 16 * headDirection) * (16 * HAIROPTIONS) + x + hairType * 16];
-                if (hairColorMapping.Contains(headPixel))
-                {
-                    headPixel = (Color)hairColorMapping[headPixel];
-                    return headPixel;
-                }
-            }
-
-            if (horns != 4)
-            {
-                headPixel = _pawnTextureHornsFront[(y + 16 * headDirection) * (16 * HORNOPTIONS) + x + horns * 16];
-                if (hornColorMapping.Contains(headPixel))
-                {
-                    headPixel = (Color)hornColorMapping[headPixel];
-                    return headPixel;
-                }
-            }
-
-            if (orc)
-            {
-                headPixel = _pawnTextureOrcTeeth[32 * (y + 16 * headDirection) + x + (narrow ? 16 : 0)];
-                if (skinColorMapping.Contains(headPixel))
-                    headPixel = (Color)skinColorMapping[headPixel];
-
-                if (headPixel.a > 0.5f)
-                    return headPixel;
-            }
-
-            if (ears != 2)
-            {
-                headPixel = _pawnTextureEars[32 * (y + 16 * headDirection) + x + ears * 16];
-                if (skinColorMapping.Contains(headPixel))
-                {
-                    headPixel = (Color)skinColorMapping[headPixel];
-                    return headPixel;
-                }
-            }
-            if (hairType != 5)
-            {
-                headPixel = _pawnTextureHair[(y + 16 * headDirection) * (16 * HAIROPTIONS) + x + hairType * 16];
-                if (hairColorMapping.Contains(headPixel))
-                {
-                    headPixel = (Color)hairColorMapping[headPixel];
-
-                    if (hairType == 0)
-                    {
-                        Color skullPixel = _pawnTextureHead[32 * (y + 16 * headDirection) + x + (narrow ? 16 : 0)];
-                        if (skinColorMapping.Contains(skullPixel))
-                        {
-                            skullPixel = (Color)skinColorMapping[skullPixel];
-
-                            headPixel = new Color(headPixel.r / 2f + skullPixel.r / 2f, headPixel.g / 2f + skullPixel.g / 2f, headPixel.b / 2f + skullPixel.b / 2f);
-                            return headPixel;
-                        }
-                    }
-                    else
-                        return headPixel;
-                }
-            }
-
-            if (beardType != 4)
-            {
-                headPixel = _pawnTextureBeard[(y + 16 * headDirection) * (16 * BEARDOPTIONS) + x + beardType * 16];
-                Color skullPixel = _pawnTextureHead[32 * (y + 16 * headDirection) + x + (narrow ? 16 : 0)];
-                if (hairColorMapping.Contains(headPixel) && skinColorMapping.Contains(skullPixel))
-                {
-                    headPixel = (Color)hairColorMapping[headPixel];
-                    if (beardType < 2)
-                    {
-                        skullPixel = (Color)skinColorMapping[skullPixel];
-
-                        headPixel = new Color(headPixel.r / 2f + skullPixel.r / 2f, headPixel.g / 2f + skullPixel.g / 2f, headPixel.b / 2f + skullPixel.b / 2f);
-                    }
-
-                    return headPixel;
-
-                }
-            }
-
-            if (horns != 4)
-            {
-                headPixel = _pawnTextureHornsBack[(y + 16 * headDirection) * (16 * HORNOPTIONS) + x + horns * 16];
-                if (hornColorMapping.Contains(headPixel))
-                {
-                    headPixel = (Color)hornColorMapping[headPixel];
-                    return headPixel;
-                }
-            }
-
-            headPixel = _pawnTextureHead[32 * (y + 16 * headDirection) + x + (narrow ? 16 : 0)];
-            if (skinColorMapping.Contains(headPixel))
-            {
-                headPixel = (Color)skinColorMapping[headPixel];
-            }
-            return headPixel;
-        }
+        pixels = new NativeArray<Color>(_pawnSpriteSheetArrayLength, Allocator.Persistent);
+        BuildSpriteJob buildSpriteJob = new(skinColor, hairColor, hornsColor, narrow, thick, ears, orc, hairType, beardType, horns, bodyHair, pixels);
+        return buildSpriteJob.Schedule();
     }
 
     public void Confirm()
@@ -585,6 +376,7 @@ public class Graphics : MonoBehaviour
                     _map[position].Floor.SpriteIndex = floorType;
         }
     }
+
     public void PlaceLine(Vector3Int startPosition, int end, MapAlignment alignment)
     {
         int startX = startPosition.x;
@@ -627,6 +419,7 @@ public class Graphics : MonoBehaviour
 
         CheckingLineConstraints?.Invoke(_lineStart, _lineEnd);
     }
+
     public void ResetSprite()
     {
         ResetingSprite?.Invoke();
@@ -638,26 +431,28 @@ public class Graphics : MonoBehaviour
         LevelChangedLate?.Invoke();
     }
 
+    public Sprite[] SliceSprites(Color[] pixels)
+    {
+        Texture2D copied = new(_pawnSpriteSheetWidth, _pawnSpriteSheetHeight)
+        {
+            filterMode = FilterMode.Point,
+            wrapMode = TextureWrapMode.Clamp
+        };
+
+        copied.SetPixels(pixels);
+        copied.Apply();
+
+        Sprite[] sprites = new Sprite[48];
+        for (int i = 0; i < headTable.Length; i++)
+            sprites[i] = Sprite.Create(copied, new Rect(64 * (i % 4), 64 * (i / 4), 64, 64), new Vector2(0.5f, 5f / 64), 6);
+        return sprites;
+    }
+
     public void UpdateGraphics()
     {
         UpdatingGraphics?.Invoke();
         UpdatedGraphics?.Invoke();
     }
-    /*void ConfigureCorners()
-    {
-        foreach(Vector3Int position in _cornersToBeConfigured)
-        {
-            int index = Corner.GetSpriteIndex(position);
-            if(index == -1)
-            {
-
-            }
-            else
-            {
-                Corner corner = Map.Instance.GetCorner(position);
-            }
-        }
-    }*/   
 
     void Awake()
     {
@@ -703,7 +498,7 @@ public class Graphics : MonoBehaviour
             }
         }
 
-        for(int i = 0; i < 6; i++)
+        for (int i = 0; i < 6; i++)
         {
             for (int j = 0; j < 1; j++)
             {
@@ -750,9 +545,229 @@ public class Graphics : MonoBehaviour
 
         _pawnTextureOrcTeeth = PawnTextureOrcTeeth.GetPixels();
 
+        _pawnSpriteSheetWidth = PawnTextureBodyThick.width;
+
+        _pawnSpriteSheetHeight = PawnTextureBodyThick.height;
+
+        _pawnSpriteSheetArrayLength = _pawnTextureBodyThick.Length;
+
         Ready = true;
     }
 
+    struct BuildSpriteJob : IJob
+    {
+        bool _narrow, _thick, _orc;
+        NativeArray<Color> _pixels;
+        int _skinColor, _hairColor, _hornsColor, _ears, _hairType, _beardType, _horns, _bodyHair;
+        public BuildSpriteJob(int skinColor, int hairColor, int hornsColor, bool narrow, bool thick, int ears, bool orc, int hairType, int beardType, int horns, int bodyHair, NativeArray<Color> pixels)
+        {
+            _skinColor = skinColor;
+            _hairColor = hairColor;
+            _hornsColor = hornsColor;
+            _narrow = narrow;
+            _thick = thick;
+            _ears = ears;
+            _orc = orc;
+            _hairType = hairType;
+            _beardType = beardType;
+            _horns = horns;
+            _bodyHair = bodyHair;
+            _pixels = pixels;
+        }
+
+        public void Execute()
+        {
+            ListDictionary skinColorMapping = new();
+            ListDictionary hairColorMapping = new();
+            ListDictionary hornColorMapping = new();
+
+            //horns - 14
+            //hair - 15
+            //skin - 21
+
+            for (int i = 0; i < 5; i++)
+            {
+                skinColorMapping[_pawnGradientGreyscale[i]] = _pawnGradientSkin[_skinColor * 5 + i];
+            }
+
+            for (int i = 0; i < 4; i++)
+            {
+                hairColorMapping[_pawnGradientGreyscale[i + 1]] = _pawnGradientHair[_hairColor * 4 + i];
+            }
+
+            for (int i = 0; i < 4; i++)
+            {
+                hornColorMapping[_pawnGradientGreyscale[i + 1]] = _pawnGradientHorns[_hornsColor * 4 + i];
+            }
+
+
+            for (int i = 0; i < _pawnTextureBodyThick.Length; i++)
+            {
+                Color bodyPixel = Color.clear;
+                if (_bodyHair == 1)
+                    bodyPixel = _thick ? _pawnTextureBodyHairThick[i] : _pawnTextureBodyHairMuscular[i];
+                else if (_bodyHair == 2)
+                    bodyPixel = _thick ? _pawnTextureChestHairThick[i] : _pawnTextureChestHairMuscular[i];
+
+                if (_bodyHair == 0 || bodyPixel.a < 0.5f)
+                {
+                    bodyPixel = _thick ? _pawnTextureBodyThick[i] : _pawnTextureBodyMuscular[i];
+                    if (skinColorMapping.Contains(bodyPixel))
+                        bodyPixel = (Color)skinColorMapping[bodyPixel];
+                }
+                else
+                {
+                    if (hairColorMapping.Contains(bodyPixel))
+                        bodyPixel = (Color)hairColorMapping[bodyPixel];
+                }
+                _pixels[i] = bodyPixel;
+            }
+
+            for (int i = 0; i < headTable.Length; i++)
+            {
+                (int x, int y, int headDirection, bool flipped) = headTable[i];
+                x += 64 * (i % 4);
+                y += 64 * (i / 4);
+
+                for (int j = 0; j < 16; j++)
+                {
+                    for (int k = 0; k < 16; k++)
+                    {
+                        Color headPixel = GetHeadPixel(j, k, headDirection, skinColorMapping, hairColorMapping, hornColorMapping);
+
+                        if (headPixel.a > 0.5f)
+                        {
+                            if (!flipped)
+                                _pixels[(y + k) * 256 + x + j] = headPixel;
+                            else
+                                _pixels[(y + k) * 256 + x + 15 - j] = headPixel;
+                        }
+                    }
+                }
+            }
+        }
+
+        Color GetHeadPixel(int x, int y, int headDirection, ListDictionary skinColorMapping, ListDictionary hairColorMapping, ListDictionary hornColorMapping)
+        {
+            const int HAIROPTIONS = 5;
+            const int HORNOPTIONS = 4;
+            const int BEARDOPTIONS = 4;
+
+            Color headPixel;
+            if (_hairType != 5)
+            {
+                headPixel = _pawnTextureHairFront[(y + 16 * headDirection) * (16 * HAIROPTIONS) + x + _hairType * 16];
+                if (hairColorMapping.Contains(headPixel))
+                {
+                    headPixel = (Color)hairColorMapping[headPixel];
+                    return headPixel;
+                }
+            }
+
+            if (_horns != 4)
+            {
+                headPixel = _pawnTextureHornsFront[(y + 16 * headDirection) * (16 * HORNOPTIONS) + x + _horns * 16];
+                if (hornColorMapping.Contains(headPixel))
+                {
+                    headPixel = (Color)hornColorMapping[headPixel];
+                    return headPixel;
+                }
+            }
+
+            if (_orc)
+            {
+                headPixel = _pawnTextureOrcTeeth[32 * (y + 16 * headDirection) + x + (_narrow ? 16 : 0)];
+                if (skinColorMapping.Contains(headPixel))
+                    headPixel = (Color)skinColorMapping[headPixel];
+
+                if (headPixel.a > 0.5f)
+                    return headPixel;
+            }
+
+            if (_ears != 2)
+            {
+                headPixel = _pawnTextureEars[32 * (y + 16 * headDirection) + x + _ears * 16];
+                if (skinColorMapping.Contains(headPixel))
+                {
+                    headPixel = (Color)skinColorMapping[headPixel];
+                    return headPixel;
+                }
+            }
+            if (_hairType != 5)
+            {
+                headPixel = _pawnTextureHair[(y + 16 * headDirection) * (16 * HAIROPTIONS) + x + _hairType * 16];
+                if (hairColorMapping.Contains(headPixel))
+                {
+                    headPixel = (Color)hairColorMapping[headPixel];
+
+                    if (_hairType == 0)
+                    {
+                        Color skullPixel = _pawnTextureHead[32 * (y + 16 * headDirection) + x + (_narrow ? 16 : 0)];
+                        if (skinColorMapping.Contains(skullPixel))
+                        {
+                            skullPixel = (Color)skinColorMapping[skullPixel];
+
+                            headPixel = new Color(headPixel.r / 2f + skullPixel.r / 2f, headPixel.g / 2f + skullPixel.g / 2f, headPixel.b / 2f + skullPixel.b / 2f);
+                            return headPixel;
+                        }
+                    }
+                    else
+                        return headPixel;
+                }
+            }
+
+            if (_beardType != 4)
+            {
+                headPixel = _pawnTextureBeard[(y + 16 * headDirection) * (16 * BEARDOPTIONS) + x + _beardType * 16];
+                Color skullPixel = _pawnTextureHead[32 * (y + 16 * headDirection) + x + (_narrow ? 16 : 0)];
+                if (hairColorMapping.Contains(headPixel) && skinColorMapping.Contains(skullPixel))
+                {
+                    headPixel = (Color)hairColorMapping[headPixel];
+                    if (_beardType < 2)
+                    {
+                        skullPixel = (Color)skinColorMapping[skullPixel];
+
+                        headPixel = new Color(headPixel.r / 2f + skullPixel.r / 2f, headPixel.g / 2f + skullPixel.g / 2f, headPixel.b / 2f + skullPixel.b / 2f);
+                    }
+
+                    return headPixel;
+
+                }
+            }
+
+            if (_horns != 4)
+            {
+                headPixel = _pawnTextureHornsBack[(y + 16 * headDirection) * (16 * HORNOPTIONS) + x + _horns * 16];
+                if (hornColorMapping.Contains(headPixel))
+                {
+                    headPixel = (Color)hornColorMapping[headPixel];
+                    return headPixel;
+                }
+            }
+
+            headPixel = _pawnTextureHead[32 * (y + 16 * headDirection) + x + (_narrow ? 16 : 0)];
+            if (skinColorMapping.Contains(headPixel))
+            {
+                headPixel = (Color)skinColorMapping[headPixel];
+            }
+            return headPixel;
+        }
+    }
+    /*void ConfigureCorners()
+    {
+        foreach(Vector3Int position in _cornersToBeConfigured)
+        {
+            int index = Corner.GetSpriteIndex(position);
+            if(index == -1)
+            {
+
+            }
+            else
+            {
+                Corner corner = Map.Instance.GetCorner(position);
+            }
+        }
+    }*/   
     public class Corner : MonoBehaviour
     {
         static readonly List<int> ignoreIndeces = new() { 1, 2, 4, 5, 8, 10 };

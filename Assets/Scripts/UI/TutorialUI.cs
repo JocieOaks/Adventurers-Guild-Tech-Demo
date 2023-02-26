@@ -10,7 +10,7 @@ public class TutorialUI : MonoBehaviour
         if (Instance == null)
             Instance = this;
         if (DoTutorialPanel.activeSelf == false)
-            End();
+            StartCoroutine(End());
     }
 
     public GameObject HiresTutorial, HireTutorial2, AdventurersMessageBox, Build1, Build2, Build3, Quests1, Quests2, Quests3, Quests4, Quests5, EndMessage;
@@ -57,7 +57,7 @@ public class TutorialUI : MonoBehaviour
         }
         else
         {
-            End();
+            StartCoroutine(End());
         }
 
         
@@ -125,8 +125,9 @@ public class TutorialUI : MonoBehaviour
         }
     }
 
-    public void End()
+    public IEnumerator End()
     {
+        yield return new WaitUntil(() => GameManager.GameReady);
         GameManager.Instance.Paused = false;
         gameObject.SetActive(false);
     }
