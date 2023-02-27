@@ -94,15 +94,16 @@ public class TutorialUI : MonoBehaviour
         }
         else
         {
-            End();
+            StartCoroutine(End());
         }
     }
 
     /// <summary>
     /// Ends the tutorial, making the game playable.
     /// </summary>
-    public void End()
+    public IEnumerator End()
     {
+        yield return new WaitUntil(() => GameManager.GameReady);
         GameManager.Instance.Paused = false;
         gameObject.SetActive(false);
     }
@@ -158,6 +159,6 @@ public class TutorialUI : MonoBehaviour
         if (Instance == null)
             Instance = this;
         if (_doTutorialPanel.activeSelf == false)
-            End();
+            StartCoroutine(End());
     }
 }

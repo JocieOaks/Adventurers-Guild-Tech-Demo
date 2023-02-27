@@ -439,7 +439,7 @@ public class Map : MonoBehaviour, IDataPersistence
             {
                 int xVal = x + (alignment == MapAlignment.XEdge ? i : 0);
                 int yVal = y + (alignment == MapAlignment.YEdge ? i : 0);
-                if (IsCorner(xVal, yVal, z))
+                if (Graphics.Instance.IsCorner(xVal, yVal, z))
                     return false;
             }
 
@@ -510,19 +510,6 @@ public class Map : MonoBehaviour, IDataPersistence
         if (Instance[position].TryGetNodeAs(Direction.West, out ConnectingNode westNode))
             return westNode;
         return null;
-    }
-
-    public Graphics.Corner GetCorner(int x, int y, int z)
-    {
-        if (WithinConstraints(x, y, z, MapAlignment.Corner) && Instance[x, y, z] != null)
-            return Instance[x, y, z].Corner;
-        else
-            return null;
-    }
-
-    public Graphics.Corner GetCorner(Vector3Int position)
-    {
-        return GetCorner(position.x, position.y, position.z);
     }
 
     public WallBlocker GetWall(MapAlignment alignment, Vector3Int position)
@@ -644,7 +631,6 @@ public class Map : MonoBehaviour, IDataPersistence
         RoomNode.Invalid.Floor.Enabled = false;
         RoomNode.Undefined.Floor.Enabled = false;
 
-        Graphics.Instance.UpdateGraphics();
         Graphics.Instance.SetLevel();
         Graphics.Instance.Confirm();
         GameManager.MapChangingSecond += BuildSectors;
@@ -855,26 +841,12 @@ public class Map : MonoBehaviour, IDataPersistence
 
     }
 
-    public void RemoveWall(Vector3Int position, MapAlignment alignment)
+    public void RemoveWall(WallBlocker wall)
     {
-        int x = position.x;
-        int y = position.y;
-        int z = position.z;
-        RoomNode b, a = Instance[x, y, z];
+        wall.RemoveWall();
 
-        if (alignment == MapAlignment.XEdge)
-        {
-            b = Instance[x, y - 1, z];
-            b.SetNode(Direction.North, a);
-        }
-        else
-        {
-            b = Instance[x - 1, y, z];
-            b.SetNode(Direction.East, a);
-        }
-
-        Room roomA = a.Room;
-        Room roomB = b.Room;
+        Room roomA = wall.FirstNode.Room;
+        Room roomB = wall.SecondNode.Room;
         if (roomA != roomB)
         {
             if (roomA.Length * roomA.Width < roomB.Length * roomB.Width)
@@ -974,11 +946,6 @@ public class Map : MonoBehaviour, IDataPersistence
         }
         else
             Destroy(this);
-    }
-
-    bool IsCorner(int x, int y, int z)
-    {
-        return Graphics.Corner.GetSpriteIndex(new Vector3Int(x, y, z)) != -1;
     }
 
     bool WithinConstraints(int x, int y, int _, MapAlignment alignment)

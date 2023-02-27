@@ -29,4 +29,16 @@ public class WallBlocker : BlockingNode
     {
         WallSprite = new WallSprite(worldPosition, alignment, 6, WallMaterial.Brick, this);
     }
+
+    public void RemoveWall()
+    {
+        if(FirstNode.WorldPosition == WorldPosition) 
+        {
+            FirstNode.SetNode(Alignment == MapAlignment.XEdge ? Direction.South : Direction.West, SecondNode);
+        }
+        else
+        {
+            SecondNode.SetNode(Alignment == MapAlignment.XEdge ? Direction.South : Direction.West, FirstNode);
+        }
+    }
 }

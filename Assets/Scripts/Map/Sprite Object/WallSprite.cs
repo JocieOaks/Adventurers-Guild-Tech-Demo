@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.U2D;
 
 /// <summary>
 /// The <see cref="WallSprite"/> class is the <see cref="SpriteObject"/> that corresponds to <see cref="WallBlocker"/>.
@@ -65,6 +66,7 @@ public class WallSprite : LinearSpriteObject
 
     WallSprite _nextDoorWall;
     WallBlocker _wall;
+
     /// <summary>
     /// Initializes a new instance of <see cref="WallSprite"/> that does not have a corresponding <see cref="WallBlocker"/>.
     /// </summary>
@@ -356,20 +358,15 @@ public class WallSprite : LinearSpriteObject
         Graphics.UpdatingGraphics -= SetWallMode;
         Graphics.ResetingSprite -= ResetSprite;
         Graphics.LevelChanged -= OnLevelChanged;
-        if (Alignment == MapAlignment.XEdge)
-        {
-            Map.Instance.GetCorner(X + 1, Y, Z)?.UpdateCorner();
-        }
-        else
-        {
-            Map.Instance.GetCorner(X, Y + 1, Z)?.UpdateCorner();
-        }
 
-        Map.Instance.GetCorner(X, Y, Z)?.UpdateCorner();
+        Graphics.Instance.CornerQueue.Enqueue(WorldPosition + (Alignment == MapAlignment.XEdge ? Vector3Int.right : Vector3Int.up));
+
+        Graphics.Instance.CornerQueue.Enqueue(WorldPosition);
 
         Object.Destroy(GameObject);
 
-        Map.Instance.RemoveWall(WorldPosition, Alignment);
+        if(_wall != null)
+            Map.Instance.RemoveWall(_wall);
     }
 
     /// <summary>
@@ -449,23 +446,17 @@ public class WallSprite : LinearSpriteObject
     /// </summary>
     protected override void OnConfirmingObjects()
     {
-        _wall ??= new WallBlocker(this, WorldPosition, Alignment);
+        if(_wall == null)
+            _wall = new WallBlocker(this, WorldPosition, Alignment);
 
         for (int i = 0; i < _height; i++)
         {
             _spriteRenderers[i].color = Color.white;
         }
 
-        if (Alignment == MapAlignment.XEdge)
-        {
-            Map.Instance.GetCorner(X + 1, Y, Z).SetCorner(WorldPosition + Vector3Int.right, _wallMaterial);
-        }
-        else
-        {
-            Map.Instance.GetCorner(X, Y + 1, Z).SetCorner(WorldPosition + Vector3Int.up, _wallMaterial);
-        }
+        Graphics.Instance.CornerQueue.Enqueue(WorldPosition + (Alignment == MapAlignment.XEdge ? Vector3Int.right : Vector3Int.up));
 
-        Map.Instance.GetCorner(X, Y, Z).SetCorner(WorldPosition, _wallMaterial);
+        Graphics.Instance.CornerQueue.Enqueue(WorldPosition);
 
         base.OnConfirmingObjects();
     }

@@ -109,8 +109,6 @@ public class Graphics : MonoBehaviour
 
     public Sprite Marker;
 
-    public Pawn PawnPrefab;
-
     public Texture2D PawnGradientGreyscale;
 
     public Texture2D PawnGradientHair;
@@ -118,6 +116,8 @@ public class Graphics : MonoBehaviour
     public Texture2D PawnGradientHorns;
 
     public Texture2D PawnGradientSkin;
+
+    public Pawn PawnPrefab;
 
     public Texture2D PawnTextureBeard;
 
@@ -147,16 +147,15 @@ public class Graphics : MonoBehaviour
 
     public Texture2D PawnTextureOrcTeeth;
 
+    public SortingGroup SortingObject;
     public SpriteRenderer SpeechBubble;
 
     public GameObject SpritePrefab;
 
+    public Sprite StairsEast;
     public Sprite StairsNorth;
 
     public Sprite StairsSouth;
-
-    public Sprite StairsEast;
-
     public Sprite StairsWest;
 
     public Sprite Stool;
@@ -172,13 +171,6 @@ public class Graphics : MonoBehaviour
     public Sprite[] UnsortedWallSprites;
 
     public Sprite Wave;
-
-    public SortingGroup SortingObject;
-
-    static Graphics _instance;
-
-    static Color[] _pawnGradientGreyscale;
-
     static readonly (int xOffset, int yOffset, int headDirection, bool flipped)[] headTable = new (int, int, int, bool)[] {
             (24, 48, 0, false), (24, 49, 0, false), (24, 48, 0, false), (24, 49, 0, false),
             (24, 47, 2, true), (24, 48, 2, true), (24, 47, 2, true), (24, 48, 2, true),
@@ -193,7 +185,26 @@ public class Graphics : MonoBehaviour
             (22, 48, 1, false), (22, 49, 1, false), (22, 48, 1, false), (22, 49, 1, false),
             (22, 47, 1, false), (26, 47, 1, true), (26, 39, 1, false), (22, 39, 1, true) };
 
+    static Graphics _instance;
 
+    static Color[] _pawnGradientGreyscale;
+    static Color[] _pawnGradientHair;
+    static Color[] _pawnGradientHorns;
+    static Color[] _pawnGradientSkin;
+    static Color[] _pawnTextureBeard;
+    static Color[] _pawnTextureBodyHairMuscular;
+    static Color[] _pawnTextureBodyHairThick;
+    static Color[] _pawnTextureBodyMuscular;
+    static Color[] _pawnTextureBodyThick;
+    static Color[] _pawnTextureChestHairMuscular;
+    static Color[] _pawnTextureChestHairThick;
+    static Color[] _pawnTextureEars;
+    static Color[] _pawnTextureHair;
+    static Color[] _pawnTextureHairFront;
+    static Color[] _pawnTextureHead;
+    static Color[] _pawnTextureHornsBack;
+    static Color[] _pawnTextureHornsFront;
+    static Color[] _pawnTextureOrcTeeth;
     int _lineEnd;
 
     int _lineStart;
@@ -205,50 +216,14 @@ public class Graphics : MonoBehaviour
     Vector3Int areaEnd;
 
     Vector3Int areaStart;
-
-    static Color[] _pawnGradientHair;
-
-    static Color[] _pawnGradientHorns;
-
-    static Color[] _pawnGradientSkin;
-
-    static Color[] _pawnTextureBeard;
-
-    static Color[] _pawnTextureBodyHairMuscular;
-
-    static Color[] _pawnTextureBodyHairThick;
-
-    static Color[] _pawnTextureBodyMuscular;
-
-    static Color[] _pawnTextureBodyThick;
-
-    static Color[] _pawnTextureChestHairMuscular;
-
-    static Color[] _pawnTextureChestHairThick;
-
-    static Color[] _pawnTextureEars;
-
-    static Color[] _pawnTextureHair;
-
-    static Color[] _pawnTextureHairFront;
-
-    static Color[] _pawnTextureHead;
-
-    static Color[] _pawnTextureHornsBack;
-
-    static Color[] _pawnTextureHornsFront;
-
-    static Color[] _pawnTextureOrcTeeth;
-
     public static event Action<Vector3Int, Vector3Int> CheckingAreaConstraints;
 
     public static event Action<int, int> CheckingLineConstraints;
     public static event Action ConfirmingObjects;
 
-    public static event Action LevelChangedLate;
-
     public static event Action LevelChanged;
 
+    public static event Action LevelChangedLate;
     public static event Action ResetingSprite;
 
     public static event Action UpdatedGraphics;
@@ -260,7 +235,9 @@ public class Graphics : MonoBehaviour
     public static Graphics Instance => _instance;
     public static bool Ready { get; private set; } = false;
     public static SpriteSheet2 WallSprites { get; private set; }
-    public Color DemolishColor { get; } =  new Color(255, 0, 0, 0.5f);
+    Dictionary<Vector3Int, Corner> CornerDictionary { get; } = new Dictionary<Vector3Int, Corner>();
+    public Queue<Vector3Int> CornerQueue { get; } = new Queue<Vector3Int>();
+    public Color DemolishColor { get; } = new Color(255, 0, 0, 0.5f);
     public Color HighlightColor { get; } = new Color(0, 255, 245, 0.5f);
     public WallMode Mode
     {
@@ -474,6 +451,7 @@ public class Graphics : MonoBehaviour
         ConfirmingObjects?.Invoke();
         _lineStart = -1;
         _lineEnd = -1;
+        UpdateGraphics();
     }
 
     public void CycleMode()
@@ -502,6 +480,7 @@ public class Graphics : MonoBehaviour
         {
             spriteObject.Destroy();
         }
+        UpdateGraphics();
     }
 
     public void HideHighlight()
@@ -515,6 +494,11 @@ public class Graphics : MonoBehaviour
         ResetingSprite?.Invoke();
 
         spriteObject.Highlight(DemolishColor);
+    }
+
+    public bool IsCorner(int x, int y, int z)
+    {
+        return CornerDictionary.TryGetValue(new Vector3Int(x, y, z), out Corner corner) && corner != null;
     }
 
     public void PlaceArea(Vector3Int endPosition)
@@ -638,27 +622,6 @@ public class Graphics : MonoBehaviour
         LevelChangedLate?.Invoke();
     }
 
-    public void UpdateGraphics()
-    {
-        UpdatingGraphics?.Invoke();
-        UpdatedGraphics?.Invoke();
-    }
-    /*void ConfigureCorners()
-    {
-        foreach(Vector3Int position in _cornersToBeConfigured)
-        {
-            int index = Corner.GetSpriteIndex(position);
-            if(index == -1)
-            {
-
-            }
-            else
-            {
-                Corner corner = Map.Instance.GetCorner(position);
-            }
-        }
-    }*/   
-
     void Awake()
     {
         if (_instance == null)
@@ -668,6 +631,23 @@ public class Graphics : MonoBehaviour
         }
         else
             Destroy(this);
+    }
+
+    void SetCorners()
+    {
+        while (CornerQueue.Count > 0)
+        {
+            Vector3Int position = CornerQueue.Dequeue();
+
+            if (CornerDictionary.TryGetValue(position, out Corner corner) && corner != null)
+            {
+                corner.ConfigureCorner();
+            }
+            else if (Corner.TryMakeCorner(position, out corner))
+            {
+                CornerDictionary[position] =  corner;
+            }
+        }
     }
 
     IEnumerator Startup()
@@ -703,7 +683,7 @@ public class Graphics : MonoBehaviour
             }
         }
 
-        for(int i = 0; i < 6; i++)
+        for (int i = 0; i < 6; i++)
         {
             for (int j = 0; j < 1; j++)
             {
@@ -753,168 +733,12 @@ public class Graphics : MonoBehaviour
         Ready = true;
     }
 
-    public class Corner : MonoBehaviour
+    void UpdateGraphics()
     {
-        static readonly List<int> ignoreIndeces = new() { 1, 2, 4, 5, 8, 10 };
-        static readonly List<int> maskedIndeces = new() { 1, 2, 7, 8 };
-        bool _configuring = false;
-        Vector3Int _position;
-        int _spriteIndex;
-        SpriteRenderer _spriteRenderer;
-        WallMaterial _wallMaterial;
-        int _x, _y, _z;
-
-        public static int GetSpriteIndex(Vector3Int position)
-        {
-            int index = 0;
-            index += Instance._map.GetWall(MapAlignment.XEdge, position) != null ? 1 : 0;
-            index += Instance._map.GetWall(MapAlignment.YEdge, position + Vector3Int.down) != null ? 2 : 0;
-            index += Instance._map.GetWall(MapAlignment.XEdge, position + Vector3Int.left) != null ? 4 : 0;
-            index += Instance._map.GetWall(MapAlignment.YEdge, position) != null ? 8 : 0;
-
-
-            if (ignoreIndeces.Any(x => x == index))
-            {
-                
-                return -1;
-            }
-            index -= index switch
-            {
-                int n when n >= 10 => 7,
-                int n when n >= 8 => 6,
-                int n when n >= 5 => 5,
-                _ => 3,
-            };
-            if (index < 0)
-            {
-                return -1;
-            }
-
-            return index;
-
-            
-        }
-
-        public void SetCorner(Vector3Int position, WallMaterial wallMaterial)
-        {
-            _x = position.x;
-            _y = position.y;
-            _z = position.z;
-
-            _position = position;
-            _wallMaterial = wallMaterial;
-
-            transform.position = Map.MapCoordinatesToSceneCoordinates(position, MapAlignment.Corner);
-            _spriteRenderer.sortingOrder = GetSortOrder(position) + 3;
-
-            if (!_configuring)
-            {
-                UpdatingGraphics += ConfigureCorner;
-                _configuring = true;
-            }
-        }
-
-        public void UpdateCorner()
-        {
-            ConfigureCorner();
-        }
-
-        private void Awake()
-        {
-            _spriteRenderer = GetComponent<SpriteRenderer>();
-            UpdatedGraphics += SetCornerMode;
-            LevelChangedLate += SetLevel;
-        }
-
-        void ConfigureCorner()
-        {
-            UpdatingGraphics -= ConfigureCorner;
-            _configuring = false;
-
-             
-            _spriteIndex = GetSpriteIndex(_position);
-
-            if(_spriteIndex == -1)
-            {
-                UpdatedGraphics -= SetCornerMode;
-                LevelChangedLate -= SetLevel;
-                //Map.Instance.GetCorner(_x, _y, _z).enabled = false;
-
-                Instance._map.GetWall(MapAlignment.XEdge, _x - 1, _y, _z)?.WallSprite.MaskCorner(false);
-                Instance._map.GetWall(MapAlignment.YEdge, _x, _y - 1, _z)?.WallSprite.MaskCorner(false);
-
-                Destroy(gameObject);
-                return;
-            }
-
-            if (_spriteIndex == 1 || _spriteIndex == 7 || _spriteIndex == 8)
-            {
-                Instance._map.GetWall(MapAlignment.XEdge, _x - 1, _y, _z).WallSprite.MaskCorner(true);
-                Instance._map.GetWall(MapAlignment.YEdge, _x, _y - 1, _z).WallSprite.MaskCorner(false);
-            }
-            else if(_spriteIndex == 2)
-            {
-                Instance._map.GetWall(MapAlignment.XEdge, _x - 1, _y, _z).WallSprite.MaskCorner(false);
-                Instance._map.GetWall(MapAlignment.YEdge, _x, _y - 1, _z).WallSprite.MaskCorner(true);
-            }
-            else
-            {
-                Instance._map.GetWall(MapAlignment.XEdge, _x - 1, _y, _z)?.WallSprite.MaskCorner(false);
-                Instance._map.GetWall(MapAlignment.YEdge, _x, _y - 1, _z)?.WallSprite.MaskCorner(false);
-            }
-        }
-
-        void SetCornerMode()
-        {
-            if (GameManager.Instance.IsOnLevel(_z) == 0)
-            {
-                if (Instance.Mode == WallMode.Open)
-                {
-                    bool? xPos = Instance._map.GetWall(MapAlignment.XEdge, _x, _y, _z)?.WallSprite.IsFullWall;
-                    bool? yNeg = Instance._map.GetWall(MapAlignment.YEdge, _x, _y - 1, _z)?.WallSprite.IsFullWall;
-                    bool? xNeg = Instance._map.GetWall(MapAlignment.XEdge, _x - 1, _y, _z)?.WallSprite.IsFullWall;
-                    bool? yPos = Instance._map.GetWall(MapAlignment.YEdge, _x, _y, _z)?.WallSprite.IsFullWall;
-                    bool fullCorner = (xPos ?? false) || (yNeg ?? false) || (xNeg ?? false) || (yPos ?? false);
-                    _spriteRenderer.sprite = CornerSprites[_spriteIndex, _wallMaterial, fullCorner];
-
-                    if (fullCorner)
-                    {
-                        if (!xPos ?? false)
-                            Instance._map.GetWall(MapAlignment.XEdge, _x, _y, _z).WallSprite.SetEdge();
-                        if (!yPos ?? false)
-                            Instance._map.GetWall(MapAlignment.YEdge, _x, _y, _z).WallSprite.SetEdge();
-                        if (!yNeg ?? false)
-                            Instance._map.GetWall(MapAlignment.YEdge, _x, _y - 1, _z).WallSprite.SetEdge();
-                        if (!xNeg ?? false)
-                            Instance._map.GetWall(MapAlignment.XEdge, _x - 1, _y, _z).WallSprite.SetEdge();
-                    }
-                }
-                else
-                {
-                    _spriteRenderer.sprite = CornerSprites[_spriteIndex, _wallMaterial, Instance.Mode == WallMode.Full];
-                }
-            }
-        }
-
-        void SetLevel()
-        {
-            int level = GameManager.Instance.IsOnLevel(_z);
-            if (level > 0)
-                _spriteRenderer.enabled = false;
-            else
-            {
-                _spriteRenderer.enabled = true;
-                if (level == 0)
-                {
-                    SetCornerMode();
-                }
-                else
-                {
-                    _spriteRenderer.sprite = CornerSprites[_spriteIndex, _wallMaterial, true];
-                }
-            }
-        }
-    }
+        UpdatingGraphics?.Invoke();
+        SetCorners();
+        UpdatedGraphics?.Invoke();
+    }  
 
     public class SpriteSheet
     {

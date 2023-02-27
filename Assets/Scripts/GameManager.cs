@@ -238,7 +238,8 @@ public class GameManager : MonoBehaviour, IDataPersistence
             questTutorial.MoveNext();
             yield return new WaitUntil(() => NextTutorialStep);
         }
-        TutorialUI.Instance.End();
+
+        StartCoroutine(TutorialUI.Instance.End());
         Paused = false;
     }
 
@@ -281,7 +282,6 @@ public class GameManager : MonoBehaviour, IDataPersistence
                     _placingArea = false;
 
                     _graphics.Confirm();
-                    _graphics.UpdateGraphics();
                 }
                 break;
 
@@ -321,7 +321,6 @@ public class GameManager : MonoBehaviour, IDataPersistence
                         _map.PlaceDoor(position, alignment);
 
                         WallSprite.CreateDoor(position, alignment);
-                        _graphics.UpdateGraphics();
                     }
                 }
                 break;
@@ -356,7 +355,6 @@ public class GameManager : MonoBehaviour, IDataPersistence
                     _placingLine = false;
 
                     _graphics.Confirm();
-                    _graphics.UpdateGraphics();
                 }
                 break;
 
