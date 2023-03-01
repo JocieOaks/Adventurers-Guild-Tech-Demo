@@ -20,8 +20,8 @@ public class GUI : MonoBehaviour
     [SerializeField] HireAdventurerPopup _hirePopup;
     [SerializeField] GameObject _hiresPanel;
     [SerializeField] GameObject _objectPanel;
-    [SerializeField] QuestCompletePopup _questCompletePopup;
     Actor _questAdventurer;
+    [SerializeField] QuestCompletePopup _questCompletePopup;
     int _questId;
     [SerializeField] GameObject _questPanel;
     [SerializeField] Button _startQuestButton;

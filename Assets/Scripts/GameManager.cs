@@ -4,9 +4,14 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Linq;
 
+/// <summary>
+/// The current mode in which the game is being played.
+/// </summary>
 public enum GameMode
 {
+    /// <summary>The game is active and the player can interact with <see cref="Pawn"/>s.</summary>
     Play,
+    /// <summary>The game is paused, and the player can build <see cref="SpriteObject"/>s on the <see cref="Map"/>.</summary>
     Build
 }
 
@@ -46,7 +51,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
     bool _placingArea = false;
     bool _placingLine = false;
 
-    WallMode _playWallMode;
+    WallDisplayMode _playWallMode;
 
     SpriteObject _prevObject = null;
     readonly List<Quest> _runningQuests = new();
@@ -66,6 +71,9 @@ public class GameManager : MonoBehaviour, IDataPersistence
     /// </summary>
     public static event System.Action NonMonoUpdate;
 
+    /// <summary>
+    /// Enum designating the current mouse inputs from the player.
+    /// </summary>
     enum KeyMode
     {
         None,
@@ -120,7 +128,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
     {
         if (up)
         {
-            Layer upLayer = Map.Instance.NextLayer(_levelMin, 1);
+            Layer upLayer = Map.Instance[_levelMin, 1];
             if (upLayer != null)
             {
                 _camera.transform.position += Vector3.up * (_levelMax - _levelMin);
@@ -131,7 +139,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
         }
         else
         {
-            Layer downLayer = Map.Instance.NextLayer(_levelMin, -1);
+            Layer downLayer = Map.Instance[_levelMin, -1];
             if (downLayer != null)
             {
                 _camera.transform.position += Vector3.down * (_levelMax - _levelMin);
@@ -262,7 +270,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
         switch (mode)
         {
             case KeyMode.LeftClickDown:
-                if (BuildFunctions.CheckPoint(position))
+                if (BuildFunctions.CheckSpriteObject(position))
                 {
                     _placingArea = true;
                     _graphics.HideHighlight();
@@ -270,7 +278,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
                 }
                 break;
             case KeyMode.LeftClickHeld:
-                if (BuildFunctions.CheckPoint(position) && _placingArea)
+                if (BuildFunctions.CheckSpriteObject(position) && _placingArea)
                 {
                     _graphics.PlaceArea(position);
                 }
@@ -286,8 +294,8 @@ public class GameManager : MonoBehaviour, IDataPersistence
                 break;
 
             case KeyMode.None:
-                if (BuildFunctions.CheckPoint(position))
-                    BuildFunctions.HighlightPoint(Graphics.Instance._highlight, position);
+                if (BuildFunctions.CheckSpriteObject(position))
+                    BuildFunctions.HighlightSpriteObject(Graphics.Instance._highlight, position);
                 else
                     _graphics.HideHighlight();
                 break;
@@ -333,7 +341,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
         switch (mode)
         {
             case KeyMode.LeftClickDown:
-                if (BuildFunctions.CheckPoint(position))
+                if (BuildFunctions.CheckSpriteObject(position))
                 {
                     _placingLine = true;
                     _lineStart = position;
@@ -343,7 +351,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
                 }
                 break;
             case KeyMode.LeftClickHeld:
-                if (BuildFunctions.CheckPoint(position) && _placingLine)
+                if (BuildFunctions.CheckSpriteObject(position) && _placingLine)
                 {
                     _graphics.PlaceLine(_lineStart, _lineAlignment == MapAlignment.XEdge ? position.x : position.y, _lineAlignment);
                 }
@@ -359,8 +367,8 @@ public class GameManager : MonoBehaviour, IDataPersistence
                 break;
 
             case KeyMode.None:
-                if (BuildFunctions.CheckPoint(position))
-                    BuildFunctions.HighlightPoint(Graphics.Instance._highlight, position);
+                if (BuildFunctions.CheckSpriteObject(position))
+                    BuildFunctions.HighlightSpriteObject(Graphics.Instance._highlight, position);
                 else
                     _graphics.HideHighlight();
                 break;
@@ -374,11 +382,11 @@ public class GameManager : MonoBehaviour, IDataPersistence
         switch (mode)
         {
             case KeyMode.None:
-                BuildFunctions.HighlightPoint(Graphics.Instance._highlight, position);
+                BuildFunctions.HighlightSpriteObject(Graphics.Instance._highlight, position);
                 break;
             case KeyMode.LeftClickDown:
-                if (BuildFunctions.CheckPoint(position))
-                    BuildFunctions.CreatePoint(position);
+                if (BuildFunctions.CheckSpriteObject(position))
+                    BuildFunctions.CreateSpriteObject(position);
                 break;
         }
     }
@@ -628,7 +636,7 @@ public class GameManager : MonoBehaviour, IDataPersistence
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            _graphics.CycleMode();
+            _graphics.CycleWallDisplayMode();
         }
 
         if (Input.GetKeyDown(KeyCode.B))

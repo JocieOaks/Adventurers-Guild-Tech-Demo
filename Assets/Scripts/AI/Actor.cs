@@ -2,7 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
+/// <summary>
+/// The character classes an <see cref="Actor"/> can have.
+/// </summary>
 public enum Class
 {
     Mage,
@@ -12,13 +14,22 @@ public enum Class
     Monk
 }
 
+/// <summary>
+/// The different needs of an <see cref="Actor"/>.
+/// </summary>
 public enum Needs
 {
+    /// <summary>The <see cref="Actor"/> needs food.</summary>
     Hunger,
+    /// <summary>The <see cref="Actor"/> needs sleep.</summary>
     Sleep,
+    /// <summary>The <see cref="Actor"/> needs to socialize with other <see cref="Pawn"/>s.</summary>
     Social
 }
 
+/// <summary>
+/// The various races for an <see cref="Actor"/>.
+/// </summary>
 public enum Race
 {
     Human,
@@ -27,6 +38,7 @@ public enum Race
     Tiefling,
     Firbolg
 }
+
 /// <summary>
 /// The <see cref="Actor"/> class is the counterpart to the <see cref="Pawn"/> class that controls the characteristic data of an NPC, 
 /// //including it's current status, and character information.

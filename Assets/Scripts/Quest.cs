@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
 
+/// <summary>
+/// Designates the level of the <see cref="Quest"/> and it's difficulty and reward.
+/// </summary>
 public enum QuestLevel
 {
     Menial,
@@ -10,65 +13,28 @@ public enum QuestLevel
     Advanced
 }
 
-[System.Serializable]
-public class QuestData
-{
-    static readonly string[] s_levelNames = new string[] { "Menial", "Basic", "Advanced" };
-
-    [JsonProperty] public string Name { get; protected set; }
-    [JsonProperty] public string Description { get; protected set; }
-    [JsonProperty] protected QuestLevel _level;
-    [JsonIgnore] public string Level => s_levelNames[(int)_level];
-    [JsonProperty] public int Duration { get; protected set; }
-    [JsonProperty] public float[] AbilityScaling { get; protected set; }
-    [JsonProperty] protected string[] _results { get; set; }
-    [JsonProperty] public int Experience { get; protected set; }
-    [JsonProperty] public int Gold { get; protected set; }
-    [JsonProperty] public int Prestige { get; protected set; }
-
-    [JsonIgnore] public int Cooldown { get; } = 500;
-    [JsonIgnore] public int CooldownUntil { get; set; } = 0;
-
-    [JsonIgnore] public int AvailableDuration { get; } = 500;
-    [JsonIgnore] public int AvailableUntil { get; set; } = 0;
-
-
-    protected QuestData(QuestData data)
-    {
-        Name = data.Name;
-        Description = data.Description;
-        _level = data._level;
-        Duration = data.Duration;
-        AbilityScaling = data.AbilityScaling;
-        _results = data._results;
-        Experience = data.Experience;
-        Gold = data.Gold;
-        Prestige = data.Prestige;
-    }
-
-    public QuestData()
-    {
-        Name = default;
-        Description = default;
-        _level = default;
-        Duration = default;
-        AbilityScaling = new float[4];
-        _results = new string[5];
-        Experience = default;
-        Gold = default;
-        Prestige = default;
-    }
-}
-
+/// <summary>
+/// The <see cref="Quest"/> class is for quests that <see cref="Actor"/> adventurer's can go on with varied outcomes.
+/// </summary>
 public class Quest : QuestData
 {
-    public Actor Quester { get;}
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Quest"/> class.
+    /// </summary>
+    /// <param name="data">The <see cref="QuestData"/> corresponding to the selected new <see cref="Quest"/>.</param>
+    /// <param name="adventurer">The <see cref="Actor"/> going on the <see cref="Quest"/>.</param>
     public Quest(QuestData data, Actor adventurer) : base(data)
     {
         Quester = adventurer;
     }
 
+    /// <value>The <see cref="Actor"/> going on the <see cref="Quest"/>.</value>
+    public Actor Quester { get; }
+
+    /// <summary>
+    /// Called when a <see cref="Quest"/> has finished, to give the results of the <see cref="Quest"/>.
+    /// </summary>
+    /// <returns>Returns a tuple, containing the text of the quest results, and the gold and prestige earned.</returns>
     public (string, int, int) Results()
     {
         float skillValue = 0;
@@ -90,4 +56,86 @@ public class Quest : QuestData
             _ => (_results[4], Gold * 3 / 2, Prestige * 2),
         };
     }
+}
+
+/// <summary>
+/// The <see cref="QuestData"/> class contains the serializable data for creating new <see cref="Quest"/>s.
+/// </summary>
+[System.Serializable]
+public class QuestData
+{
+    [JsonProperty] protected QuestLevel _level;
+    static readonly string[] s_levelNames = new string[] { "Menial", "Basic", "Advanced" };
+
+    /// <summary>
+    /// The constructor for <see cref="QuestData"/> used to serialize quest data from a json file.
+    /// </summary>
+    public QuestData()
+    {
+        Name = default;
+        Description = default;
+        _level = default;
+        Duration = default;
+        AbilityScaling = new float[4];
+        _results = new string[5];
+        Experience = default;
+        Gold = default;
+        Prestige = default;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="QuestData"/> class from another <see cref="QuestData"/> instance.
+    /// </summary>
+    /// <param name="data">The <see cref="QuestData"/> being copied.</param>
+    protected QuestData(QuestData data)
+    {
+        Name = data.Name;
+        Description = data.Description;
+        _level = data._level;
+        Duration = data.Duration;
+        AbilityScaling = data.AbilityScaling;
+        _results = data._results;
+        Experience = data.Experience;
+        Gold = data.Gold;
+        Prestige = data.Prestige;
+    }
+
+    /// <value>Determines how the success chance of the <see cref="Quest"/> scales with ability scores.</value>
+    [JsonProperty] public float[] AbilityScaling { get; protected set; }
+
+    /// <value>Sets the length of time that is a <see cref="Quest"/> is available for the player.</value>
+    [JsonIgnore] public int AvailableDuration { get; } = 500;
+
+    /// <value>Determines at what <see cref="GameManager.Tock"/> value the <see cref="Quest"/> will no longer be available.</value>
+    [JsonIgnore] public int AvailableUntil { get; set; } = 0;
+
+    /// <value>Sets how long after a <see cref="Quest"/> has been available before it becomes available again.</value>
+    [JsonIgnore] public int Cooldown { get; } = 500;
+
+    /// <value>Determines at what <see cref="GameManager.Tock"/> value the <see cref="Quest"/> will no longer be on cooldown.</value> 
+    [JsonIgnore] public int CooldownUntil { get; set; } = 0;
+
+    /// <value>The description of the <see cref="Quest"/>.</value>
+    [JsonProperty] public string Description { get; protected set; }
+
+    /// <value>The length of time an adventurer will be gone on the <see cref="Quest"/>.</value>
+    [JsonProperty] public int Duration { get; protected set; }
+
+    /// <value>The amount of experience a questing adventurer will earn.</value>
+    [JsonProperty] public int Experience { get; protected set; }
+
+    /// <value>The amount of gold earned from going on the <see cref="Quest"/>.</value>
+    [JsonProperty] public int Gold { get; protected set; }
+
+    /// <value>Gives the string name of the <see cref="Quest"/>'s level.</value>
+    [JsonIgnore] public string Level => s_levelNames[(int)_level];
+
+    /// <value>The name of the <see cref="Quest"/>.</value>
+    [JsonProperty] public string Name { get; protected set; }
+
+    /// <value>The amount of prestige earned from going on the <see cref="Quest"/>.</value>
+    [JsonProperty] public int Prestige { get; protected set; }
+
+    /// <value>An array of different possible results from going on the <see cref="Quest"/>. The results shown depend on the degree of success.</value>
+    [JsonProperty] protected string[] _results { get; set; }
 }

@@ -2,6 +2,9 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
+/// <summary>
+/// Designates what happens when the <see cref="AdventurerProfileUI"/> is selected.
+/// </summary>
 public enum AdventurerProfileMode
 {
     AdventurerSelect,

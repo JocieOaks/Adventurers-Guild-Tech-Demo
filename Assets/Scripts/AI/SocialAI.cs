@@ -4,6 +4,9 @@ using UnityEngine;
 using System.Collections.Specialized;
 using System.Linq;
 
+/// <summary>
+/// The kinds of speech for when a <see cref="Pawn"/> is conversing with another <see cref="Pawn"/>.
+/// </summary>
 public enum SpeechType
 {
     Greet,

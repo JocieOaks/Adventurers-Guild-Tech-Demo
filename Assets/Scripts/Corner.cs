@@ -114,7 +114,7 @@ public class Corner : MonoBehaviour
     {
         if (GameManager.Instance.IsOnLevel(_position.z) == 0)
         {
-            if (Graphics.Instance.Mode == WallMode.Open)
+            if (Graphics.Instance.Mode == WallDisplayMode.Open)
             {
                 bool? xPos = East?.WallSprite.IsFullWall;
                 bool? yNeg = South?.WallSprite.IsFullWall;
@@ -137,7 +137,7 @@ public class Corner : MonoBehaviour
             }
             else
             {
-                _spriteRenderer.sprite = Graphics.CornerSprites[_spriteIndex, _wallMaterial, Graphics.Instance.Mode == WallMode.Full];
+                _spriteRenderer.sprite = Graphics.CornerSprites[_spriteIndex, _wallMaterial, Graphics.Instance.Mode == WallDisplayMode.Full];
             }
         }
     }

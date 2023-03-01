@@ -4,10 +4,16 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System.Linq;
 
+/// <summary>
+/// The current body position a <see cref="Pawn"/> is in.
+/// </summary>
 public enum Stance
 {
+    /// <summary>The <see cref="Pawn"/> is  standing or walking.</summary>
     Stand,
+    /// <summary>The <see cref="Pawn"/> is sitting.</summary>
     Sit,
+    /// <summary>The <see cref="Pawn"/> is laying down.</summary>
     Lay
 }
 
@@ -446,7 +452,7 @@ public class Pawn : MonoBehaviour, IWorldPosition
     {
         yield return new WaitUntil(() => GameManager.GameReady);
 
-        CurrentNode = Map.GetNodeFromSceneCoordinates(transform.position, 0);
+        CurrentNode = Map.Instance[Map.SceneCoordinatesToMapCoordinates(transform.position, 0)];
 
         WorldPositionNonDiscrete = WorldPosition;
 

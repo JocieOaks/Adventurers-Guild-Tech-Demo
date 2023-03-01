@@ -1,7 +1,40 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.U2D;
+using UnityEngine.UIElements;
+
+/// <summary>
+/// Enum referring to the <see cref="Sprite"/> to be used for a portion of a door.
+/// </summary>
+public enum DoorSpriteType
+{
+    DoorXLeft = 0,
+    DoorXMid = 1,
+    DoorXRight = 2,
+    DoorYRight = 3,
+    DoorYMid = 4,
+    DoorYLeft = 5
+}
+
+/// <summary>
+/// Enum referring to the <see cref="Sprite"/> to be used for a portion of a <see cref="WallSprite"/>.
+/// </summary>
+public enum WallSpriteType
+{
+    None = -1,
+    X11 = 0,
+    X12 = 1,
+    X13 = 2,
+    X21 = 3,
+    X22 = 4,
+    X23 = 5,
+    Y11 = 6,
+    Y12 = 7,
+    Y13 = 8,
+    Y21 = 9,
+    Y22 = 10,
+    Y23 = 11
+}
 
 /// <summary>
 /// The <see cref="WallSprite"/> class is the <see cref="SpriteObject"/> that corresponds to <see cref="WallBlocker"/>.
@@ -236,15 +269,6 @@ public class WallSprite : LinearSpriteObject
         }
     }
 
-    /// <value>Gives the x coordinate for the <see cref="WallSprite"/>.</value>
-    int X => WorldPosition.x;
-
-    /// <value>Gives the y coordinate for the <see cref="WallSprite"/>.</value>
-    int Y => WorldPosition.y;
-
-    /// <value>Gives the z coordinate for the <see cref="WallSprite"/>.</value>
-    int Z => WorldPosition.z;
-
     /// <summary>
     /// Checks if a new <see cref="DoorConnector"/> can be placed at a given <see cref="Map"/> position.
     /// </summary>
@@ -332,20 +356,20 @@ public class WallSprite : LinearSpriteObject
 
         if (Alignment == MapAlignment.XEdge)
         {
-            WallSprite prev = Map.Instance.GetWall(Alignment, X + end, Y, Z).WallSprite;
+            WallSprite prev = Map.Instance.GetWall(Alignment, WorldPosition + end * Vector3Int.right).WallSprite;
             for (int i = start; i <= end; i++)
             {
-                WallSprite current = Map.Instance.GetWall(Alignment, X + i, Y, Z).WallSprite;
+                WallSprite current = Map.Instance.GetWall(Alignment, WorldPosition + i * Vector3Int.right).WallSprite;
                 current.AddDoorSprite(prev, i == start ? DoorSpriteType.DoorXLeft : i == end ? DoorSpriteType.DoorXRight : DoorSpriteType.DoorXMid, material, new Vector3(-2, -1) * i, highlight);
                 prev = current;
             }
         }
         else
         {
-            WallSprite prev = Map.Instance.GetWall(Alignment, X, Y + end, Z).WallSprite;
+            WallSprite prev = Map.Instance.GetWall(Alignment, WorldPosition + end * Vector3Int.up).WallSprite;
             for (int i = start; i <= end; i++)
             {
-                WallSprite current = Map.Instance.GetWall(Alignment, X, Y + i, Z).WallSprite;
+                WallSprite current = Map.Instance.GetWall(Alignment, WorldPosition + i * Vector3Int.up).WallSprite;
                 current.AddDoorSprite(prev, i == start ? DoorSpriteType.DoorYRight : i == end ? DoorSpriteType.DoorYLeft : DoorSpriteType.DoorYMid, material, new Vector3(2, -1) * i, highlight);
                 prev = current;
             }
@@ -433,7 +457,7 @@ public class WallSprite : LinearSpriteObject
 
     /// <summary>
     /// Called when the <see cref="WallSprite"/> is at a corner with another <see cref="WallSprite"/> that is a full wall,
-    /// and <see cref="Graphics.Mode"/> is <see cref="WallMode.Open"/>.
+    /// and <see cref="Graphics.Mode"/> is <see cref="WallDisplayMode.Open"/>.
     /// </summary>
     public void SetEdge()
     {
@@ -464,7 +488,7 @@ public class WallSprite : LinearSpriteObject
     /// <inheritdoc/>
     protected override void OnLevelChanged()
     {
-        int level = GameManager.Instance.IsOnLevel(Z);
+        int level = GameManager.Instance.IsOnLevel(WorldPosition.z);
         if (level > 0)
             for (int i = 0; i < _height; i++)
             {
@@ -664,11 +688,11 @@ public class WallSprite : LinearSpriteObject
     /// </summary>
     void SetWallMode()
     {
-        if (GameManager.Instance.IsOnLevel(Z) == 0)
+        if (GameManager.Instance.IsOnLevel(WorldPosition.z) == 0)
         {
-            if (Graphics.Instance.Mode == WallMode.Open)
+            if (Graphics.Instance.Mode == WallDisplayMode.Open)
             {
-                if (Map.Instance[X, Y, Z] == null || Map.Instance[X, Y, Z].Room is Layer)
+                if (Map.Instance[WorldPosition] == null || Map.Instance[WorldPosition].Room is Layer)
                 {
                     IsFullWall = true;
                 }
@@ -679,7 +703,7 @@ public class WallSprite : LinearSpriteObject
             }
             else
             {
-                IsFullWall = Graphics.Instance.Mode == WallMode.Full;
+                IsFullWall = Graphics.Instance.Mode == WallDisplayMode.Full;
             }
 
             Collider.enabled = false;
