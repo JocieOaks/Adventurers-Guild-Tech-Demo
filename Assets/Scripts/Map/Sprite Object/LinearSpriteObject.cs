@@ -22,10 +22,10 @@ public abstract class LinearSpriteObject : SpriteObject
     /// <param name="blocking">If true, the <see cref="RoomNode"/>s the <see cref="LinearSpriteObject"/> occupies are blocked and thus cannot be traversed by a <see cref="Pawn"/>.</param>
     public LinearSpriteObject(int spriteCount, Sprite[] sprites, Direction direction, Vector3Int position, string name, Vector3Int dimensions, bool blocking) : base(spriteCount, sprites, direction, position, name, dimensions, blocking)
     {
-        Alignment = Map.DirectionToEdgeAlignment(direction);
+        Alignment = Utility.DirectionToEdgeAlignment(direction);
 
-        Graphics.ConfirmingObjects += OnConfirmingObjects;
-        Graphics.CheckingLineConstraints += OnCheckingConstraints;
+        BuildFunctions.ConfirmingObjects += OnConfirmingObjects;
+        BuildFunctions.CheckingLineConstraints += OnCheckingConstraints;
     }
 
     /// <value>The <see cref="MapAlignment"/> of the <see cref="LinearSpriteObject"/>.</value>
@@ -37,8 +37,8 @@ public abstract class LinearSpriteObject : SpriteObject
     /// </summary>
     protected virtual void OnConfirmingObjects()
     {
-        Graphics.CheckingLineConstraints -= OnCheckingConstraints;
-        Graphics.ConfirmingObjects -= OnConfirmingObjects;
+        BuildFunctions.CheckingLineConstraints -= OnCheckingConstraints;
+        BuildFunctions.ConfirmingObjects -= OnConfirmingObjects;
     }
 
     /// <summary>
@@ -50,8 +50,8 @@ public abstract class LinearSpriteObject : SpriteObject
     {
         if (Alignment == MapAlignment.XEdge && (WorldPosition.x < start || WorldPosition.x > end) || Alignment == MapAlignment.YEdge && (WorldPosition.y < start || WorldPosition.y > end))
         {
-            Graphics.ConfirmingObjects -= OnConfirmingObjects;
-            Graphics.CheckingLineConstraints -= OnCheckingConstraints;
+            BuildFunctions.ConfirmingObjects -= OnConfirmingObjects;
+            BuildFunctions.CheckingLineConstraints -= OnCheckingConstraints;
 
             Destroy();
         }

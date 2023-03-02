@@ -41,7 +41,7 @@ public class DataPersistenceManager : MonoBehaviour
         // load any saved data from a file using the data handler
         gameData = dataHandler.Load();
 
-        GameManager.Instance.Quests = dataHandler.LoadQuestData();
+        
 
         // if no data can be loaded, initialize to a new game
         if (gameData == null)
@@ -51,6 +51,7 @@ public class DataPersistenceManager : MonoBehaviour
         }
 
         gameData.Names = dataHandler.LoadNames();
+        gameData.Quests = dataHandler.LoadQuestData();
 
         if (LOAD)
         { 

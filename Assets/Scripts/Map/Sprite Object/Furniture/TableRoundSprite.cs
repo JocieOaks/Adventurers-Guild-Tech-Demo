@@ -23,9 +23,9 @@ public class TableRoundSprite : SpriteObject
     {
         Dimensions = ObjectDimensions;
         _spriteRenderers[1].sprite = Graphics.Instance.TableRound[1];
-        _spriteRenderers[1].sortingOrder = Graphics.GetSortOrder(WorldPosition + Vector3Int.up);
+        _spriteRenderers[1].sortingOrder = Utility.GetSortOrder(WorldPosition + Vector3Int.up);
         _spriteRenderers[2].sprite = Graphics.Instance.TableRound[2];
-        _spriteRenderers[2].sortingOrder = Graphics.GetSortOrder(WorldPosition + Vector3Int.right);
+        _spriteRenderers[2].sortingOrder = Utility.GetSortOrder(WorldPosition + Vector3Int.right);
     }
 
     /// <value>The 3D dimensions of a <see cref="TableRoundSprite"/> in terms of <see cref="Map"/> coordinates.</value>
@@ -85,8 +85,8 @@ public class TableRoundSprite : SpriteObject
         {
             highlight.enabled = true;
             highlight.sprite = Graphics.Instance.TableRound[0];
-            highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
-            highlight.sortingOrder = Graphics.GetSortOrder(position);
+            highlight.transform.position = Utility.MapCoordinatesToSceneCoordinates(position);
+            highlight.sortingOrder = Utility.GetSortOrder(position);
         }
         else
             highlight.enabled = false;

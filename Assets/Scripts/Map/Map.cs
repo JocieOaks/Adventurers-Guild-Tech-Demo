@@ -216,125 +216,6 @@ public class Map : MonoBehaviour, IDataPersistence
             }
         }
     }
-
-    /// <summary>
-    /// Converts a <see cref="Direction"/> to the <see cref="MapAlignment"/> that is perpendicular to it.
-    /// </summary>
-    /// <param name="direction">The <see cref="Direction"/> being queried.</param>
-    /// <returns>Returns the <see cref="MapAlignment"/> perpendicular to <c>direction</c>./returns>
-    public static MapAlignment DirectionToEdgeAlignment(Direction direction)
-    {
-        return (direction == Direction.North || direction == Direction.South) ? MapAlignment.XEdge : MapAlignment.YEdge;
-    }
-
-    /// <summary>
-    /// Get's the vector that is in the direction of a <see cref="Direction"/>.
-    /// </summary>
-    /// <param name="direction">The <see cref="Direction"/> of the vector.</param>
-    /// <returns>Returns a <see cref="Vector3Int"/> that points the same way as <c>direction</c>.</returns>
-    public static Vector3Int DirectionToVector(Direction direction)
-    {
-        return direction switch
-        {
-            Direction.North => Vector3Int.up,
-            Direction.South => Vector3Int.down,
-            Direction.East => Vector3Int.right,
-            Direction.West => Vector3Int.left,
-            Direction.NorthEast => new Vector3Int(1, 1),
-            Direction.SouthEast => new Vector3Int(1, -1),
-            Direction.NorthWest => new Vector3Int(-1, 1),
-            Direction.SouthWest => new Vector3Int(-1, -1),
-            _ => default,
-        };
-    }
-
-    /// <summary>
-    /// Gives the scene coordinates corresponding to a given <see cref="Map"/> coordinate.
-    /// </summary>
-    /// <param name="position">The position on the <see cref="Map"/> being queried.</param>
-    /// <param name="alignment">The <see cref="MapAlignment"/> of the object, defaulting to <see cref="MapAlignment.Center"/>.</param>
-    /// <returns>Returns the coordinates for a <see cref="Transform"/> at the given <see cref="Map"/> position.</returns>
-    public static Vector3 MapCoordinatesToSceneCoordinates(Vector3 position, MapAlignment alignment = MapAlignment.Center)
-    {
-        float mapX = position.x;
-        float mapY = position.y;
-        float mapZ = position.z;
-
-        float x = 150 + 2 * mapX - 2 * mapY;
-        float y = 2 + mapX + mapY;
-        switch (alignment)
-        {
-            case MapAlignment.XEdge:
-
-                x++;
-                break;
-            case MapAlignment.YEdge:
-                x--;
-                break;
-            case MapAlignment.Corner:
-                y--;
-                break;
-        }
-        return new Vector3(x, y + 2 * mapZ);
-    }
-
-    /// <summary>
-    /// Gives the corresponding <see cref="Map"/> coordinates of a <see cref="Transform"/> coordinate. Requires a z-coordinate to determine exactly where a point is.
-    /// </summary>
-    /// <param name="position">The scene position being queried.</param>
-    /// <param name="level">The z coordinate to set the position at.</param>
-    /// <returns>Returns the <see cref="Map"/> coordinates of the position.</returns>
-    public static Vector3Int SceneCoordinatesToMapCoordinates(Vector3 position, int level)
-    {
-        float x = (position.x - 154 + 2 * (position.y - 2 * level)) / 4f;
-        float y = position.y - 2 - x - 2 * level;
-
-        return new Vector3Int(Mathf.RoundToInt(x), Mathf.RoundToInt(y), level);
-    }
-
-    /// <summary>
-    /// Determines the <see cref="Direction"/> that is most closely aligning to a <see cref="Vector3"/>.
-    /// </summary>
-    /// <param name="vector">The <see cref="Vector3"/> being evaluated.</param>
-    /// <returns>Returns the <see cref="Direction"/> that <c>vector</c> points in.</returns>
-    public static Direction VectorToDir(Vector3 vector)
-    {
-        Vector2 gameVector = new(vector.x, vector.y);
-        int best = 0;
-        float best_product = Vector2.Dot(gameVector, new Vector2(1, 1).normalized);
-
-        for (int i = 1; i < 8; i++)
-        {
-            var value = i switch
-            {
-                1 => Vector2.Dot(gameVector, new Vector2(1, 0).normalized),
-                2 => Vector2.Dot(gameVector, new Vector2(1, -1).normalized),
-                3 => Vector2.Dot(gameVector, new Vector2(0, -1).normalized),
-                4 => Vector2.Dot(gameVector, new Vector2(-1, -1).normalized),
-                5 => Vector2.Dot(gameVector, new Vector2(-1, 0).normalized),
-                6 => Vector2.Dot(gameVector, new Vector2(-1, 1).normalized),
-                _ => Vector2.Dot(gameVector, new Vector2(0, 1).normalized),
-            };
-            if (value > best_product)
-            {
-                best_product = value;
-                best = i;
-            }
-        }
-
-        return best switch
-        {
-            0 => Direction.NorthEast,
-            1 => Direction.East,
-            2 => Direction.SouthEast,
-            3 => Direction.South,
-            4 => Direction.SouthWest,
-            5 => Direction.West,
-            6 => Direction.NorthWest,
-            7 => Direction.North,
-            _ => Direction.Undirected,
-        };
-    }
     
     //Rooms are no longer tracked by the map, as that was never really used. Currently just sets up the RoomNodes that can be above the Room, which should be changed later.
 
@@ -690,7 +571,7 @@ public class Map : MonoBehaviour, IDataPersistence
         foreach (SerializableDoor door in gameData.Doors)
         {
             PlaceDoor(door.Position, door.Alignment);
-            Graphics.Instance.PlaceDoor(door.Position, door.Alignment, AccentMaterial.Stone);
+            BuildFunctions.PlaceDoor(door.Position, door.Alignment, AccentMaterial.Stone);
         }
 
         foreach (SerializableStair stair in gameData.Stairs)
@@ -702,7 +583,7 @@ public class Map : MonoBehaviour, IDataPersistence
         RoomNode.Undefined.Floor.Enabled = false;
 
         Graphics.Instance.SetLevel();
-        Graphics.Instance.Confirm();
+        BuildFunctions.Confirm();
         GameManager.MapChangingSecond += BuildSectors;
 
         Ready = true;

@@ -21,8 +21,8 @@ public abstract class AreaSpriteObject : SpriteObject
     public AreaSpriteObject(int spriteCount, Sprite[] sprites, Direction direction, Vector3Int position, string name, Vector3Int dimensions, bool blocking) : base(spriteCount, sprites, direction, position, name, dimensions, blocking)
     {
         SpriteRenderer.color = Graphics.Instance.HighlightColor;
-        Graphics.ConfirmingObjects += OnConfirmingObjects;
-        Graphics.CheckingAreaConstraints += OnCheckingConstraints;
+        BuildFunctions.ConfirmingObjects += OnConfirmingObjects;
+        BuildFunctions.CheckingAreaConstraints += OnCheckingConstraints;
     }
 
     /// <summary>
@@ -31,8 +31,8 @@ public abstract class AreaSpriteObject : SpriteObject
     protected virtual void OnConfirmingObjects()
     {
         SpriteRenderer.color = Color.white;
-        Graphics.CheckingAreaConstraints -= OnCheckingConstraints;
-        Graphics.ConfirmingObjects -= OnConfirmingObjects;
+        BuildFunctions.CheckingAreaConstraints -= OnCheckingConstraints;
+        BuildFunctions.ConfirmingObjects -= OnConfirmingObjects;
     }
 
     /// <summary>
@@ -49,8 +49,8 @@ public abstract class AreaSpriteObject : SpriteObject
 
         if (WorldPosition.x < minX || WorldPosition.y < minY || WorldPosition.x > maxX || WorldPosition.y > maxY)
         {
-            Graphics.ConfirmingObjects -= OnConfirmingObjects;
-            Graphics.CheckingAreaConstraints -= OnCheckingConstraints;
+            BuildFunctions.ConfirmingObjects -= OnConfirmingObjects;
+            BuildFunctions.CheckingAreaConstraints -= OnCheckingConstraints;
 
             Destroy();
         }

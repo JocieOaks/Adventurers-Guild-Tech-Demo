@@ -2,10 +2,13 @@
 using UnityEngine;
 using System.Linq;
 
+/// <summary>
+/// The <see cref="Corner"/> class is a unity component for the <see cref="Sprite"/>s at the corners of two or more <see cref="WallSprite"/>s.
+/// </summary>
 public class Corner : MonoBehaviour
 {
     static readonly List<int> ignoreIndeces = new() { 1, 2, 4, 5, 8, 10 };
-    readonly WallMaterial _wallMaterial = WallMaterial.Brick;
+    readonly AccentMaterial material = AccentMaterial.Stone;
     Vector3Int _position;
     int _spriteIndex;
     SpriteRenderer _spriteRenderer;
@@ -14,6 +17,12 @@ public class Corner : MonoBehaviour
     WallBlocker South => Map.Instance.GetWall(MapAlignment.YEdge, _position + Vector3Int.down);
     WallBlocker West => Map.Instance.GetWall(MapAlignment.XEdge, _position + Vector3Int.left);
 
+    /// <summary>
+    /// Creates a corner at the given position, if there should be one there.
+    /// </summary>
+    /// <param name="position">The <see cref="Map"/> position of the <see cref="Corner"/>.</param>
+    /// <param name="corner">An out parameter that will be set to the newly created corner.</param>
+    /// <returns>Returns true if a corner was successfully made.</returns>
     public static bool TryMakeCorner(Vector3Int position, out Corner corner)
     {
         int index = GetSpriteIndex(position);
@@ -28,18 +37,26 @@ public class Corner : MonoBehaviour
 
         corner._position = position;
 
-        corner.transform.position = Map.MapCoordinatesToSceneCoordinates(position, MapAlignment.Corner);
-        corner._spriteRenderer.sortingOrder = Graphics.GetSortOrder(position) + 3;
+        corner.transform.position = Utility.MapCoordinatesToSceneCoordinates(position, MapAlignment.Corner);
+        corner._spriteRenderer.sortingOrder = Utility.GetSortOrder(position) + 3;
 
         corner.ConfigureCorner(index);
         return true;
     }
 
+    /// <summary>
+    /// Evaluates the sprite index for the <see cref="Corner"/> and then calls <see cref="ConfigureCorner"/>.
+    /// </summary>
     public void ConfigureCorner()
     {
         ConfigureCorner(GetSpriteIndex(_position));
     }
 
+    /// <summary>
+    /// Determines the type of corner that should be set at the given position.
+    /// </summary>
+    /// <param name="position">The <see cref="Map"/> position of the <see cref="Corner"/>.</param>
+    /// <returns>Returns the index of the sprite for the <see cref="Corner"/> at <c>position</c> or -1 if no corner is needed.</returns>
     static int GetSpriteIndex(Vector3Int position)
     {
         int index = 0;
@@ -70,13 +87,18 @@ public class Corner : MonoBehaviour
 
     }
 
+    /// <inheritdoc/>
     private void Awake()
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
         Graphics.UpdatedGraphics += SetCornerMode;
-        Graphics.LevelChangedLate += SetLevel;
+        Graphics.LevelChangedLate += OnLevelChange;
     }
 
+    /// <summary>
+    /// Sets up the corner, destroying the corner if no corner is needed, and masking the adjacent <see cref="WallSprite"/>s if neccessary.
+    /// </summary>
+    /// <param name="index"></param>
     void ConfigureCorner(int index)
     {
         _spriteIndex = index;
@@ -84,10 +106,10 @@ public class Corner : MonoBehaviour
         if (_spriteIndex == -1)
         {
             Graphics.UpdatedGraphics -= SetCornerMode;
-            Graphics.LevelChangedLate -= SetLevel;
+            Graphics.LevelChangedLate -= OnLevelChange;
 
-            West?.WallSprite.MaskCorner(false);
-            South?.WallSprite.MaskCorner(false);
+            West?.WallSprite.MaskCorner(0);
+            South?.WallSprite.MaskCorner(0);
 
             Destroy(gameObject);
             return;
@@ -95,21 +117,24 @@ public class Corner : MonoBehaviour
 
         if (_spriteIndex == 1 || _spriteIndex == 7 || _spriteIndex == 8)
         {
-            West.WallSprite.MaskCorner(true);
-            South.WallSprite.MaskCorner(false);
+            West.WallSprite.MaskCorner(1);
+            South.WallSprite.MaskCorner(-1);
         }
         else if (_spriteIndex == 2)
         {
-            West.WallSprite.MaskCorner(false);
-            South.WallSprite.MaskCorner(true);
+            West.WallSprite.MaskCorner(-1);
+            South.WallSprite.MaskCorner(1);
         }
         else
         {
-            West?.WallSprite.MaskCorner(false);
-            South?.WallSprite.MaskCorner(false);
+            West?.WallSprite.MaskCorner(0);
+            South?.WallSprite.MaskCorner(0);
         }
     }
 
+    /// <summary>
+    /// Sets whether the <see cref="Corner"/> should be a full sprite or just a base sprite.
+    /// </summary>
     void SetCornerMode()
     {
         if (GameManager.Instance.IsOnLevel(_position.z) == 0)
@@ -121,7 +146,7 @@ public class Corner : MonoBehaviour
                 bool? xNeg = West?.WallSprite.IsFullWall;
                 bool? yPos = North?.WallSprite.IsFullWall;
                 bool fullCorner = (xPos ?? false) || (yNeg ?? false) || (xNeg ?? false) || (yPos ?? false);
-                _spriteRenderer.sprite = Graphics.CornerSprites[_spriteIndex, _wallMaterial, fullCorner];
+                _spriteRenderer.sprite = Graphics.CornerSprites[_spriteIndex, material, fullCorner];
 
                 if (fullCorner)
                 {
@@ -137,12 +162,15 @@ public class Corner : MonoBehaviour
             }
             else
             {
-                _spriteRenderer.sprite = Graphics.CornerSprites[_spriteIndex, _wallMaterial, Graphics.Instance.Mode == WallDisplayMode.Full];
+                _spriteRenderer.sprite = Graphics.CornerSprites[_spriteIndex, material, Graphics.Instance.Mode == WallDisplayMode.Full];
             }
         }
     }
 
-    void SetLevel()
+    /// <summary>
+    /// Called whenever the level changes, to determine how the <see cref="Corner"/> should be rendered.
+    /// </summary>
+    void OnLevelChange()
     {
         int level = GameManager.Instance.IsOnLevel(_position.z);
         if (level > 0)
@@ -156,7 +184,7 @@ public class Corner : MonoBehaviour
             }
             else
             {
-                _spriteRenderer.sprite = Graphics.CornerSprites[_spriteIndex, _wallMaterial, true];
+                _spriteRenderer.sprite = Graphics.CornerSprites[_spriteIndex, material, true];
             }
         }
     }

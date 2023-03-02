@@ -394,7 +394,7 @@ public class RoomNode : INode
     /// <param name="direction">The <see cref="Direction"/> of the <see cref="INode"/> being reset.</param>
     public void ResetConnection(Direction direction)
     {
-        SetNode(direction, Map.Instance[WorldPosition + Map.DirectionToVector(direction)]);
+        SetNode(direction, Map.Instance[WorldPosition + Utility.DirectionToVector(direction)]);
     }
 
     /// <summary>

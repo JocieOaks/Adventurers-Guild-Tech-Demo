@@ -144,10 +144,10 @@ public class Pawn : MonoBehaviour, IWorldPosition
             if (nearest != WorldPosition)
             {
                 CurrentNode = Map.Instance[nearest];
-                _sortingGroup.sortingOrder = Graphics.GetSortOrder(WorldPosition);
+                _sortingGroup.sortingOrder = Utility.GetSortOrder(WorldPosition);
                 BuildSpriteMask();
             }
-            transform.position = Map.MapCoordinatesToSceneCoordinates(value);
+            transform.position = Utility.MapCoordinatesToSceneCoordinates(value);
         }
     }
 
@@ -299,7 +299,7 @@ public class Pawn : MonoBehaviour, IWorldPosition
                             foreach (bool[,] pixelArray in spriteObject.GetMaskPixels)
                             {
                                 Vector2 pivot = spriteObject.SpriteRenderer.sprite.pivot;
-                                Vector3 relScenePosition = Map.MapCoordinatesToSceneCoordinates(WorldPosition) - (spriteObject.SpriteRenderer.transform.position + transformOffset * spriteObject.OffsetVector);
+                                Vector3 relScenePosition = Utility.MapCoordinatesToSceneCoordinates(WorldPosition) - (spriteObject.SpriteRenderer.transform.position + transformOffset * spriteObject.OffsetVector);
 
                                 int xOffset = (int)(pivot.x + relScenePosition.x * 6 - s_maskPivot.x);
                                 int yOffset = (int)(pivot.y + relScenePosition.y * 6 - s_maskPivot.y);
@@ -325,7 +325,7 @@ public class Pawn : MonoBehaviour, IWorldPosition
             _maskTexture.Apply();
 
             _mask.sprite = Sprite.Create(_maskTexture, new Rect(0, 0, _maskTexture.width, _maskTexture.height), new Vector2(s_maskPivot.x / _maskTexture.width, s_maskPivot.y / _maskTexture.height), 6);
-            _mask.transform.position = Map.MapCoordinatesToSceneCoordinates(WorldPosition);
+            _mask.transform.position = Utility.MapCoordinatesToSceneCoordinates(WorldPosition);
         }
     }
 
@@ -452,7 +452,7 @@ public class Pawn : MonoBehaviour, IWorldPosition
     {
         yield return new WaitUntil(() => GameManager.GameReady);
 
-        CurrentNode = Map.Instance[Map.SceneCoordinatesToMapCoordinates(transform.position, 0)];
+        CurrentNode = Map.Instance[Utility.SceneCoordinatesToMapCoordinates(transform.position, 0)];
 
         WorldPositionNonDiscrete = WorldPosition;
 

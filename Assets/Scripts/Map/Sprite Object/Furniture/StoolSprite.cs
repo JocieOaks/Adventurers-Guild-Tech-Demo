@@ -111,8 +111,8 @@ public class StoolSprite : SpriteObject, IOccupied
         {
             highlight.enabled = true;
             highlight.sprite = Graphics.Instance.Stool;
-            highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
-            highlight.sortingOrder = Graphics.GetSortOrder(position);
+            highlight.transform.position = Utility.MapCoordinatesToSceneCoordinates(position);
+            highlight.sortingOrder = Utility.GetSortOrder(position);
         }
         else
             highlight.enabled = false;

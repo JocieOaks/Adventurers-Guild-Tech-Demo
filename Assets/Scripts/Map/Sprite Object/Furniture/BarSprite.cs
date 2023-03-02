@@ -27,7 +27,7 @@ public class BarSprite : LinearSpriteObject, IInteractable, IDirected
     {
         Direction = direction;
         _spriteRenderers[1].sprite = Alignment == MapAlignment.XEdge ? Graphics.Instance.BarX[1] : Graphics.Instance.BarY[1];
-        _spriteRenderers[1].sortingOrder = Graphics.GetSortOrder(WorldPosition + (Alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left));
+        _spriteRenderers[1].sortingOrder = Utility.GetSortOrder(WorldPosition + (Alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left));
     }
 
     /// <value>The 3D dimensions of a <see cref="BarSprite"/> in terms of <see cref="Map"/> coordinates.</value>
@@ -165,10 +165,10 @@ public class BarSprite : LinearSpriteObject, IInteractable, IDirected
         {
             highlight.enabled = true;
 
-            highlight.sprite = Map.DirectionToEdgeAlignment(BuildFunctions.Direction) == MapAlignment.XEdge ? Graphics.Instance.BarX[0] : Graphics.Instance.BarY[0];
+            highlight.sprite = Utility.DirectionToEdgeAlignment(BuildFunctions.Direction) == MapAlignment.XEdge ? Graphics.Instance.BarX[0] : Graphics.Instance.BarY[0];
 
-            highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
-            highlight.sortingOrder = Graphics.GetSortOrder(position);
+            highlight.transform.position = Utility.MapCoordinatesToSceneCoordinates(position);
+            highlight.sortingOrder = Utility.GetSortOrder(position);
         }
         else
             highlight.enabled = false;

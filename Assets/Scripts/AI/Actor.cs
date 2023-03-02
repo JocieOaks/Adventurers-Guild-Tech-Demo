@@ -273,7 +273,7 @@ public class Actor
 
         Pawn = Object.Instantiate(Graphics.Instance.PawnPrefab);
         Pawn.Sprites = _spritesList;
-        Pawn.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
+        Pawn.transform.position = Utility.MapCoordinatesToSceneCoordinates(position);
         Pawn.name = "Actor";
         Pawn.Actor = this;
     }

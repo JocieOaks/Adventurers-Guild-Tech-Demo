@@ -58,7 +58,7 @@ public class ApproachAction : TaskAction
             if (best.position == _pawn.WorldPosition)
             {
                 _complete = true;
-                _pawn.CurrentStep = new WaitStep(_pawn, Map.VectorToDir(_conversation.Nexus - best.position), true);
+                _pawn.CurrentStep = new WaitStep(_pawn, Utility.VectorToDir(_conversation.Nexus - best.position), true);
             }
             else
             {

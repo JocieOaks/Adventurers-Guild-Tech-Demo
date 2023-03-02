@@ -31,7 +31,7 @@ public class StairSprite : AreaSpriteObject, IDirected
         SpriteRenderer.enabled = GameManager.Instance.IsOnLevel(WorldPosition.z) <= 0;
 
         _sortingGroup = GameObject.AddComponent<SortingGroup>();
-        _sortingGroup.sortingOrder = Graphics.GetSortOrder(worldPosition + z * Vector3Int.back);
+        _sortingGroup.sortingOrder = Utility.GetSortOrder(worldPosition + z * Vector3Int.back);
 
         for (int i = 1; i < z + 1; i++)
         {
@@ -183,8 +183,8 @@ public class StairSprite : AreaSpriteObject, IDirected
                     highlight.sprite = Graphics.Instance.StairsWest;
                     break;
             };
-            highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
-            highlight.sortingOrder = Graphics.GetSortOrder(position);
+            highlight.transform.position = Utility.MapCoordinatesToSceneCoordinates(position);
+            highlight.sortingOrder = Utility.GetSortOrder(position);
         }
         else
             highlight.enabled = false;

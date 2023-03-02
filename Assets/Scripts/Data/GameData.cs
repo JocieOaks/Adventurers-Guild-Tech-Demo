@@ -29,6 +29,7 @@ public class GameData
     public int MapLength;
     public int MapWidth;
     [JsonIgnore] public List<string> Names;
+    [JsonIgnore] public List<QuestData> Quests;
     public List<SpriteObject> SpriteObjects;
     public List<SerializableStair> Stairs;
     public SerializableNode[] Map;
