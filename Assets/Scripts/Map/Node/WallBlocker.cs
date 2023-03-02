@@ -17,7 +17,15 @@ public class WallBlocker : BlockingNode
     public WallBlocker(WallSprite wallSprite, Vector3Int worldPosition, MapAlignment alignment) : base(worldPosition, alignment)
     {
         WallSprite = wallSprite;
-        Map.Instance.SetWall(alignment, WorldPosition, this);
+
+        if (alignment == MapAlignment.XEdge)
+        {
+            Map.Instance[worldPosition.x, worldPosition.y, worldPosition.z].SetNode(Direction.South, this);
+        }
+        else
+        {
+            Map.Instance[worldPosition.x, worldPosition.y, worldPosition.z].SetNode(Direction.West, this);
+        }
     }
 
     /// <summary>
@@ -28,6 +36,21 @@ public class WallBlocker : BlockingNode
     public WallBlocker(Vector3Int worldPosition, MapAlignment alignment) :base(worldPosition, alignment)
     {
         WallSprite = new WallSprite(worldPosition, alignment, 6, WallMaterial.Brick, this);
+    }
+
+    /// <summary>
+    /// Removes this wall from the <see cref="Map"/> connecting the two <see cref="RoomNode"/>s the <see cref="WallBlocker"/> was between.
+    /// </summary>
+    public void RemoveWall()
+    {
+        if(FirstNode.WorldPosition == WorldPosition) 
+        {
+            FirstNode.SetNode(Alignment == MapAlignment.XEdge ? Direction.South : Direction.West, SecondNode);
+        }
+        else
+        {
+            SecondNode.SetNode(Alignment == MapAlignment.XEdge ? Direction.South : Direction.West, FirstNode);
+        }
     }
 
     /// <inheritdoc/>

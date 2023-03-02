@@ -1,6 +1,41 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
+
+/// <summary>
+/// Enum referring to the <see cref="Sprite"/> to be used for a portion of a door.
+/// </summary>
+public enum DoorSpriteType
+{
+    DoorXLeft = 0,
+    DoorXMid = 1,
+    DoorXRight = 2,
+    DoorYRight = 3,
+    DoorYMid = 4,
+    DoorYLeft = 5
+}
+
+/// <summary>
+/// Enum referring to the <see cref="Sprite"/> to be used for a portion of a <see cref="WallSprite"/>.
+/// </summary>
+public enum WallSpriteType
+{
+    None = -1,
+    X11 = 0,
+    X12 = 1,
+    X13 = 2,
+    X21 = 3,
+    X22 = 4,
+    X23 = 5,
+    Y11 = 6,
+    Y12 = 7,
+    Y13 = 8,
+    Y21 = 9,
+    Y22 = 10,
+    Y23 = 11
+}
 
 /// <summary>
 /// The <see cref="WallSprite"/> class is the <see cref="SpriteObject"/> that corresponds to <see cref="WallBlocker"/>.
@@ -47,8 +82,13 @@ public class WallSprite : LinearSpriteObject
             new Vector2(-2f/3, 13.5f/6 + 12 * 5f/6)
     };
 
+    static WallMaterial[] _dontInverseShift = { WallMaterial.StoneBrick };
     static bool[,] _pixelsX;
     static bool[,] _pixelsY;
+
+    readonly int _height;
+    readonly SortingGroup _sortingGroup;
+    readonly WallMaterial _wallMaterial;
     bool[,] _baseDoorMask;
     SpriteMask _cornerMask;
     SpriteMask _doorMask;
@@ -56,17 +96,12 @@ public class WallSprite : LinearSpriteObject
     SpriteRenderer _doorSprite;
     DoorSpriteType _doorSpriteType;
     bool[,] _fullDoorMask;
-    readonly int _height;
-
     bool _highlightDoor;
 
     bool _isFullWall;
 
     WallSprite _nextDoorWall;
-    readonly SortingGroup _sortingGroup;
-
     WallBlocker _wall;
-    readonly WallMaterial _wallMaterial;
 
     /// <summary>
     /// Initializes a new instance of <see cref="WallSprite"/> that does not have a corresponding <see cref="WallBlocker"/>.
@@ -76,18 +111,18 @@ public class WallSprite : LinearSpriteObject
     /// <param name="height">Height of the wall.</param>
     /// <param name="wallMaterial"><see cref="global::WallMaterial"/> of the wall.</param>
     public WallSprite(Vector3Int position, MapAlignment alignment, int height, WallMaterial wallMaterial) :
-        base(height, new Sprite[] { Graphics.WallSprites[GetSpriteType(position, 0, alignment), wallMaterial], Graphics.WallSprites[GetSpriteType(position, 0, alignment), wallMaterial] }, alignment == MapAlignment.XEdge ? Direction.North : Direction.East, position, "Wall", new Vector3Int(alignment == MapAlignment.XEdge ? 1 : 0, alignment == MapAlignment.YEdge ? 1 : 0, height), false)
+        base(height, new Sprite[] { Graphics.WallSprites[GetSpriteType(position, 0, alignment, wallMaterial), wallMaterial], Graphics.WallSprites[GetSpriteType(position, 0, alignment, wallMaterial), wallMaterial] }, alignment == MapAlignment.XEdge ? Direction.North : Direction.East, position, "Wall", new Vector3Int(alignment == MapAlignment.XEdge ? 1 : 0, alignment == MapAlignment.YEdge ? 1 : 0, height), false)
     {
         _wallMaterial = wallMaterial;
 
         _height = height;
 
 
-        Transform.position = Map.MapCoordinatesToSceneCoordinates(position, alignment);
+        Transform.position = Utility.MapCoordinatesToSceneCoordinates(position, alignment);
 
 
         _sortingGroup = GameObject.AddComponent<SortingGroup>();
-        _sortingGroup.sortingOrder = Graphics.GetSortOrder(position) + 1;
+        _sortingGroup.sortingOrder = Utility.GetSortOrder(position) + 1;
         SpriteRenderer.color = Graphics.Instance.HighlightColor;
         SpriteRenderer.sortingLayerName = "Wall";
 
@@ -100,7 +135,7 @@ public class WallSprite : LinearSpriteObject
             current.name = "Wall";
             current.sortingOrder = i;
             current.sortingLayerName = "Wall";
-            current.sprite = Graphics.WallSprites[GetSpriteType(position, i, alignment), wallMaterial];
+            current.sprite = Graphics.WallSprites[GetSpriteType(position, i, alignment, _wallMaterial), wallMaterial];
             current.color = Graphics.Instance.HighlightColor;
         }
 
@@ -178,7 +213,7 @@ public class WallSprite : LinearSpriteObject
                     _spriteRenderers[i].enabled = true;
 
                 if (_cornerMask != null)
-                    _cornerMask.transform.localPosition = Vector3.up * 2 * (_height - 1);
+                    _cornerMask.transform.localPosition = (_height - 1) * 2 * Vector3.up;
             }
             else
             {
@@ -237,15 +272,6 @@ public class WallSprite : LinearSpriteObject
         }
     }
 
-    /// <value>Gives the x coordinate for the <see cref="WallSprite"/>.</value>
-    int X => WorldPosition.x;
-
-    /// <value>Gives the y coordinate for the <see cref="WallSprite"/>.</value>
-    int Y => WorldPosition.y;
-
-    /// <value>Gives the z coordinate for the <see cref="WallSprite"/>.</value>
-    int Z => WorldPosition.z;
-
     /// <summary>
     /// Checks if a new <see cref="DoorConnector"/> can be placed at a given <see cref="Map"/> position.
     /// </summary>
@@ -264,7 +290,7 @@ public class WallSprite : LinearSpriteObject
     /// <returns>Returns true if a <see cref="WallSprite"/> can be created at <c>position</c>.</returns>
     public static bool CheckObject(Vector3Int position)
     {
-        return Map.Instance.CanPlaceWall(position, Map.DirectionToEdgeAlignment(BuildFunctions.Direction));
+        return Map.Instance.CanPlaceWall(position, Utility.DirectionToEdgeAlignment(BuildFunctions.Direction));
     }
 
     /// <summary>
@@ -283,7 +309,7 @@ public class WallSprite : LinearSpriteObject
     /// <param name="position"><see cref="Map"/> position to create the new <see cref="WallSprite"/>.</param>
     public static void CreateWall(Vector3Int position)
     {
-        new WallSprite(position, Map.DirectionToEdgeAlignment(BuildFunctions.Direction), WallHeight, WallMaterial);
+        new WallSprite(position, Utility.DirectionToEdgeAlignment(BuildFunctions.Direction), WallHeight, WallMaterial);
     }
 
     /// <summary>
@@ -309,11 +335,11 @@ public class WallSprite : LinearSpriteObject
     {
         if (CheckObject(position))
         {
-            MapAlignment alignment = Map.DirectionToEdgeAlignment(BuildFunctions.Direction);
+            MapAlignment alignment = Utility.DirectionToEdgeAlignment(BuildFunctions.Direction);
             highlight.enabled = true;
             highlight.sprite = Graphics.WallSprites[alignment == MapAlignment.XEdge ? WallSpriteType.X11 : WallSpriteType.Y11, WallMaterial];
-            highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position, alignment);
-            highlight.sortingOrder = Graphics.GetSortOrder(position) + 1;
+            highlight.transform.position = Utility.MapCoordinatesToSceneCoordinates(position, alignment);
+            highlight.sortingOrder = Utility.GetSortOrder(position) + 1;
         }
         else
             highlight.enabled = false;
@@ -333,20 +359,20 @@ public class WallSprite : LinearSpriteObject
 
         if (Alignment == MapAlignment.XEdge)
         {
-            WallSprite prev = Map.Instance.GetWall(Alignment, X + end, Y, Z).WallSprite;
+            WallSprite prev = Map.Instance.GetWall(Alignment, WorldPosition + end * Vector3Int.right).WallSprite;
             for (int i = start; i <= end; i++)
             {
-                WallSprite current = Map.Instance.GetWall(Alignment, X + i, Y, Z).WallSprite;
+                WallSprite current = Map.Instance.GetWall(Alignment, WorldPosition + i * Vector3Int.right).WallSprite;
                 current.AddDoorSprite(prev, i == start ? DoorSpriteType.DoorXLeft : i == end ? DoorSpriteType.DoorXRight : DoorSpriteType.DoorXMid, material, new Vector3(-2, -1) * i, highlight);
                 prev = current;
             }
         }
         else
         {
-            WallSprite prev = Map.Instance.GetWall(Alignment, X, Y + end, Z).WallSprite;
+            WallSprite prev = Map.Instance.GetWall(Alignment, WorldPosition + end * Vector3Int.up).WallSprite;
             for (int i = start; i <= end; i++)
             {
-                WallSprite current = Map.Instance.GetWall(Alignment, X, Y + i, Z).WallSprite;
+                WallSprite current = Map.Instance.GetWall(Alignment, WorldPosition + i * Vector3Int.up).WallSprite;
                 current.AddDoorSprite(prev, i == start ? DoorSpriteType.DoorYRight : i == end ? DoorSpriteType.DoorYLeft : DoorSpriteType.DoorYMid, material, new Vector3(2, -1) * i, highlight);
                 prev = current;
             }
@@ -359,20 +385,15 @@ public class WallSprite : LinearSpriteObject
         Graphics.UpdatingGraphics -= SetWallMode;
         Graphics.ResetingSprite -= ResetSprite;
         Graphics.LevelChanged -= OnLevelChanged;
-        if (Alignment == MapAlignment.XEdge)
-        {
-            Map.Instance.GetCorner(X + 1, Y, Z)?.UpdateCorner();
-        }
-        else
-        {
-            Map.Instance.GetCorner(X, Y + 1, Z)?.UpdateCorner();
-        }
 
-        Map.Instance.GetCorner(X, Y, Z)?.UpdateCorner();
+        Graphics.Instance.CornerQueue.Enqueue(WorldPosition + (Alignment == MapAlignment.XEdge ? Vector3Int.right : Vector3Int.up));
+
+        Graphics.Instance.CornerQueue.Enqueue(WorldPosition);
 
         Object.Destroy(GameObject);
 
-        Map.Instance.RemoveWall(WorldPosition, Alignment);
+        if(_wall != null)
+            Map.Instance.RemoveWall(_wall);
     }
 
     /// <summary>
@@ -400,12 +421,19 @@ public class WallSprite : LinearSpriteObject
     /// Enable or disable the <see cref="SpriteMask"/> for the corner intersection between two <see cref="WallSprite"/>s.
     /// </summary>
     /// <param name="enableMask">Determines whether to enable or disable the <see cref="SpriteMask"/>.</param>
-    public void MaskCorner(bool enableMask)
+    public void MaskCorner(int masking)
     {
+        
+
         if (_cornerMask == null)
         {
-            if (!enableMask)
+            if (masking == 0)
                 return;
+            else if (masking == -1)
+            {
+                _sortingGroup.sortingOrder = Utility.GetSortOrder(WorldPosition);
+                return;
+            }
 
             if (Alignment == MapAlignment.XEdge)
                 _cornerMask = Object.Instantiate(Graphics.Instance.CornerMaskX, Transform);
@@ -413,11 +441,11 @@ public class WallSprite : LinearSpriteObject
                 _cornerMask = Object.Instantiate(Graphics.Instance.CornerMaskY, Transform);
 
             if (IsFullWall)
-                _cornerMask.transform.localPosition = Vector3.up * 2 * (_height - 1);
+                _cornerMask.transform.localPosition = (_height - 1) * 2 * Vector3.up;
         }
 
-        _cornerMask.enabled = enableMask;
-        _sortingGroup.sortingOrder += enableMask ? 1 : -1;
+        _cornerMask.enabled = masking == 1;
+        _sortingGroup.sortingOrder = Utility.GetSortOrder(WorldPosition) + (masking >= 0 ? 1 : 0);
     }
 
     /// <summary>
@@ -439,7 +467,7 @@ public class WallSprite : LinearSpriteObject
 
     /// <summary>
     /// Called when the <see cref="WallSprite"/> is at a corner with another <see cref="WallSprite"/> that is a full wall,
-    /// and <see cref="Graphics.Mode"/> is <see cref="WallMode.Open"/>.
+    /// and <see cref="Graphics.Mode"/> is <see cref="WallDisplayMode.Open"/>.
     /// </summary>
     public void SetEdge()
     {
@@ -452,7 +480,7 @@ public class WallSprite : LinearSpriteObject
     /// </summary>
     protected override void OnConfirmingObjects()
     {
-        if (_wall == null)
+        if(_wall == null)
             _wall = new WallBlocker(this, WorldPosition, Alignment);
 
         for (int i = 0; i < _height; i++)
@@ -460,16 +488,9 @@ public class WallSprite : LinearSpriteObject
             _spriteRenderers[i].color = Color.white;
         }
 
-        if (Alignment == MapAlignment.XEdge)
-        {
-            Map.Instance.GetCorner(X + 1, Y, Z).SetCorner(WorldPosition + Vector3Int.right, _wallMaterial);
-        }
-        else
-        {
-            Map.Instance.GetCorner(X, Y + 1, Z).SetCorner(WorldPosition + Vector3Int.up, _wallMaterial);
-        }
+        Graphics.Instance.CornerQueue.Enqueue(WorldPosition + (Alignment == MapAlignment.XEdge ? Vector3Int.right : Vector3Int.up));
 
-        Map.Instance.GetCorner(X, Y, Z).SetCorner(WorldPosition, _wallMaterial);
+        Graphics.Instance.CornerQueue.Enqueue(WorldPosition);
 
         base.OnConfirmingObjects();
     }
@@ -477,7 +498,7 @@ public class WallSprite : LinearSpriteObject
     /// <inheritdoc/>
     protected override void OnLevelChanged()
     {
-        int level = GameManager.Instance.IsOnLevel(Z);
+        int level = GameManager.Instance.IsOnLevel(WorldPosition.z);
         if (level > 0)
             for (int i = 0; i < _height; i++)
             {
@@ -515,7 +536,7 @@ public class WallSprite : LinearSpriteObject
     {
         for (int i = 0; i < _height; i++)
         {
-            _spriteRenderers[i].sprite = Graphics.WallSprites[GetSpriteType(WorldPosition, i, Alignment), _wallMaterial];
+            _spriteRenderers[i].sprite = Graphics.WallSprites[GetSpriteType(WorldPosition, i, Alignment, _wallMaterial), _wallMaterial];
             _spriteRenderers[i].color = Color.white;
         }
 
@@ -531,7 +552,6 @@ public class WallSprite : LinearSpriteObject
 
         Graphics.ResetingSprite -= ResetSprite;
     }
-
     /// <summary>
     /// Get the index for a <see cref="WallSprite"/>'s <see cref="Sprite"/>
     /// </summary>
@@ -539,10 +559,15 @@ public class WallSprite : LinearSpriteObject
     /// <param name="height">The height of the <see cref="Sprite"/> on this <see cref="WallSprite"/></param>
     /// <param name="alignment">The alignment of the <see cref="WallSprite"/>.</param>
     /// <returns>Returns the index of the <see cref="Sprite"/> in a <see cref="WallSprite"/> at a given location.</returns>
-    static int GetSpriteType(Vector3Int position, int height, MapAlignment alignment)
+    static int GetSpriteType(Vector3Int position, int height, MapAlignment alignment, WallMaterial material)
     {
         int mod = alignment == MapAlignment.XEdge ? position.x % 3 : position.y % 3;
-        int shift = (height / 2) * (2 * (height % 2) - 1) % 3;
+        //Inverse shift makes the wall pattern more random by shifting the bands in opposite directions, but some walls require the bands to remain aligned.
+        int shift;
+        if (_dontInverseShift.FirstOrDefault(x => x == material) == default)
+            shift = (height / 2) * (2 * (height % 2) - 1) % 3;
+        else
+            shift = (height / 2) % 3;
         int offset = (alignment == MapAlignment.YEdge ? 6 : 0) + 3 * (height % 2);
         if (shift < 0)
             shift += 3;
@@ -677,11 +702,11 @@ public class WallSprite : LinearSpriteObject
     /// </summary>
     void SetWallMode()
     {
-        if (GameManager.Instance.IsOnLevel(Z) == 0)
+        if (GameManager.Instance.IsOnLevel(WorldPosition.z) == 0)
         {
-            if (Graphics.Instance.Mode == WallMode.Open)
+            if (Graphics.Instance.Mode == WallDisplayMode.Open)
             {
-                if (Map.Instance[X, Y, Z] == null || Map.Instance[X, Y, Z].Room is Layer)
+                if (Map.Instance[WorldPosition] == null || Map.Instance[WorldPosition].Room is Layer)
                 {
                     IsFullWall = true;
                 }
@@ -692,7 +717,7 @@ public class WallSprite : LinearSpriteObject
             }
             else
             {
-                IsFullWall = Graphics.Instance.Mode == WallMode.Full;
+                IsFullWall = Graphics.Instance.Mode == WallDisplayMode.Full;
             }
 
             Collider.enabled = false;

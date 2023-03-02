@@ -121,7 +121,7 @@ public class Conversation
         {
             if (pawn.CurrentStep is WaitStep wait)
             {
-                Direction direction = Map.VectorToDirection(Nexus - pawn.WorldPosition);
+                Direction direction = Utility.VectorToDir(Nexus - pawn.WorldPosition);
                 wait.SetDirection(direction);
             }
         }

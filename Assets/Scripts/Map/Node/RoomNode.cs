@@ -55,7 +55,6 @@ public class RoomNode : INode
         SetNode(Direction.South, _south = node._south);
         SetNode(Direction.East, _east = node._east);
         SetNode(Direction.West, _west = node._west);
-        _corner = node._corner;
 
         Room.ReplaceNode(RoomPosition.x, RoomPosition.y, this);
         Map.Instance[Room.Origin.z].ReplaceNode(WorldPosition.x, WorldPosition.y, this);
@@ -81,21 +80,6 @@ public class RoomNode : INode
 
     /// <value>A quick accessor for the x and y room positions of the <see cref="RoomNode"/> as a tuple of two ints.</value>
     public (int x, int y) Coords => (RoomPosition.x, RoomPosition.y);
-
-    /// <value>The <see cref="Graphics.Corner"/> that is directly below this <see cref="RoomNode"/>.</value>
-    public Graphics.Corner Corner
-    {
-        get
-        {
-            if (_corner == null)
-            {
-                _corner = Object.Instantiate(Graphics.Instance.SpritePrefab).AddComponent<Graphics.Corner>();
-                _corner.gameObject.name = "Corner";
-                _corner.enabled = false;
-            }
-            return _corner;
-        }
-    }
 
     /// <value>Determines if a <see cref="SpriteObject"/>is currently placed at the <see cref ="RoomNode"/>.</value>
     public bool Empty
@@ -440,24 +424,24 @@ public class RoomNode : INode
     {
         INode node = GetNode(direction);
 
-        if (node is T)
+        if (node is T tNode)
         {
             if (typeof(T) != typeof(RoomNode) || !traversible)
-                return (T)node;
+                return tNode;
             else
             {
                 if (node is StairNode stairNode && stairNode.Direction != direction)
                 {
                     if (stairNode.Direction == ~direction && stairNode.WorldPosition.z == WorldPosition.z - 1)
                     {
-                        return (T)node;
+                        return tNode;
                     }
                 }
                 else
                 {
                     RoomNode roomNode = (RoomNode)node;
                     if (roomNode != Undefined && roomNode.WorldPosition.z == WorldPosition.z)
-                        return (T)node;
+                        return tNode;
                 }
             }
         }
@@ -465,7 +449,7 @@ public class RoomNode : INode
         {
             return (T)(INode)(node as DoorConnector).WallNode;
         }
-        return default(T);
+        return default;
     }
 
     /// <inheritdoc/>
@@ -493,7 +477,7 @@ public class RoomNode : INode
     /// <param name="direction">The <see cref="Direction"/> of the <see cref="INode"/> being reset.</param>
     public void ResetConnection(Direction direction)
     {
-        SetNode(direction, Map.Instance[WorldPosition + Map.DirectionToVector(direction)]);
+        SetNode(direction, Map.Instance[WorldPosition + Utility.DirectionToVector(direction)]);
     }
 
     /// <summary>

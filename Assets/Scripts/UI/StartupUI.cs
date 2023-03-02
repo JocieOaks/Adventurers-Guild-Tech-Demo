@@ -3,28 +3,43 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// The <see cref="StartupUI"/> class controls the UI elements for the starting portion of the game.
+/// </summary>
 public class StartupUI : MonoBehaviour
 {
-    public GameObject Welcome, Class, Party, Name;
+     [SerializeField] GameObject _welcome, _class, _party, _name;
 
+    /// <summary>
+    /// Called when the welcome message is clicked.
+    /// </summary>
     public void WelcomeClicked()
     {
-        Welcome.SetActive(false);
-        Class.SetActive(true);
+        _welcome.SetActive(false);
+        _class.SetActive(true);
     }
 
+    /// <summary>
+    /// Called once a class has been selected.
+    /// </summary>
     public void ClassSelected()
     {
-        Class.SetActive(false);
-        Party.SetActive(true);
+        _class.SetActive(false);
+        _party.SetActive(true);
     }
 
+    /// <summary>
+    /// Called once a party member has been selected.
+    /// </summary>
     public void PartyChosen()
     {
-        Party.SetActive(false);
-        Name.SetActive(true);
+        _party.SetActive(false);
+        _name.SetActive(true);
     }
 
+    /// <summary>
+    /// Called once the player's character has been named.
+    /// </summary>
     public void Named()
     {
         SceneManager.LoadScene("Map");

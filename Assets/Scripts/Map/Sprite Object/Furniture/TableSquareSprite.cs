@@ -22,9 +22,9 @@ public class TableSquareSprite : SpriteObject
         : base(3, sprites, Direction.Undirected, worldPosition, "Square Table", ObjectDimensions, true)
     {
         _spriteRenderers[1].sprite = Graphics.Instance.TableSquare[1];
-        _spriteRenderers[1].sortingOrder = Graphics.GetSortOrder(WorldPosition + 2 * Vector3Int.up);
+        _spriteRenderers[1].sortingOrder = Utility.GetSortOrder(WorldPosition + 2 * Vector3Int.up);
         _spriteRenderers[2].sprite = Graphics.Instance.TableSquare[2];
-        _spriteRenderers[2].sortingOrder = Graphics.GetSortOrder(WorldPosition + 2 * Vector3Int.right);
+        _spriteRenderers[2].sortingOrder = Utility.GetSortOrder(WorldPosition + 2 * Vector3Int.right);
     }
 
     /// <value>The 3D dimensions of a <see cref="TableSquareSprite"/> in terms of <see cref="Map"/> coordinates.</value>
@@ -79,8 +79,8 @@ public class TableSquareSprite : SpriteObject
         {
             highlight.enabled = true;
             highlight.sprite = Graphics.Instance.TableSquare[0];
-            highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
-            highlight.sortingOrder = Graphics.GetSortOrder(position);
+            highlight.transform.position = Utility.MapCoordinatesToSceneCoordinates(position);
+            highlight.sortingOrder = Utility.GetSortOrder(position);
         }
         else
             highlight.enabled = false;

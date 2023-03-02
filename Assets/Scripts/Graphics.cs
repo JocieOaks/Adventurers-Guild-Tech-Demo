@@ -2,82 +2,46 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using UnityEngine;
-using System.Linq;
 using System;
 using UnityEngine.Rendering;
 using Unity.Profiling;
 using Unity.Jobs;
 using Unity.Collections;
 
+/// <summary>
+/// Designates the material used for an accent object and determines which <see cref="Sprite"/> is used for it.
+/// </summary>
 public enum AccentMaterial
 {
     Stone = 0
 }
 
-public enum AccentSpriteType
-{
-    BaseBoardX,
-    BaseBoardY,
-}
-
-public enum BuildMode
-{
-    None,
-    Point,
-    Line,
-    Area,
-    Door,
-    Demolish
-}
-
-public enum DoorSpriteType
-{
-    DoorXLeft = 0,
-    DoorXMid = 1,
-    DoorXRight = 2,
-    DoorYRight = 3,
-    DoorYMid = 4,
-    DoorYLeft = 5
-}
-
+/// <summary>
+/// Designates the material used for a <see cref="WallSprite"/> and determines which <see cref="Sprite"/> is used for it.
+/// </summary>
 public enum WallMaterial
 {
-    Brick = 0
+    Brick = 2,
+    Plaster = 1,
+    StoneBrick = 0
 }
 
-public enum WallMode
+/// <summary>
+/// Enum used to represent how <see cref="WallSprite"/>s should appear.
+/// </summary>
+public enum WallDisplayMode
 {
+    /// <value>Walls should be fully shown.</value>
     Full = 0,
+    /// <value>Walls should only show the base of the <see cref="WallSprite"/>.</value>
     Base = 1,
+    /// <value>Walls should be fully visible if the do not border a <see cref="Room"/> behind them. Otherwise they should only show the base.</value>
     Open = 2
 }
 
-public enum WallSpriteType
-{
-    None = -1,
-    X11 = 0,
-    X12 = 1,
-    X13 = 2,
-    X21 = 3,
-    X22 = 4,
-    X23 = 5,
-    Y11 = 6,
-    Y12 = 7,
-    Y13 = 8,
-    Y21 = 9,
-    Y22 = 10,
-    Y23 = 11
-}
-public static class BuildFunctions
-{
-    public delegate bool CheckPointDelegate(Vector3Int position);
-    public static BuildMode BuildMode { get; set; }
-    public static CheckPointDelegate CheckPoint { get; set; }
-    public static Action<Vector3Int> CreatePoint { get; set; }
-    public static Direction Direction { get; set; }
-    public static Action<SpriteRenderer, Vector3Int> HighlightPoint { get; set; }
-}
-
+/// <summary>
+/// The <see cref="Graphics"/> class is a singleton that controls graphical aspects of the game, and holds reference to the <see cref="Sprite"/>s used by the game.
+/// </summary>
 public class Graphics : MonoBehaviour
 {
     public SpriteRenderer _highlight;
@@ -116,7 +80,9 @@ public class Graphics : MonoBehaviour
     public Texture2D PawnGradientHair;
     public Texture2D PawnGradientHorns;
     public Texture2D PawnGradientSkin;
-    public AdventurerPawn PawnPrefab;
+
+    public Pawn PawnPrefab;
+
     public Texture2D PawnTextureBeard;
 
     public Texture2D PawnTextureBodyHairMuscular;
@@ -206,21 +172,9 @@ public class Graphics : MonoBehaviour
     static Color[] _pawnTextureHornsBack;
     static Color[] _pawnTextureHornsFront;
     static Color[] _pawnTextureOrcTeeth;
-    int _lineEnd;
+    readonly Dictionary<Vector3Int, Corner> _cornerDictionary = new ();
 
-    int _lineStart;
-
-    Map _map;
-
-    WallMode _mode = WallMode.Open;
-
-    Vector3Int areaEnd;
-
-    Vector3Int areaStart;
-    public static event Action<Vector3Int, Vector3Int> CheckingAreaConstraints;
-
-    public static event Action<int, int> CheckingLineConstraints;
-    public static event Action ConfirmingObjects;
+    WallDisplayMode _mode = WallDisplayMode.Open;
 
     public static event Action LevelChanged;
 
@@ -230,15 +184,34 @@ public class Graphics : MonoBehaviour
     public static event Action UpdatedGraphics;
 
     public static event Action UpdatingGraphics;
-    public static BuildMode BuildMode { get; set; }
+
+    /// <value>The <see cref="SpriteSheet"/> containing all the <see cref="Sprite"/>s for <see cref="Corner"/>s.</value>
     public static SpriteSheet CornerSprites { get; private set; }
+
+    /// <value>The <see cref="SpriteSheet"/> containing all the <see cref="Sprite"/>s for doors.</value>
     public static SpriteSheet DoorSprites { get; private set; }
+
+    /// <value>Gives access to the <see cref="Graphics"/> singleton instance.</value>
     public static Graphics Instance => _instance;
+
+    /// <value>Signifies if <see cref="Graphics"/> has finished its initial setup.</value>
     public static bool Ready { get; private set; } = false;
+
+    /// <value>The <see cref="SpriteSheet2"/> containing all the <see cref="Sprite"/>s for <see cref="WallSprite"/>s.</value>
     public static SpriteSheet2 WallSprites { get; private set; }
-    public Color DemolishColor { get; } =  new Color(255, 0, 0, 0.5f);
-    public Color HighlightColor { get; } = new Color(0, 255, 245, 0.5f);
-    public WallMode Mode
+
+    /// <value>The <see cref="Queue{T}"/> of <see cref="Map"/> positions to be checked for if a <see cref="Corner"/> needs to be 
+    /// placed, removed, or modified due to the changing of <see cref="WallSprite"/>s.</value>
+    public Queue<Vector3Int> CornerQueue { get; } = new Queue<Vector3Int>();
+
+    /// <value>The <see cref="Color"/> used to highlight a <see cref="SpriteObject"/> to be destroyed.</value>
+    public Color DemolishColor => new(255, 0, 0, 0.5f);
+
+    /// <value>The <see cref="Color"/> used to highlight a <see cref="SpriteObject"/> to be built or changed.</value>
+    public Color HighlightColor => new(0, 255, 245, 0.5f);
+
+    /// <value>The <see cref="WallDisplayMode"/> for how <see cref="WallSprite"/>s should be presented.</value>
+    public WallDisplayMode Mode
     {
         get => _mode;
         set
@@ -248,11 +221,6 @@ public class Graphics : MonoBehaviour
         }
     }
 
-    public static int GetSortOrder(Vector3Int position)
-    {
-        return 1 - 2 * position.x - 2 * position.y + 2 * position.z;
-    }
-
     public JobHandle BuildSprites(int skinColor, int hairColor, int hornsColor, bool narrow, bool thick, int ears, bool orc, int hairType, int beardType, int horns, int bodyHair, out NativeArray<Color> pixels)
     {
         pixels = new NativeArray<Color>(_pawnSpriteSheetArrayLength, Allocator.Persistent);
@@ -260,47 +228,38 @@ public class Graphics : MonoBehaviour
         return buildSpriteJob.Schedule();
     }
 
-    public void Confirm()
-    {
-        ConfirmingObjects?.Invoke();
-        _lineStart = -1;
-        _lineEnd = -1;
-    }
-
-    public void CycleMode()
+    /// <summary>
+    /// Changes the current <see cref="WallDisplayMode"/>.
+    /// </summary>
+    public void CycleWallDisplayMode()
     {
         switch (_mode)
         {
-            case WallMode.Full:
-                Mode = WallMode.Open;
+            case WallDisplayMode.Full:
+                Mode = WallDisplayMode.Open;
                 break;
-            case WallMode.Open:
-                Mode = WallMode.Base;
+            case WallDisplayMode.Open:
+                Mode = WallDisplayMode.Base;
                 break;
-            case WallMode.Base:
-                Mode = WallMode.Full;
+            case WallDisplayMode.Base:
+                Mode = WallDisplayMode.Full;
                 break;
         }
     }
 
-    public void Demolish(SpriteObject spriteObject)
-    {
-        if (spriteObject is WallSprite wall && wall.IsDoor)
-        {
-            wall.RemoveDoor();
-        }
-        else
-        {
-            spriteObject.Destroy();
-        }
-    }
-
+    /// <summary>
+    /// Hides the highlight <see cref="SpriteRenderer"/> from being displayed.
+    /// </summary>
     public void HideHighlight()
     {
         _highlight.enabled = false;
         ResetingSprite?.Invoke();
     }
 
+    /// <summary>
+    /// Highlights the given <see cref="SpriteObject"/> to be demolished.
+    /// </summary>
+    /// <param name="spriteObject">The <see cref="SpriteObject"/> potentially being demolished.</param>
     public void HighlightDemolish(SpriteObject spriteObject)
     {
         ResetingSprite?.Invoke();
@@ -308,127 +267,63 @@ public class Graphics : MonoBehaviour
         spriteObject.Highlight(DemolishColor);
     }
 
-    public void PlaceArea(Vector3Int endPosition)
+    /// <summary>
+    /// Evaluates if the given position has a <see cref="Corner"/>.
+    /// </summary>
+    /// <param name="position">The <see cref="Map"/> coordinates being evaluated.</param>
+    /// <returns>Returns true if there is a <see cref="Corner"/> at <c>position</c>.</returns>
+    public bool IsCorner(Vector3Int position)
     {
-        if (areaEnd != endPosition)
-        {
-            int minX = areaStart.x < areaEnd.x ? areaStart.x : areaEnd.x;
-            int maxX = areaStart.x > areaEnd.x ? areaStart.x : areaEnd.x;
-            int minY = areaStart.y < areaEnd.y ? areaStart.y : areaEnd.y;
-            int maxY = areaStart.y > areaEnd.y ? areaStart.y : areaEnd.y;
-
-            for (int i = minX < endPosition.x ? minX : endPosition.x; i <= (maxX > endPosition.x ? maxX : endPosition.x); i++)
-            {
-                for (int j = minY < endPosition.y ? minY : endPosition.y; j <= (maxY > endPosition.y ? maxY : endPosition.y); j++)
-                {
-                    Vector3Int position = new(i, j, endPosition.z);
-                    if ((i < minX || i > maxX || j < minY || j > maxY) && BuildFunctions.CheckPoint(position))
-                    {
-                        BuildFunctions.CreatePoint(position);
-                    }
-                }
-            }
-
-            areaEnd = endPosition;
-            CheckingAreaConstraints?.Invoke(areaStart, areaEnd);
-        }
+        return _cornerDictionary.TryGetValue(position, out Corner corner) && corner != null;
     }
 
-    public void PlaceArea(Vector3Int startPosition, Vector3Int endPosition)
-    {
-        areaStart = startPosition;
-        areaEnd = endPosition;
-
-        int minX = areaStart.x < areaEnd.x ? areaStart.x : areaEnd.x;
-        int maxX = areaStart.x > areaEnd.x ? areaStart.x : areaEnd.x;
-        int minY = areaStart.y < areaEnd.y ? areaStart.y : areaEnd.y;
-        int maxY = areaStart.y > areaEnd.y ? areaStart.y : areaEnd.y;
-
-        for (int i = minX; i <= maxX; i++)
-        {
-            for (int j = minY; j <= maxY; j++)
-            {
-                Vector3Int position = new(i, j, endPosition.z);
-                if (BuildFunctions.CheckPoint(position))
-                {
-                    BuildFunctions.CreatePoint(position);
-                }
-            }
-        }
-
-    }
-
-    public void PlaceDoor(Vector3Int position, MapAlignment alignment, AccentMaterial material)
-    {
-        if (WallSprite.CheckDoor(position, alignment))
-        {
-            WallSprite.CreateDoor(position, alignment);
-        }
-    }
-
-    public void PlaceFloor(Room room, int floorType, bool overrideFloor)
-    {
-        foreach (RoomNode node in room.Nodes)
-        {
-            Vector3Int position = room.GetWorldPosition(node);
-            if (_map.IsSupported(position, MapAlignment.Center))
-                if (!_map[position].Floor.Enabled || overrideFloor)
-                    _map[position].Floor.SpriteIndex = floorType;
-        }
-    }
-
-    public void PlaceLine(Vector3Int startPosition, int end, MapAlignment alignment)
-    {
-        int startX = startPosition.x;
-        int startY = startPosition.y;
-        int z = startPosition.z;
-
-        if ((alignment == MapAlignment.XEdge ? _lineStart != startX : _lineStart != startY) || _lineEnd != end)
-        {
-            if (alignment == MapAlignment.XEdge)
-            {
-                for (int i = startX < end ? startX : end; i <= (startX < end ? end : startX); i++)
-                {
-                    Vector3Int position = new(i, startY, z);
-                    if ((i < _lineStart || i > _lineEnd) && BuildFunctions.CheckPoint(position))
-                    {
-                        BuildFunctions.CreatePoint(position);
-                    }
-                }
-
-                _lineStart = startX < end ? startX : end;
-                _lineEnd = startX < end ? end : startX;
-            }
-            else
-            {
-                for (int i = startY < end ? startY : end; i <= (startY < end ? end : startY); i++)
-                {
-                    Vector3Int position = new(startX, i, z);
-                    if ((i < _lineStart || i > _lineEnd) && BuildFunctions.CheckPoint(position))
-                    {
-                        BuildFunctions.CreatePoint(position);
-                    }
-                }
-
-                _lineStart = startY < end ? startY : end;
-                _lineEnd = startY < end ? end : startY;
-            }
-
-
-        }
-
-        CheckingLineConstraints?.Invoke(_lineStart, _lineEnd);
-    }
-
+    /// <summary>
+    /// Reset's all highlighted <see cref="SpriteObject"/>s to their original state.
+    /// </summary>
     public void ResetSprite()
     {
         ResetingSprite?.Invoke();
     }
 
+    /// <summary>
+    /// Calls all <see cref="SpriteObject"/>s and those subscribed to the level change events.
+    /// </summary>
     public void SetLevel()
     {
         LevelChanged?.Invoke();
         LevelChangedLate?.Invoke();
+    }
+
+    /// <inheritdoc/>
+    void Awake()
+    {
+        if (_instance == null)
+        {
+            _instance = this;
+            StartCoroutine(Startup());
+        }
+        else
+            Destroy(this);
+    }
+
+    /// <summary>
+    /// Checks all the positions in <see cref="CornerQueue"/> and places or modifies the <see cref="Corner"/>s at those positions, if necessary.
+    /// </summary>
+    void SetCorners()
+    {
+        while (CornerQueue.Count > 0)
+        {
+            Vector3Int position = CornerQueue.Dequeue();
+
+            if (_cornerDictionary.TryGetValue(position, out Corner corner) && corner != null)
+            {
+                corner.ConfigureCorner();
+            }
+            else if (Corner.TryMakeCorner(position, out corner))
+            {
+                _cornerDictionary[position] = corner;
+            }
+        }
     }
 
     public Sprite[] SliceSprites(Color[] pixels)
@@ -448,35 +343,23 @@ public class Graphics : MonoBehaviour
         return sprites;
     }
 
-    public void UpdateGraphics()
-    {
-        UpdatingGraphics?.Invoke();
-        UpdatedGraphics?.Invoke();
-    }
+        
+    
 
-    void Awake()
-    {
-        if (_instance == null)
-        {
-            _instance = this;
-            StartCoroutine(Startup());
-        }
-        else
-            Destroy(this);
-    }
-
+    /// <summary>
+    /// Called when the instance is first created at the start of the game.
+    /// </summary>
+    /// <returns>Yield returns <see cref="WaitUntil"/> objects to wait for the <see cref="Map.Instance"/>.</returns>
     IEnumerator Startup()
     {
         yield return new WaitUntil(() => Map.Instance != null);
-
-        _map = Map.Instance;
 
         _highlight = Instantiate(SpritePrefab).GetComponent<SpriteRenderer>();
 
         _highlight.color = HighlightColor;
 
         CornerSprites = new SpriteSheet(9, 1);
-        WallSprites = new SpriteSheet2(14, 1);
+        WallSprites = new SpriteSheet2(14, 3);
         DoorSprites = new SpriteSheet(8, 1);
 
         for (int i = 0; i < 9; i++)
@@ -492,9 +375,9 @@ public class Graphics : MonoBehaviour
 
         for (int i = 0; i < 12; i++)
         {
-            for (int j = 0; j < 1; j++)
+            for (int j = 0; j < 3; j++)
             {
-                WallSprites[i, j] = UnsortedWallSprites[i];
+                WallSprites[i, j] = UnsortedWallSprites[j * 12 + i];
             }
         }
 
@@ -930,21 +813,63 @@ public class Graphics : MonoBehaviour
             }
         }
     }
+    /// <summary>
+    /// Calls the update graphics events.
+    /// </summary>
+    public void UpdateGraphics()
+    {
+        UpdatingGraphics?.Invoke();
+        SetCorners();
+        UpdatedGraphics?.Invoke();
+    }  
 
+    /// <summary>
+    /// The <see cref="SpriteSheet"/> class is a 3D array of <see cref="Sprite"/>s.
+    /// </summary>
     public class SpriteSheet
     {
         readonly Sprite[,,] _sprites;
 
-        public SpriteSheet(int i, int j)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SpriteSheet"/> class.
+        /// </summary>
+        /// <param name="types">The number of types of <see cref="Sprite"/>s there can be.</param>
+        /// <param name="materials">The number of materials the <see cref="Sprite"/>s can be made of.</param>
+        public SpriteSheet(int types, int materials)
         {
-            _sprites = new Sprite[i, j, 2];
+            _sprites = new Sprite[types, materials, 2];
         }
 
+        /// <summary>
+        /// Indexer for the <see cref="SpriteSheet"/>
+        /// </summary>
+        /// <param name="WallSpriteType">The <see cref="WallSpriteType"/> of the <see cref="Sprite"/>.</param>
+        /// <param name="wallMaterial">The <see cref="WallMaterial"/> of the <see cref="Sprite"/>.</param>
+        /// <param name="isFullWall">Determines if the <see cref="Sprite"/> is for a full wall or a base wall.</param>
+        /// <returns>The <see cref="Sprite"/> with the given features.</returns>
         public Sprite this[WallSpriteType WallSpriteType, WallMaterial wallMaterial, bool isFullWall] => _sprites[(int)WallSpriteType, (int)wallMaterial, isFullWall ? 0 : 1];
 
+        /// <summary>
+        /// Indexer for the <see cref="SpriteSheet"/>
+        /// </summary>
+        /// <param name="DoorSpriteType">The <see cref="DoorSpriteType"/> of the <see cref="Sprite"/>.</param>
+        /// <param name="material">The <see cref="AccentMaterial"/> of the <see cref="Sprite"/>.</param>
+        /// <param name="isFullWall">Determines if the <see cref="Sprite"/> is for a full wall or a base wall.</param>
+        /// <returns>The <see cref="Sprite"/> with the given features.</returns>
         public Sprite this[DoorSpriteType DoorSpriteType, AccentMaterial material, bool isFullWall] => _sprites[(int)DoorSpriteType, (int)material, isFullWall ? 0 : 1];
-        public Sprite this[int spriteIndex, WallMaterial wallMaterial, bool isFullWall] => _sprites[spriteIndex, (int)wallMaterial, isFullWall ? 0 : 1];
 
+        /// <summary>
+        /// Indexer for the <see cref="SpriteSheet"/>
+        /// </summary>
+        /// <param name="spriteIndex">The index of the <see cref="Sprite"/>.</param>
+        /// <param name="material">The <see cref="AccentMaterial"/> of the <see cref="Sprite"/>.</param>
+        /// <param name="isFullWall">Determines if the <see cref="Sprite"/> is for a full wall or a base wall.</param>
+        /// <returns>The <see cref="Sprite"/> with the given features.</returns>
+        public Sprite this[int spriteIndex, AccentMaterial material, bool isFullWall] => _sprites[spriteIndex, (int)material, isFullWall ? 0 : 1];
+
+        /// <summary>
+        /// Indexer to populate the <see cref="SpriteSheet"/>.
+        /// </summary>
         public Sprite this[int i, int j, int k]
         {
             set
@@ -954,24 +879,47 @@ public class Graphics : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// The <see cref="SpriteSheet2"/> class is a 2D array of <see cref="Sprite"/>s.
+    /// </summary>
     public class SpriteSheet2
     {
         readonly Sprite[,] _sprites;
 
-        public SpriteSheet2(int i, int j)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SpriteSheet2"/> class.
+        /// </summary>
+        /// <param name="types">The number of types of <see cref="Sprite"/>s there can be.</param>
+        /// <param name="materials">The number of materials the <see cref="Sprite"/>s can be made of.</param>
+        public SpriteSheet2(int types, int materials)
         {
-            _sprites = new Sprite[i, j];
+            _sprites = new Sprite[materials, types];
         }
 
-        public Sprite this[WallSpriteType WallSpriteType, WallMaterial wallMaterial] => _sprites[(int)WallSpriteType, (int)wallMaterial];
+        /// <summary>
+        /// Indexer for the <see cref="SpriteSheet2"/>.
+        /// </summary>
+        /// <param name="WallSpriteType">The <see cref="WallSpriteType"/> of the <see cref="Sprite"/>.</param>
+        /// <param name="wallMaterial">The <see cref="WallMaterial"/> of the <see cref="Sprite"/>.</param>
+        /// <returns>The <see cref="Sprite"/> with the given features.</returns>
+        public Sprite this[WallSpriteType WallSpriteType, WallMaterial wallMaterial] => _sprites[(int)wallMaterial, (int)WallSpriteType];
 
-        public Sprite this[int spriteIndex, WallMaterial wallMaterial] => _sprites[spriteIndex, (int)wallMaterial];
+        /// <summary>
+        /// Indexer for the <see cref="SpriteSheet2"/>
+        /// </summary>
+        /// <param name="spriteIndex">The index of the <see cref="Sprite"/>.</param>
+        /// <param name="wallMaterial">The <see cref="WallMaterial"/> of the <see cref="Sprite"/>.</param>
+        /// <returns>The <see cref="Sprite"/> with the given features.</returns>
+        public Sprite this[int spriteIndex, WallMaterial wallMaterial] => _sprites[(int)wallMaterial, spriteIndex];
 
+        /// <summary>
+        /// Indexer to populate the <see cref="SpriteSheet2"/>.
+        /// </summary>
         public Sprite this[int i, int j]
         {
             set
             {
-                _sprites[i, j] = value;
+                _sprites[j, i] = value;
             }
         }
     }

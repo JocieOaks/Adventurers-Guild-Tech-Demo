@@ -809,13 +809,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4038c670390d35340aeca13feb1a6498, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Name: {fileID: 2676701574578119969}
-  Class: {fileID: 4694255614125281357}
-  Icon: {fileID: 7866187953380918805}
-  StrengthBar: {fileID: 1811016339766261461}
-  DexterityBar: {fileID: 3983630714058683481}
-  CharismaBar: {fileID: 239333571473116967}
-  IntelligenceBar: {fileID: 5091705202287918124}
+  _charismaBar: {fileID: 239333571473116967}
+  _class: {fileID: 4694255614125281357}
+  _dexterityBar: {fileID: 3983630714058683481}
+  _icon: {fileID: 7866187953380918805}
+  _intelligenceBar: {fileID: 5091705202287918124}
+  _name: {fileID: 2676701574578119969}
+  _strengthBar: {fileID: 1811016339766261461}
 --- !u!114 &673242975902171329
 MonoBehaviour:
   m_ObjectHideFlags: 0

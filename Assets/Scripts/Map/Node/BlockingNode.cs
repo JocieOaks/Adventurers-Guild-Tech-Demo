@@ -48,7 +48,7 @@ public abstract class BlockingNode : IDividerNode
     public INode Node => this;
 
     /// <inheritdoc/>
-    public bool Obstructed => false;
+    public bool Obstructed => true;
 
     /// <inheritdoc/>
     public Room Room => null;

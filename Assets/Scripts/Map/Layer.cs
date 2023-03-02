@@ -1,5 +1,9 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+
+// Considering replacing the "Layer" architecture with a "Building" architecture because eventually Rooms will be able to have variable heights,
+// and thus dividing everything into Layer's won't make as much sensee.
+
 /// <summary>
 /// Class <c>Layer</c> is a <see cref="Room"/> that contains other Rooms inside it.
 /// All Rooms within a layer are at the same z elevation, but multiple Layers might be at the same z elevation.
@@ -7,8 +11,13 @@ using UnityEngine;
 /// </summary>
 public class Layer : Room
 {
-    readonly int _layerID;
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Layer"/> class.
+    /// </summary>
+    /// <param name="x">The width of the layer.</param>
+    /// <param name="y">The length of the layer.</param>
+    /// <param name="originPosition">The origin of the layer in <see cref="Map"/> coordinates.</param>
+    /// <param name="layerID">ID number for the layer.</param>
     public Layer(int x, int y, Vector3Int originPosition, int layerID) : base(x, y, originPosition)
     {
         for (int i = 0; i < x; i++)
@@ -16,16 +25,24 @@ public class Layer : Room
             {
                 _nodes[i, j] = RoomNode.Undefined;
             }
-        _layerID = layerID;
+        LayerID = layerID;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Layer"/> class based on a preconstructed 2D array of <see cref="RoomNode"/>s.
+    /// </summary>
+    /// <param name="nodes">The <see cref="RoomNode"/>'s that the <see cref="Layer"/> is made of.</param>
+    /// <param name="originPosition">The origin of the layer in <see cref="Map"/> coordinates.</param>
+    /// <param name="layerID">ID number for the layer.</param>
     public Layer(RoomNode[,] nodes, Vector3Int originPosition, int layerID) : base(nodes, originPosition)
     {
-        _layerID = layerID;
+        LayerID = layerID;
     }
 
-    public int LayerID => _layerID;
+    /// <value>Gives the ID number associated with this <see cref="Layer"/>.</value>
+    public int LayerID { get; }
 
+    /// <inheritdoc/>
     public override RoomNode this[int x, int y]
     {
         get
@@ -35,6 +52,7 @@ public class Layer : Room
             return base[xOffset, yOffset];
         }
     }
+
     /// <summary>
     /// Creates a new <see cref="RoomNode"/> at a given position, and adds it to the _nodes array.
     /// </summary>
@@ -49,6 +67,7 @@ public class Layer : Room
         _nodes[x, y].SetNode(Direction.West, _nodes[x - 1, y]);
     }
 
+    /// <inheritdoc/>
     protected override Room CutRoom(int[,] roomDesignation, int flag, int originX, int originY, int endX, int endY)
     {
         RoomNode[,] nodes = new RoomNode[endX - originX, endY - originY];
@@ -68,6 +87,7 @@ public class Layer : Room
         return newRoom;
     }
 
+    /// <inheritdoc/>
     protected override Room SplitOffRooms(RoomNode a, RoomNode b)
     {
         int[,] roomDesignation = new int[Width, Length];

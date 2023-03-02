@@ -26,12 +26,12 @@ public class BedSprite : SpriteObject, IOccupied
     {
         StanceLay.LayingObjects.Add(this);
         _spriteRenderers[1].sprite = Graphics.Instance.BedSprite[0];
-        _spriteRenderers[1].sortingOrder = Graphics.GetSortOrder(WorldPosition + Vector3Int.up);
+        _spriteRenderers[1].sortingOrder = Utility.GetSortOrder(WorldPosition + Vector3Int.up);
 
         for (int i = 2; i < _spriteRenderers.Length; i++)
         {
             _spriteRenderers[i].sprite = Graphics.Instance.BedSprite[i];
-            _spriteRenderers[i].sortingOrder = Graphics.GetSortOrder(WorldPosition + Vector3Int.right * (i - 1));
+            _spriteRenderers[i].sortingOrder = Utility.GetSortOrder(WorldPosition + Vector3Int.right * (i - 1));
         }
 
     }
@@ -123,8 +123,8 @@ public class BedSprite : SpriteObject, IOccupied
             highlight.enabled = true;
             highlight.flipX = false;
             highlight.sprite = Graphics.Instance.BedSprite[1];
-            highlight.transform.position = Map.MapCoordinatesToSceneCoordinates(position);
-            highlight.sortingOrder = Graphics.GetSortOrder(position);
+            highlight.transform.position = Utility.MapCoordinatesToSceneCoordinates(position);
+            highlight.sortingOrder = Utility.GetSortOrder(position);
         }
         else
             highlight.enabled = false;

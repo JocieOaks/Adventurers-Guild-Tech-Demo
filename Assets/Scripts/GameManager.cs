@@ -1,153 +1,174 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using System.Linq;
 using Unity.Jobs;
 
+/// <summary>
+/// The current mode in which the game is being played.
+/// </summary>
 public enum GameMode
 {
+    /// <summary>The game is active and the player can interact with <see cref="Pawn"/>s.</summary>
     Play,
+    /// <summary>The game is active, but the player does not control the <see cref="PlayerPawn"/>.</summary>
     Overview,
+    /// <summary>The game is paused, and the player can build <see cref="SpriteObject"/>s on the <see cref="Map"/>.</summary>
     Build
 }
 
+/// <summary>
+/// The <see cref="GameManager"/> class is a singleton that controls the basic flow of the game.
+/// </summary>
 public class GameManager : MonoBehaviour, IDataPersistence
 {
     public bool DEBUG;
-
-
-
-    const float DOUBLECLICKTIME = 0.5f;
     const float TICK_TIME = 0.2f;
     const float ZOOMMAX = 40;
     const float ZOOMMIN = 5;
+
     static GameManager _instance;
 
-    List<QuestData> _allQuests;
     readonly List<(Actor adventurer, int timeAvailable)> _availableHires = new();
     readonly List<QuestData> _availableQuests = new();
-
-    Camera _camera;
-
-    float _doubleClick = 0;
-
-    GameMode _gameMode;
-
-    Graphics _graphics;
-
-    int _lastAdventurerTick;
-
-    int _lastQuestTick;
-
-    int _levelMax = 6;
-
-    int _levelMin = 0;
-
-    MapAlignment _lineAlignment;
-    Vector3Int _lineStart;
-
-    Map _map;
-
-    bool _placingArea = false;
-    bool _placingLine = false;
-
-    WallMode _playWallMode;
-
-    SpriteObject _prevObject = null;
     readonly List<Quest> _runningQuests = new();
 
+    List<QuestData> _allQuests;
+    int _lastAdventurerTick;
+    int _lastQuestTick;
+    WallDisplayMode _playWallMode;
     float _time = 0;
-
-    public static event System.Action Ticked;
+    public static event System.Action MapChanged;
 
     public static event System.Action MapChangingFirst;
 
     public static event System.Action MapChangingSecond;
-
-    public static event System.Action MapChanged;
 
     /// <summary>
     /// Invoked each frame. Used for classes that don't inherit from <see cref="MonoBehaviour"/>.
     /// </summary>
     public static event System.Action NonMonoUpdate;
 
-    enum KeyMode
-    {
-        None,
-        LeftClickDown,
-        LeftClickUp,
-        LeftClickHeld,
-        DoubleLeftClick,
-        MouseOverUI,
-    }
+    public static event System.Action Ticked;
 
+    /// <value>The primary game camera.</value>
+    public static Camera Camera => Camera.main;
+
+    /// <value>Determines whether the game has completed initial setup.</value>
+    public static bool GameReady { get; private set; } = false;
+
+    /// <value>Reference to the <see cref="GameManager"/> singleton instance.</value>
     static public GameManager Instance => _instance;
-    public List<Actor> Adventurers { get; } = new List<Actor>();
-    public List<QuestData> AvailableQuests => _availableQuests;
-    public GameMode GameMode => _gameMode;
-    public List<string> Names { get; private set; }
-    public bool NextTutorialStep { get; set; }
-    public List<Actor> NPCs { get; } = new List<Actor>();
-    public bool Paused { get; set; } = true;
 
+    /// <value>The list of all hired adventurers.</value>
+    public List<Actor> Adventurers { get; } = new List<Actor>();
+
+    /// <value>The current <see cref="GameMode"/>.</value>
+    public GameMode GameMode { get; private set; }
+
+    /// <value>The maximum z value of the current level. Anything above this will not be rendered on screen.</value>
+    public int LevelMax { get; private set; } = 6;
+
+    /// <value>The minimum z value of the current level.</value>
+    public int LevelMin { get; private set; } = 0;
+
+    /// <value>The list of random names for randomly generated <see cref="Actor"/>s.</value>
+    public List<string> Names { get; private set; }
+
+    /// <value>Determines whether the tutorial should move on to the next step.</value>
+    public bool NextTutorialStep { get; set; }
+
+    /// <value>The list of predefined <see cref="Actor"/>s.</value>
+    public List<Actor> NPCs { get; } = new List<Actor>();
+
+    /// <value>The count of <see cref="SpriteObjects"/> that are waiting to begin initial setup at the start of the game.</value>
     public int ObjectsReady { get; set; }
 
-    public List<QuestData> Quests
-    {
-        set
-        {
-            _allQuests = value;
-        }
-    }
+    /// <value>Whether the game is currently paused.</value>
+    public bool Paused { get; set; } = true;
 
-    public List<Quest> RunningQuests => _runningQuests;
-
+    /// <value>The count of game time in seconds.</value>
     public int Tick { get; private set; }
 
-    public static bool IsMouseOverUI()
-    {
-        return EventSystem.current.IsPointerOverGameObject();
-    }
-
-    public IEnumerable Actors()
-    {
-        foreach(Actor adventurer in Adventurers)
-        {
-            yield return adventurer;
-        }
-
-        foreach(Actor npc in NPCs)
-        {
-            yield return npc;
-        }
-    }
+    /// <summary>
+    /// Modifies the current level. Level determines how objects are rendered on screen, based on being above, below, or at the level.
+    /// </summary>
+    /// <param name="up">The number of <see cref="Layer"/>s to shift the screen upward. Negative values shift it downward.</param>
     public void ChangeLevel(bool up)
     {
         if (up)
         {
-            Layer upLayer = Map.Instance.NextLayer(_levelMin, 1);
+            Layer upLayer = Map.Instance[LevelMin, 1];
             if (upLayer != null)
             {
-                _camera.transform.position += Vector3.up * (_levelMax - _levelMin);
-                _levelMin = upLayer.Origin.z;
-                _levelMax = upLayer.Origin.z + upLayer.Height;
+                Camera.transform.position += Vector3.up * (LevelMax - LevelMin);
+                LevelMin = upLayer.Origin.z;
+                LevelMax = upLayer.Origin.z + upLayer.Height;
 
             }
         }
         else
         {
-            Layer downLayer = Map.Instance.NextLayer(_levelMin, -1);
+            Layer downLayer = Map.Instance[LevelMin, -1];
             if (downLayer != null)
             {
-                _camera.transform.position += Vector3.down * (_levelMax - _levelMin);
-                _levelMin = downLayer.Origin.z;
-                _levelMax = downLayer.Origin.z + downLayer.Height;
+                Camera.transform.position += Vector3.down * (LevelMax - LevelMin);
+                LevelMin = downLayer.Origin.z;
+                LevelMax = downLayer.Origin.z + downLayer.Height;
             }
         }
         Graphics.Instance.SetLevel();
     }
 
+    /// <summary>
+    /// Changes the <see cref="global::GameMode"/> between <see cref="GameMode.Build"/> and <see cref="GameMode.Play"/>.
+    /// </summary>
+    public void CycleGameMode()
+    {
+        if (GameMode == GameMode.Play)
+        {
+            GameMode = GameMode.Build;
+            BuildFunctions.BuildMode = BuildMode.None;
+            Paused = true;
+            GUI.Instance.SwitchMode(true);
+            _playWallMode = Graphics.Instance.Mode;
+        }
+        else
+        {
+            GameMode = GameMode.Play;
+            Graphics.Instance.HideHighlight();
+            Paused = false;
+            Graphics.Instance.ResetSprite();
+            GUI.Instance.SwitchMode(false);
+            Graphics.Instance.Mode = _playWallMode;
+            MapChangingFirst?.Invoke();
+            MapChangingSecond?.Invoke();
+            MapChanged?.Invoke();
+            foreach (RoomNode node in Map.Instance.AllNodes)
+            {
+                if (node != null && node != RoomNode.Undefined)
+                {
+                    if (!node.Traversable)
+                    {
+                        node.Floor.SpriteRenderer.color = Color.red;
+                    }
+                    else if (node.Reserved)
+                    {
+                        node.Floor.SpriteRenderer.color = Color.yellow;
+                    }
+                    else
+                    {
+                        node.Floor.SpriteRenderer.color = Color.white;
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Adds a new <see cref="Actor"/> to the list of hired adventurers in the guild.
+    /// </summary>
+    /// <param name="adventurer">The <see cref="Actor"/> being hired.</param>
     public void Hire(Actor adventurer)
     {
         Adventurers.Add(adventurer);
@@ -156,35 +177,66 @@ public class GameManager : MonoBehaviour, IDataPersistence
         adventurer.InitializePawn(Vector3Int.one);
     }
 
+    /// <summary>
+    /// Determines if an object at the given position is above below or on the current level, determining how it should be rendered.
+    /// </summary>
+    /// <param name="z">The z coordinate of the object.</param>
+    /// <returns>Returns 1 is <c>z</c> is above the level, -1 if <c>z</c> is below the level, and 0 if <c>z</c> is on the level.</returns>
     public int IsOnLevel(int z)
     {
-        if (z >= _levelMax)
+        if (z >= LevelMax)
             return 1;
-        else if (z < _levelMin)
+        else if (z < LevelMin)
             return -1;
         else
             return 0;
     }
 
+    /// <inheritdoc/>
     public void LoadData(GameData gameData)
     {
         Names = gameData.Names;
+        _allQuests = gameData.Quests;
     }
 
+    /// <summary>
+    /// Rejects an <see cref="Actor"/> removing them from the list of hireable adventurers.
+    /// </summary>
+    /// <param name="adventurer">The <see cref="Actor"/> being rejected.</param>
     public void Reject(Actor adventurer)
     {
         _availableHires.RemoveAll(x => x.adventurer == adventurer);
         GUI.Instance.BuildHires(_availableHires);
     }
 
+    /// <inheritdoc/>
     public void SaveData(GameData gameData)
     {
     }
 
+    /// <summary>
+    /// Zooms <see cref="Camera"/> in or out.
+    /// </summary>
+    /// <param name="zooming">The change to <see cref="Camera"/>'s size.</param>
+    public void ZoomCamera(float zooming)
+    {
+        Camera.orthographicSize -= zooming;
+
+        if (Camera.orthographicSize < ZOOMMIN)
+            Camera.orthographicSize = ZOOMMIN;
+        else if (Camera.orthographicSize > ZOOMMAX)
+            Camera.orthographicSize = ZOOMMAX;
+    }
+
+    /// <summary>
+    /// Initiates a new <see cref="Quest"/>.
+    /// </summary>
+    /// <param name="id">The index of the <see cref="QuestData"/> in <see cref="_availableQuests"/>.</param>
+    /// <param name="adventurer">The <see cref="Actor"/> going on the <see cref="Quest"/>.</param>
     public void StartQuest(int id, Actor adventurer)
     {
         id -= _runningQuests.Count;
-        if(id < 0)
+        if (id < 0)
             return;
 
         QuestData data = _availableQuests[id];
@@ -197,6 +249,21 @@ public class GameManager : MonoBehaviour, IDataPersistence
         StartCoroutine(RunQuest(quest));
     }
 
+    /// <summary>
+    /// Moves <see cref="Camera"/>.
+    /// </summary>
+    /// <param name="translation">The direction in which to move <see cref="Camera"/>.</param>
+    public void TranslateCamera(Vector3 translation)
+    {
+        float _cameraSpeed = Camera.orthographicSize / 200;
+
+        Camera.transform.Translate(translation * _cameraSpeed);
+    }
+
+    /// <summary>
+    /// Controls the start of game tutorial.
+    /// </summary>
+    /// <returns>Yield returns <see cref="WaitUntil"/> objects until the condition has been met for the tutorial to continue.</returns>
     public IEnumerator Tutorial()
     {
         IEnumerator adventurerTutorial = TutorialUI.Instance.AdventurerTutorial(_availableHires);
@@ -248,218 +315,21 @@ public class GameManager : MonoBehaviour, IDataPersistence
             questTutorial.MoveNext();
             yield return new WaitUntil(() => NextTutorialStep);
         }
+
         StartCoroutine(TutorialUI.Instance.End());
         Paused = false;
     }
 
+    /// <inheritdoc/>
     void Awake()
     {
         if (_instance == null)
         {
             _instance = this;
-            _gameMode = GameMode.Play;
-            _camera = Camera.main;
-
+            GameMode = GameMode.Play;
         }
         else
             Destroy(this);
-    }
-
-    void BuildingArea(KeyMode mode)
-    {
-        Vector3Int position = Map.SceneCoordinatesToMapCoordinates(_camera.ScreenToWorldPoint(Input.mousePosition), _levelMin);
-        switch (mode)
-        {
-            case KeyMode.LeftClickDown:
-                if (BuildFunctions.CheckPoint(position))
-                {
-                    _placingArea = true;
-                    _graphics.HideHighlight();
-                    _graphics.PlaceArea(position, position);
-                }
-                break;
-            case KeyMode.LeftClickHeld:
-                if (BuildFunctions.CheckPoint(position) && _placingArea)
-                {
-                    _graphics.PlaceArea(position);
-                }
-                break;
-            case KeyMode.LeftClickUp:
-            case KeyMode.MouseOverUI:
-                if (_placingArea)
-                {
-                    _placingArea = false;
-
-                    _graphics.Confirm();
-                    _graphics.UpdateGraphics();
-                }
-                break;
-
-            case KeyMode.None:
-                if (BuildFunctions.CheckPoint(position))
-                    BuildFunctions.HighlightPoint(Graphics.Instance._highlight, position);
-                else
-                    _graphics.HideHighlight();
-                break;
-        }
-    }
-
-    void BuildingDoor(KeyMode mode, WallSprite spriteObject)
-    {
-        switch (mode)
-        {
-            case KeyMode.None:
-                if (spriteObject != _prevObject)
-                {
-                    _prevObject = spriteObject;
-                    if (spriteObject != null)
-                    {
-                        WallSprite.PlaceDoorHighlight(spriteObject);
-                    }
-                    else
-                    {
-                        _graphics.HideHighlight();
-                    }
-                }
-                break;
-            case KeyMode.LeftClickDown:
-                if (spriteObject != null)
-                {
-                    (Vector3Int position, MapAlignment alignment) = spriteObject.GetPosition;
-                    if (WallSprite.CheckDoor(position, alignment))
-                    {
-                        _map.PlaceDoor(position, alignment);
-
-                        WallSprite.CreateDoor(position, alignment);
-                        _graphics.UpdateGraphics();
-                    }
-                }
-                break;
-        }
-    }
-
-    void BuildingLine(KeyMode mode)
-    {
-        Vector3Int position = Map.SceneCoordinatesToMapCoordinates(_camera.ScreenToWorldPoint(Input.mousePosition), _levelMin);
-        switch (mode)
-        {
-            case KeyMode.LeftClickDown:
-                if (BuildFunctions.CheckPoint(position))
-                {
-                    _placingLine = true;
-                    _lineStart = position;
-                    _lineAlignment = Map.DirectionToEdgeAlignment(BuildFunctions.Direction);
-                    _graphics.PlaceLine(position, _lineAlignment == MapAlignment.XEdge ? position.x : position.y, _lineAlignment);
-                    _graphics.HideHighlight();
-                }
-                break;
-            case KeyMode.LeftClickHeld:
-                if (BuildFunctions.CheckPoint(position) && _placingLine)
-                {
-                    _graphics.PlaceLine(_lineStart, _lineAlignment == MapAlignment.XEdge ? position.x : position.y, _lineAlignment);
-                }
-                break;
-            case KeyMode.LeftClickUp:
-            case KeyMode.MouseOverUI:
-                if (_placingLine)
-                {
-                    _placingLine = false;
-
-                    _graphics.Confirm();
-                    _graphics.UpdateGraphics();
-                }
-                break;
-
-            case KeyMode.None:
-                if (BuildFunctions.CheckPoint(position))
-                    BuildFunctions.HighlightPoint(Graphics.Instance._highlight, position);
-                else
-                    _graphics.HideHighlight();
-                break;
-        }
-    }
-
-    void BuildingPoint(KeyMode mode)
-    {
-        Vector3Int position = Map.SceneCoordinatesToMapCoordinates(_camera.ScreenToWorldPoint(Input.mousePosition), _levelMin);
-
-        switch (mode)
-        {
-            case KeyMode.None:
-                BuildFunctions.HighlightPoint(Graphics.Instance._highlight, position);
-                break;
-            case KeyMode.LeftClickDown:
-                if (BuildFunctions.CheckPoint(position))
-                    BuildFunctions.CreatePoint(position);
-                break;
-        }
-    }
-
-    void Demolish(KeyMode mode, SpriteObject spriteObject)
-    {
-        switch (mode)
-        {
-
-            case KeyMode.None:
-
-                if (spriteObject != _prevObject)
-                {
-                    _prevObject = spriteObject;
-                    if (spriteObject != null)
-                    {
-                        _graphics.HighlightDemolish(spriteObject);
-                    }
-                    else
-                    {
-                        _graphics.HideHighlight();
-                    }
-                }
-                break;
-
-            case KeyMode.LeftClickDown:
-
-                if (spriteObject != null)
-                {
-                    _graphics.Demolish(spriteObject);
-                }
-                break;
-        }
-    }
-
-    KeyMode GetKeyMode()
-    {
-        if (IsMouseOverUI())
-        {
-            return KeyMode.MouseOverUI;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Mouse0))
-        {
-            if (_doubleClick <= 0)
-            {
-                _doubleClick = DOUBLECLICKTIME;
-                return KeyMode.LeftClickDown;
-
-            }
-            else
-            {
-                _doubleClick = 0;
-                return KeyMode.DoubleLeftClick;
-            }
-        }
-
-        if (Input.GetKey(KeyCode.Mouse0))
-        {
-            return KeyMode.LeftClickHeld;
-        }
-
-        if (Input.GetKeyUp(KeyCode.Mouse0))
-        {
-            return KeyMode.LeftClickUp;
-        }
-
-        return KeyMode.None;
-
     }
 
     T GetMouseOver<T>() where T : IWorldPosition
@@ -477,18 +347,23 @@ public class GameManager : MonoBehaviour, IDataPersistence
                 if (spriteObject is T tObject && spriteObject.SpriteRenderer.enabled)
                     next = tObject;
             }
-            else if(hit.collider.TryGetComponent(out Pawn pawn))
+            else if (hit.collider.TryGetComponent(out Pawn pawn))
             {
                 if (pawn is T tObject && IsOnLevel(pawn.CurrentLevel) <= 0)
                     next = tObject;
             }
-            if (!EqualityComparer<T>.Default.Equals(next, default) &&(EqualityComparer<T>.Default.Equals(nearest, default) || Map.IsInFrontOf(next, nearest)))
+            if (!EqualityComparer<T>.Default.Equals(next, default) && (EqualityComparer<T>.Default.Equals(nearest, default) || Map.IsInFrontOf(next, nearest)))
                 nearest = next;
         }
 
         return nearest;
     }
 
+    /// <summary>
+    /// Runs the given <see cref="Quest"/>.
+    /// </summary>
+    /// <param name="quest">The <see cref="Quest"/> being run.</param>
+    /// <returns>Yield returns <see cref="WaitUntil"/> objects, first to wait for the <see cref="Pawn"/> to leave the map, then wait the duration of the <see cref="Quest"/>.</returns>
     IEnumerator RunQuest(Quest quest)
     {
         yield return new WaitUntil(() => !quest.Quester.Pawn.gameObject.activeSelf);
@@ -498,16 +373,17 @@ public class GameManager : MonoBehaviour, IDataPersistence
         _runningQuests.Remove(quest);
         GUI.Instance.BuildQuests(_availableQuests, _runningQuests);
     }
+
+    /// <inheritdoc/>
     private void Start()
     {
-        _graphics = Graphics.Instance;
-        _map = Map.Instance;
-
         StartCoroutine(Startup());
     }
 
-    public static bool GameReady { get; private set; } = false;
-
+    /// <summary>
+    /// Runs the initial setup for the game.
+    /// </summary>
+    /// <returns>Yield returns <see cref="WaitUntil"/> objects until the <see cref="Map"/> and all <see cref="SpriteObject"/>s have completed setup.</returns>
     IEnumerator Startup()
     {
         yield return new WaitUntil(() => Map.Ready && ObjectsReady <= 0);
@@ -564,9 +440,9 @@ public class GameManager : MonoBehaviour, IDataPersistence
         _lastAdventurerTick = Tick;
     }
 
-    //Timescale: 1 FrameTick == 10 seconds.
-    //Time value is measured in frame ticks.
-    //PROBABLY NOT TRUE ANYMORE
+    /// <summary>
+    /// Called for every second that passes, updates <see cref="Tick"/> and performs periodic actions.
+    /// </summary>
     void Tock()
     {
         Tick++;
@@ -615,6 +491,8 @@ public class GameManager : MonoBehaviour, IDataPersistence
 
     [SerializeField] PlayerPawn _player;
 
+
+    /// <inheritdoc/>
     private void Update()
     {
         if(TICK_TIME < _time)
@@ -779,26 +657,6 @@ public class GameManager : MonoBehaviour, IDataPersistence
             {
                 KeyMode mode = GetKeyMode();
 
-                switch(BuildFunctions.BuildMode)
-                {
-                    case BuildMode.Point:
-                        BuildingPoint(mode);
-                        break;
-                    case BuildMode.Line:
-                        BuildingLine(mode);
-                        break;
-                    case BuildMode.Door:
-                        BuildingDoor(mode, GetMouseOver<WallSprite>());
-                        break;
-                    case BuildMode.Area:
-                        BuildingArea(mode);
-                        break;
-                    case BuildMode.Demolish:
-                        Demolish(mode, GetMouseOver<SpriteObject>());
-                        break;
-                }
-            }
-        }
 
         NonMonoUpdate?.Invoke();
     }

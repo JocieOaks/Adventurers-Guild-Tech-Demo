@@ -2,6 +2,9 @@ using System.Collections;
 using UnityEngine;
 using System.Collections.Specialized;
 
+/// <summary>
+/// The kinds of speech for when a <see cref="Pawn"/> is conversing with another <see cref="Pawn"/>.
+/// </summary>
 public enum SpeechType
 {
     Greet,
@@ -178,7 +181,7 @@ public class SocialAI
 
                 foreach (AdventurerPawn pawn in GetNearbyPawns(8))
                 {
-                    if (CanSpeakTo(pawn) && Vector3.Dot(Map.DirectionToVector(_pawn.Direction), pawn.WorldPosition - _pawn.WorldPosition) > 0)
+                    if (CanSpeakTo(pawn) && Vector3.Dot(Utility.DirectionToVector(_pawn.Direction), pawn.WorldPosition - _pawn.WorldPosition) > 0)
                         Speak(pawn, SpeechType.Comment);
                 }
             }

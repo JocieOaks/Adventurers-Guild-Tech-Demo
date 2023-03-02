@@ -47,7 +47,7 @@ public abstract class SpriteObject :  ISpriteObject
 
         _spriteRenderers = new SpriteRenderer[spriteCount];
         _spriteRenderers[0] = Object.Instantiate(Graphics.Instance.SpritePrefab).GetComponent<SpriteRenderer>();
-        Transform.position = Map.MapCoordinatesToSceneCoordinates(position);
+        Transform.position = Utility.MapCoordinatesToSceneCoordinates(position);
         for (int i = 1; i < spriteCount; i++)
         {
             _spriteRenderers[i] = Object.Instantiate(Graphics.Instance.SpritePrefab, Transform).GetComponent<SpriteRenderer>();
@@ -62,7 +62,7 @@ public abstract class SpriteObject :  ISpriteObject
             _ => sprites[0],
         };
         SpriteRenderer.name = name;
-        SpriteRenderer.sortingOrder = Graphics.GetSortOrder(position);
+        SpriteRenderer.sortingOrder = Utility.GetSortOrder(position);
 
         SpriteRenderer.enabled = GameManager.Instance.IsOnLevel(WorldPosition.z) <= 0;
 
@@ -72,7 +72,7 @@ public abstract class SpriteObject :  ISpriteObject
         GameManager.MapChangingSecond += OnMapChanging;
 
         if (this is not WallSprite && this is not StairSprite && this is not FloorSprite)
-            DataPersistenceManager.instance.NonMonoDataPersistenceObjects.Add(this);
+            DataPersistenceManager.Instance.NonMonoDataPersistenceObjects.Add(this);
     }
 
     /// <value>The 3D dimensions of any <see cref="SpriteObject"/> of this class in terms of <see cref="Map"/> coordinates.</value>
@@ -163,7 +163,7 @@ public abstract class SpriteObject :  ISpriteObject
 
         if (SpriteRenderer != null)
             Object.Destroy(GameObject);
-        DataPersistenceManager.instance.NonMonoDataPersistenceObjects.Remove(this);
+        DataPersistenceManager.Instance.NonMonoDataPersistenceObjects.Remove(this);
     }
 
     /// <summary>
@@ -241,22 +241,26 @@ public abstract class SpriteObject :  ISpriteObject
     /// <param name="inititalize">True if pixelArray needs to be initialized.</param>
     protected static void BuildPixelArray(Sprite sprite, ref bool[,] pixelArray, bool inititalize = true)
     {
+        Rect rect = sprite.rect;
+        int xMin = (int)rect.xMin;
+        int xMax = (int)rect.xMax;
+        int yMin = (int)rect.yMin;
+        int yMax = (int)rect.yMax;
         int width = sprite.texture.width;
-        int height = sprite.texture.height;
 
         if (inititalize)
         {
-            pixelArray = new bool[height, width];
+            pixelArray = new bool[(int)rect.height, (int)rect.width];
         }
 
         Color32[] array = sprite.texture.GetPixels32();
-        for (int j = 0; j < height; j++)
+        for (int j = yMin; j < yMax; j++)
         {
-            for (int k = 0; k < width; k++)
+            for (int k = xMin; k < xMax; k++)
             {
                 if (array[j * width + k].a > 0)
                 {
-                    pixelArray[j, k] = true;
+                    pixelArray[j - yMin, k - xMin] = true;
                 }
             }
         }

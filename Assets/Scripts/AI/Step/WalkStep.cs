@@ -11,7 +11,7 @@ public class WalkStep : TaskStep, IDirected
     Vector3 _step;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="WalkStep"/> class. Checks if the previous <see cref="TaskStep"/> of the <see cref="AdventurerPawn"/> 
+    /// Initializes a new instance of the <see cref="WalkStep"/> class. Checks if the previous <see cref="TaskStep"/> of the <see cref="Pawn"/> 
     /// is also a <see cref="WalkStep"/> so that the animations work properly.</param>
     /// </summary>
     /// <param name="end">The <see cref="Map"/> coordinates of the <see cref="Pawn"/>'s destination. 

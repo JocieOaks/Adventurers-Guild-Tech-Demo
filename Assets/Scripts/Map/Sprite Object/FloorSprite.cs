@@ -18,11 +18,11 @@ public class FloorSprite : AreaSpriteObject
         if (position == Vector3Int.back)
             return;
 
-        SpriteRenderer.sortingOrder = Graphics.GetSortOrder(position) - 4;
+        SpriteRenderer.sortingOrder = Utility.GetSortOrder(position) - 4;
         SpriteRenderer.color = Color.white;
 
-        Graphics.CheckingAreaConstraints -= OnCheckingConstraints;
-        Graphics.ConfirmingObjects -= OnConfirmingObjects;
+        BuildFunctions.CheckingAreaConstraints -= OnCheckingConstraints;
+        BuildFunctions.ConfirmingObjects -= OnConfirmingObjects;
     }
 
     /// <value>The current index for any <see cref="FloorSprite"/>s placed.</value>
@@ -109,8 +109,8 @@ public class FloorSprite : AreaSpriteObject
         FloorSprite floor = Map.Instance[position].Floor;
         floor.Sprite = Graphics.Instance.FloorSprites[FloorSpriteIndex];
         floor.SpriteRenderer.color = Graphics.Instance.HighlightColor;
-        Graphics.ConfirmingObjects += floor.OnConfirmingObjects;
-        Graphics.CheckingAreaConstraints += floor.OnCheckingConstraints;
+        BuildFunctions.ConfirmingObjects += floor.OnConfirmingObjects;
+        BuildFunctions.CheckingAreaConstraints += floor.OnCheckingConstraints;
     }
 
     /// <summary>
@@ -161,8 +161,8 @@ public class FloorSprite : AreaSpriteObject
 
         if (WorldPosition.x < minX || WorldPosition.y < minY || WorldPosition.x > maxX || WorldPosition.y > maxY)
         {
-            Graphics.ConfirmingObjects -= OnConfirmingObjects;
-            Graphics.CheckingAreaConstraints -= OnCheckingConstraints;
+            BuildFunctions.ConfirmingObjects -= OnConfirmingObjects;
+            BuildFunctions.CheckingAreaConstraints -= OnCheckingConstraints;
 
             ResetSprite();
         }
@@ -171,8 +171,8 @@ public class FloorSprite : AreaSpriteObject
     /// <inheritdoc/>
     protected override void OnConfirmingObjects()
     {
-        Graphics.CheckingAreaConstraints -= OnCheckingConstraints;
-        Graphics.ConfirmingObjects -= OnConfirmingObjects;
+        BuildFunctions.CheckingAreaConstraints -= OnCheckingConstraints;
+        BuildFunctions.ConfirmingObjects -= OnConfirmingObjects;
         SpriteIndex = FloorSpriteIndex;
         SpriteRenderer.color = Color.white;
         Enabled = true;

@@ -10,7 +10,7 @@ public class LandingConnector : ConnectingNode, IDirected
     /// </summary>
     /// <param name="connection1">The <see cref="StairNode"/> that produced the <see cref="LandingConnector"/>.</param>
     /// <param name="direction">The <see cref="global::Direction"/> the <see cref="StairNode"/> is facing.</param>
-    public LandingConnector(StairNode connection1, Direction direction) : base(connection1, Map.Instance[connection1.WorldPosition + Vector3Int.forward + Map.DirectionToVector(direction)], Vector3Int.zero)
+    public LandingConnector(StairNode connection1, Direction direction) : base(connection1, Map.Instance[connection1.WorldPosition + Vector3Int.forward + Utility.DirectionToVector(direction)], Vector3Int.zero)
     {
         FirstNode.SetNode(direction, this);
         SecondNode.SetNode(~direction, this);

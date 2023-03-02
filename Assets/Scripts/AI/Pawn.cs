@@ -5,6 +5,19 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 /// <summary>
+/// The current body position a <see cref="Pawn"/> is in.
+/// </summary>
+public enum Stance
+{
+    /// <summary>The <see cref="Pawn"/> is  standing or walking.</summary>
+    Stand,
+    /// <summary>The <see cref="Pawn"/> is sitting.</summary>
+    Sit,
+    /// <summary>The <see cref="Pawn"/> is laying down.</summary>
+    Lay
+}
+
+/// <summary>
 /// The <see cref="Pawn"/> class is the base class for all characters in the game world, including the player and NPCs.
 /// </summary>
 public abstract class Pawn : MonoBehaviour, IWorldPosition
@@ -39,10 +52,10 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
         }
     }
 
-    /// <value> The current <see cref="TaskStep"/> the <see cref="AdventurerPawn"/> is performing.</value>
+    /// <value> The current <see cref="TaskStep"/> the <see cref="Pawn"/> is performing.</value>
     public TaskStep CurrentStep { get; set; }
 
-    /// <value> The current <c>Direction</c> the <see cref="AdventurerPawn"/> is currently facing. May be undirected if the <see cref="TaskStep"/> the <see cref="AdventurerPawn"/> is performing does not face a cardinal direction, i.e. lying down.</value>
+    /// <value> The current <c>Direction</c> the <see cref="Pawn"/> is currently facing. May be undirected if the <see cref="TaskStep"/> the <see cref="Pawn"/> is performing does not face a cardinal direction, i.e. lying down.</value>
     public Direction Direction
     {
         get
@@ -68,7 +81,7 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
     /// <inheritdoc/>
     public Room Room => Node.Room;
 
-    /// <value>The speed that the <see cref="AdventurerPawn"/> moves. Measured as the number of <see cref="RoomNode"/> tiles the <see cref="AdventurerPawn"/> can cross per second.</value>
+    /// <value>The speed that the <see cref="AdventurerPawn"/> moves. Measured as the number of <see cref="RoomNode"/> tiles the <see cref="Pawn"/> can cross per second.</value>
     public virtual float Speed => 2.5f * CurrentNode.SpeedMultiplier;
 
     /// <value>Assigns the animation <see cref="Sprite"/>s for the <see cref="AdventurerPawn"/> if they are not already assigned.</value>
@@ -81,13 +94,13 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
         }
     }
 
-    /// <value> The current <c>Stance</c> the <see cref="AdventurerPawn"/> is in.</value>
+    /// <value> The current <c>Stance</c> the <see cref="Pawn"/> is in.</value>
     public Stance Stance { get; set; } = Stance.Stand;
 
-    ///<value> The nearest <see cref="Vector3Int"/> position of the <see cref="AdventurerPawn"/> in the <see cref="Map"/>'s coordinate system, and the position of the nearest <see cref="RoomNode"/>.</value>
+    ///<value> The nearest <see cref="Vector3Int"/> position of the <see cref="Pawn"/> in the <see cref="Map"/>'s coordinate system, and the position of the nearest <see cref="RoomNode"/>.</value>
     public Vector3Int WorldPosition => CurrentNode.SurfacePosition;
 
-    ///<value> Gives the Vector3 representation of the <see cref="AdventurerPawn"/>'s actual position in the <see cref="Map"/>'s coordinate system.</value>
+    ///<value> Gives the Vector3 representation of the <see cref="Pawn"/>'s actual position in the <see cref="Map"/>'s coordinate system.</value>
     public virtual Vector3 WorldPositionNonDiscrete
     {
         get => _worldPosition;
@@ -112,10 +125,10 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
                     Room.EnterRoom(this);
                 }
 
-                _sortingGroup.sortingOrder = Graphics.GetSortOrder(WorldPosition);
+                _sortingGroup.sortingOrder = Utility.GetSortOrder(WorldPosition);
                 BuildSpriteMask();
             }
-            transform.position = Map.MapCoordinatesToSceneCoordinates(value);
+            transform.position = Utility.MapCoordinatesToSceneCoordinates(value);
         }
     }
 
@@ -214,7 +227,7 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
             _maskTexture.Apply();
 
             _mask.sprite = Sprite.Create(_maskTexture, new Rect(0, 0, _maskTexture.width, _maskTexture.height), new Vector2(s_maskPivot.x / _maskTexture.width, s_maskPivot.y / _maskTexture.height), 6);
-            _mask.transform.position = Map.MapCoordinatesToSceneCoordinates(WorldPosition);
+            _mask.transform.position = Utility.MapCoordinatesToSceneCoordinates(WorldPosition);
         }
     }
 
@@ -241,7 +254,7 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
     }
 
     /// <summary>
-    /// Enables the or disables the sprite from view if the <see cref="AdventurerPawn"/> is on a visible level.
+    /// Enables the or disables the sprite from view if the <see cref="Pawn"/> is on a visible level.
     /// </summary>
     protected void OnLevelChange()
     {
@@ -255,7 +268,7 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
     }
 
     /// <summary>
-    /// Initializes the <see cref="AdventurerPawn"/> once the game is ready.
+    /// Initializes the <see cref="Pawn"/> once the game is ready.
     /// </summary>
     /// <returns>Returns <see cref="WaitUntil"/> objects for the <see cref="MonoBehaviour.StartCoroutine(IEnumerator)"/>, until the <see cref="GameManager"/> is ready.</returns>
     protected abstract IEnumerator Startup();

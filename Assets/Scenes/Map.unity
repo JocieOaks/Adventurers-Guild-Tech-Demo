@@ -526,11 +526,11 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 10df58eb1326a4f4a92fdcbcafcffb9b, type: 3}
   - {fileID: 21300000, guid: 45d9d81e3e884884a9a05deccaa96e68, type: 3}
   Marker: {fileID: 21300000, guid: c4e2123aca855c547899d4e1cbd4312b, type: 3}
-  PawnPrefab: {fileID: 5285737382828733189, guid: fbd87704f06da184aa285e39a530ff21, type: 3}
   PawnGradientGreyscale: {fileID: 2800000, guid: 03dcff08e7dae364e84e8bda10eca590, type: 3}
   PawnGradientHair: {fileID: 2800000, guid: 5bb8b62fb550662469fc326cff56afb9, type: 3}
   PawnGradientHorns: {fileID: 2800000, guid: cbad70d5e4d1c454b916296e96e60796, type: 3}
   PawnGradientSkin: {fileID: 2800000, guid: 064d4b077e1b959459973d05afb126f7, type: 3}
+  PawnPrefab: {fileID: 5285737382828733189, guid: fbd87704f06da184aa285e39a530ff21, type: 3}
   PawnTextureBeard: {fileID: 2800000, guid: 916492a93b142314690c9fd6c7f6a488, type: 3}
   PawnTextureBodyHairMuscular: {fileID: 2800000, guid: 4fb56d019bf4f214e8b02983930f1a23, type: 3}
   PawnTextureBodyHairThick: {fileID: 2800000, guid: 7ca6e955b16cae14b98ed687415b6b24, type: 3}
@@ -545,11 +545,12 @@ MonoBehaviour:
   PawnTextureHornsBack: {fileID: 2800000, guid: 34f9c0164c532584c9bddb16c6e888fe, type: 3}
   PawnTextureHornsFront: {fileID: 2800000, guid: 5291d485f470dfd4f9173d57fa66126c, type: 3}
   PawnTextureOrcTeeth: {fileID: 2800000, guid: 703013f469c9b8548a314c4f3157d0bc, type: 3}
+  SortingObject: {fileID: 7166101619220699102, guid: 68bb38e829af9124a8c4bedc4010c847, type: 3}
   SpeechBubble: {fileID: 6450863367998771783, guid: 0ec6ebe32cf222940a474f522cbaa6aa, type: 3}
   SpritePrefab: {fileID: 4334146755354440016, guid: 2e79435de366dcf47b0ed05833b85dbe, type: 3}
+  StairsEast: {fileID: 21300000, guid: 924fb79e03671154894868ea717585b1, type: 3}
   StairsNorth: {fileID: 21300000, guid: b89078a9e29516946a9707b6859d07ee, type: 3}
   StairsSouth: {fileID: 21300000, guid: be1ce84f6b5db4e4eaaa02fe3c1231e3, type: 3}
-  StairsEast: {fileID: 21300000, guid: 924fb79e03671154894868ea717585b1, type: 3}
   StairsWest: {fileID: 21300000, guid: eb55c97161cf47143aab781cb028608f, type: 3}
   Stool: {fileID: 21300000, guid: bd8823a404095b94da113cfd0e96bc32, type: 3}
   TableRound:
@@ -593,20 +594,43 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 2d1da27baa9005543ab8cdb51ced61c2, type: 3}
   - {fileID: 21300000, guid: 6c2b889bf5c8a9f4a8f5b7450a1866c2, type: 3}
   UnsortedWallSprites:
-  - {fileID: 21300000, guid: 9196d4c196f24e74b81c088c05fb4ff8, type: 3}
-  - {fileID: 21300000, guid: 75607cfa520f9ef43be5f77b59104138, type: 3}
-  - {fileID: 21300000, guid: cb476464050bc1640b8b44d50a4080f6, type: 3}
-  - {fileID: 21300000, guid: 40cbea170dab6e54480897a5273ac5b5, type: 3}
-  - {fileID: 21300000, guid: dd8ac4a5b5eb29149b4fb689085225b8, type: 3}
-  - {fileID: 21300000, guid: 9367a3ca6a95b4445bc92ddb294688a0, type: 3}
-  - {fileID: 21300000, guid: b096560d2a1198241aca5f22136b77bd, type: 3}
-  - {fileID: 21300000, guid: 25a145f3ee027904ba8143f9ab2d4479, type: 3}
-  - {fileID: 21300000, guid: 8812bfbfb0169654c88e3295b711c87d, type: 3}
-  - {fileID: 21300000, guid: 8bf8257cd916d8d48bae08a76d60c666, type: 3}
-  - {fileID: 21300000, guid: 80ab51c1f1836cf408d590715d6adc00, type: 3}
-  - {fileID: 21300000, guid: cc65c177b05e5684a863c2fc83ce70c2, type: 3}
+  - {fileID: 1476089300, guid: 06ef9a8302a71924bae10c2b4f78e62a, type: 3}
+  - {fileID: 646718656, guid: 06ef9a8302a71924bae10c2b4f78e62a, type: 3}
+  - {fileID: 1104109984, guid: 06ef9a8302a71924bae10c2b4f78e62a, type: 3}
+  - {fileID: 1117462954, guid: 06ef9a8302a71924bae10c2b4f78e62a, type: 3}
+  - {fileID: -1185149691, guid: 06ef9a8302a71924bae10c2b4f78e62a, type: 3}
+  - {fileID: -1252348938, guid: 06ef9a8302a71924bae10c2b4f78e62a, type: 3}
+  - {fileID: -474272456, guid: 06ef9a8302a71924bae10c2b4f78e62a, type: 3}
+  - {fileID: -893358800, guid: 06ef9a8302a71924bae10c2b4f78e62a, type: 3}
+  - {fileID: -1175733420, guid: 06ef9a8302a71924bae10c2b4f78e62a, type: 3}
+  - {fileID: 1972528087, guid: 06ef9a8302a71924bae10c2b4f78e62a, type: 3}
+  - {fileID: 269053050, guid: 06ef9a8302a71924bae10c2b4f78e62a, type: 3}
+  - {fileID: -1246324427, guid: 06ef9a8302a71924bae10c2b4f78e62a, type: 3}
+  - {fileID: 596251864, guid: f43f8424935ae9f47b3aeacb784534da, type: 3}
+  - {fileID: 1360035084, guid: f43f8424935ae9f47b3aeacb784534da, type: 3}
+  - {fileID: -1124953317, guid: f43f8424935ae9f47b3aeacb784534da, type: 3}
+  - {fileID: 677175836, guid: f43f8424935ae9f47b3aeacb784534da, type: 3}
+  - {fileID: -448489747, guid: f43f8424935ae9f47b3aeacb784534da, type: 3}
+  - {fileID: -1921142425, guid: f43f8424935ae9f47b3aeacb784534da, type: 3}
+  - {fileID: -1453562032, guid: f43f8424935ae9f47b3aeacb784534da, type: 3}
+  - {fileID: -1097500349, guid: f43f8424935ae9f47b3aeacb784534da, type: 3}
+  - {fileID: -856913344, guid: f43f8424935ae9f47b3aeacb784534da, type: 3}
+  - {fileID: 2141439648, guid: f43f8424935ae9f47b3aeacb784534da, type: 3}
+  - {fileID: 680296433, guid: f43f8424935ae9f47b3aeacb784534da, type: 3}
+  - {fileID: -1055692471, guid: f43f8424935ae9f47b3aeacb784534da, type: 3}
+  - {fileID: -900681597, guid: a96f85d4f6b4d884084072d7c770aa08, type: 3}
+  - {fileID: -980549575, guid: a96f85d4f6b4d884084072d7c770aa08, type: 3}
+  - {fileID: 1484759825, guid: a96f85d4f6b4d884084072d7c770aa08, type: 3}
+  - {fileID: 1130711354, guid: a96f85d4f6b4d884084072d7c770aa08, type: 3}
+  - {fileID: 198090689, guid: a96f85d4f6b4d884084072d7c770aa08, type: 3}
+  - {fileID: 1110750960, guid: a96f85d4f6b4d884084072d7c770aa08, type: 3}
+  - {fileID: 1005080598, guid: a96f85d4f6b4d884084072d7c770aa08, type: 3}
+  - {fileID: -119746376, guid: a96f85d4f6b4d884084072d7c770aa08, type: 3}
+  - {fileID: 1749112928, guid: a96f85d4f6b4d884084072d7c770aa08, type: 3}
+  - {fileID: -390183771, guid: a96f85d4f6b4d884084072d7c770aa08, type: 3}
+  - {fileID: -1410627840, guid: a96f85d4f6b4d884084072d7c770aa08, type: 3}
+  - {fileID: 825975815, guid: a96f85d4f6b4d884084072d7c770aa08, type: 3}
   Wave: {fileID: 21300000, guid: 713962bceae440b4e9ff9eb63d92e169, type: 3}
-  SortingObject: {fileID: 7166101619220699102, guid: 68bb38e829af9124a8c4bedc4010c847, type: 3}
 --- !u!114 &519420035
 MonoBehaviour:
   m_ObjectHideFlags: 0
