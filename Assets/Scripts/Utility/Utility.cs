@@ -7,6 +7,10 @@ using UnityEngine;
 /// </summary>
 public static class Utility
 {
+
+    public static readonly float RAD2_2 = Mathf.Sqrt(2) / 2;
+    public static readonly float RAD6_4 = Mathf.Sqrt(5) / 4;
+
     /// <summary>
     /// Calculates the <see cref="SpriteRenderer"/> sorting order of an object at this position.
     /// </summary>
@@ -44,6 +48,27 @@ public static class Utility
             Direction.SouthEast => new Vector3Int(1, -1),
             Direction.NorthWest => new Vector3Int(-1, 1),
             Direction.SouthWest => new Vector3Int(-1, -1),
+            _ => default,
+        };
+    }
+
+    /// <summary>
+    /// Get's the vector that is in the direction of a <see cref="Direction"/>, with a magnitude of 1.
+    /// </summary>
+    /// <param name="direction">The <see cref="Direction"/> of the vector.</param>
+    /// <returns>Returns a normalized <see cref="Vector3Int"/> that points the same way as <c>direction</c>.</returns>
+    public static Vector3 DirectionToVectorNormalized(Direction direction)
+    {
+        return direction switch
+        {
+            Direction.North => Vector3.up,
+            Direction.South => Vector3.down,
+            Direction.East => Vector3.right,
+            Direction.West => Vector3.left,
+            Direction.NorthEast => new Vector3(RAD2_2, RAD2_2),
+            Direction.SouthEast => new Vector3(RAD2_2, -RAD2_2),
+            Direction.NorthWest => new Vector3(-RAD2_2, RAD2_2),
+            Direction.SouthWest => new Vector3(-RAD2_2, -RAD2_2),
             _ => default,
         };
     }
@@ -97,23 +122,29 @@ public static class Utility
     /// </summary>
     /// <param name="vector">The <see cref="Vector3"/> being evaluated.</param>
     /// <returns>Returns the <see cref="Direction"/> that <c>vector</c> points in.</returns>
-    public static Direction VectorToDir(Vector3 vector)
+    public static Direction VectorToDirection(Vector3 vector, bool cardinal = false)
     {
         Vector2 gameVector = new(vector.x, vector.y);
-        int best = 0;
-        float best_product = Vector2.Dot(gameVector, new Vector2(1, 1).normalized);
 
-        for (int i = 1; i < 8; i++)
+        if (gameVector == Vector2.zero)
+            return Direction.Undirected;
+
+        int best = 7;
+        float best_product = Vector2.Dot(gameVector, new Vector2(0, 1));
+
+        for (int i = 0; i < 7; i++)
         {
+            if (cardinal && i % 2 == 0)
+                continue;
             var value = i switch
             {
-                1 => Vector2.Dot(gameVector, new Vector2(1, 0).normalized),
-                2 => Vector2.Dot(gameVector, new Vector2(1, -1).normalized),
-                3 => Vector2.Dot(gameVector, new Vector2(0, -1).normalized),
-                4 => Vector2.Dot(gameVector, new Vector2(-1, -1).normalized),
-                5 => Vector2.Dot(gameVector, new Vector2(-1, 0).normalized),
-                6 => Vector2.Dot(gameVector, new Vector2(-1, 1).normalized),
-                _ => Vector2.Dot(gameVector, new Vector2(0, 1).normalized),
+                1 => Vector2.Dot(gameVector, new Vector2(1, 0)),
+                2 => Vector2.Dot(gameVector, new Vector2(RAD2_2, -RAD2_2)),
+                3 => Vector2.Dot(gameVector, new Vector2(0, -1)),
+                4 => Vector2.Dot(gameVector, new Vector2(-RAD2_2, -RAD2_2)),
+                5 => Vector2.Dot(gameVector, new Vector2(-1, 0)),
+                6 => Vector2.Dot(gameVector, new Vector2(-RAD2_2, RAD2_2)),
+                _ => Vector2.Dot(gameVector, new Vector2(RAD2_2, RAD2_2)),
             };
             if (value > best_product)
             {

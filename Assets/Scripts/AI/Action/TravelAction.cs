@@ -154,7 +154,8 @@ public class TravelAction : TaskAction
         {
             if (walkingPath[i] == default)
             {
-                Destination = walkingPath[i - 1].position;
+                if(i != 0)
+                    Destination = walkingPath[i - 1].position;
                 break;
             }
             _walkingPath.Enqueue(walkingPath[i].isDoor ? Map.Instance.GetConnectionNode(walkingPath[i].position) : Map.Instance[walkingPath[i].position]);

@@ -5,9 +5,6 @@
 /// </summary>
 public class WallBlocker : BlockingNode
 {
-    /// <value>The <see cref="global::WallSprite"/> associated with this <see cref="WallBlocker"/>.</value>
-    public WallSprite WallSprite { get; }
-
     /// <summary>
     /// Initializes a new instace of the <see cref="WallBlocker"/> class for a <see cref="global::WallSprite"/> that has already been constructed.
     /// </summary>
@@ -33,10 +30,16 @@ public class WallBlocker : BlockingNode
     /// </summary>
     /// <param name="worldPosition">The <see cref="IWorldPosition.WorldPosition"/> of the <see cref="WallBlocker"/>.</param>
     /// <param name="alignment">The <see cref="MapAlignment"/> of the <see cref="WallBlocker"/>.</param>
-    public WallBlocker(Vector3Int worldPosition, MapAlignment alignment) :base(worldPosition, alignment)
+    public WallBlocker(Vector3Int worldPosition, MapAlignment alignment) : base(worldPosition, alignment)
     {
         WallSprite = new WallSprite(worldPosition, alignment, 6, WallMaterial.Brick, this);
     }
+
+    /// <inheritdoc/>
+    public override Vector3Int Dimensions => WallSprite.Dimensions;
+
+    /// <value>The <see cref="global::WallSprite"/> associated with this <see cref="WallBlocker"/>.</value>
+    public WallSprite WallSprite { get; }
 
     /// <summary>
     /// Removes this wall from the <see cref="Map"/> connecting the two <see cref="RoomNode"/>s the <see cref="WallBlocker"/> was between.
@@ -52,7 +55,4 @@ public class WallBlocker : BlockingNode
             SecondNode.SetNode(Alignment == MapAlignment.XEdge ? Direction.South : Direction.West, FirstNode);
         }
     }
-
-    /// <inheritdoc/>
-    public override Vector3Int Dimensions => WallSprite.Dimensions;
 }

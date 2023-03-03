@@ -123,43 +123,44 @@ public class GameManager : MonoBehaviour, IDataPersistence
     /// <summary>
     /// Changes the <see cref="global::GameMode"/> between <see cref="GameMode.Build"/> and <see cref="GameMode.Play"/>.
     /// </summary>
-    public void CycleGameMode()
+    public void CycleGameMode(GameMode gameMode)
     {
-        if (GameMode == GameMode.Play)
+        if (gameMode == GameMode.Build)
         {
-            GameMode = GameMode.Build;
-            BuildFunctions.BuildMode = BuildMode.None;
-            Paused = true;
-            GUI.Instance.SwitchMode(true);
-            _playWallMode = Graphics.Instance.Mode;
+            if (GameMode == GameMode.Play)
+            {
+                GameMode = GameMode.Build;
+                BuildFunctions.BuildMode = BuildMode.None;
+                Paused = true;
+                GUI.Instance.SwitchMode(true);
+                _playWallMode = Graphics.Instance.Mode;
+            }
+            else
+            {
+                GameMode = GameMode.Play;
+                Graphics.Instance.HideHighlight();
+                Paused = false;
+                Graphics.Instance.ResetSprite();
+                GUI.Instance.SwitchMode(false);
+                Graphics.Instance.Mode = _playWallMode;
+                MapChangingFirst?.Invoke();
+                MapChangingSecond?.Invoke();
+                MapChanged?.Invoke();
+
+                if (DEBUG)
+                    DebugHighlightRoomNodes();
+            }
         }
         else
         {
-            GameMode = GameMode.Play;
-            Graphics.Instance.HideHighlight();
-            Paused = false;
-            Graphics.Instance.ResetSprite();
-            GUI.Instance.SwitchMode(false);
-            Graphics.Instance.Mode = _playWallMode;
-            MapChangingFirst?.Invoke();
-            MapChangingSecond?.Invoke();
-            MapChanged?.Invoke();
-            foreach (RoomNode node in Map.Instance.AllNodes)
+            if (GameMode == GameMode.Play)
+                GameMode = GameMode.Overview;
+            else if (GameMode == GameMode.Overview)
             {
-                if (node != null && node != RoomNode.Undefined)
+                GameMode = GameMode.Play;
+                if (DEBUG)
                 {
-                    if (!node.Traversable)
-                    {
-                        node.Floor.SpriteRenderer.color = Color.red;
-                    }
-                    else if (node.Reserved)
-                    {
-                        node.Floor.SpriteRenderer.color = Color.yellow;
-                    }
-                    else
-                    {
-                        node.Floor.SpriteRenderer.color = Color.white;
-                    }
+                    GUI.Instance.SetDebugPanel(null);
                 }
             }
         }
@@ -332,33 +333,6 @@ public class GameManager : MonoBehaviour, IDataPersistence
             Destroy(this);
     }
 
-    T GetMouseOver<T>() where T : IWorldPosition
-    {
-        RaycastHit2D[] hits;
-        Vector2 ray = _camera.ScreenToWorldPoint(Input.mousePosition);
-        hits = Physics2D.RaycastAll(ray, Vector2.zero);
-        T nearest = default;
-        foreach (RaycastHit2D hit in hits)
-        {
-            T next = default;
-            if (hit.collider.TryGetComponent(out SpriteObject.SpriteCollider collider))
-            {
-                SpriteObject spriteObject = collider.SpriteObject;
-                if (spriteObject is T tObject && spriteObject.SpriteRenderer.enabled)
-                    next = tObject;
-            }
-            else if (hit.collider.TryGetComponent(out Pawn pawn))
-            {
-                if (pawn is T tObject && IsOnLevel(pawn.CurrentLevel) <= 0)
-                    next = tObject;
-            }
-            if (!EqualityComparer<T>.Default.Equals(next, default) && (EqualityComparer<T>.Default.Equals(nearest, default) || Map.IsInFrontOf(next, nearest)))
-                nearest = next;
-        }
-
-        return nearest;
-    }
-
     /// <summary>
     /// Runs the given <see cref="Quest"/>.
     /// </summary>
@@ -390,24 +364,8 @@ public class GameManager : MonoBehaviour, IDataPersistence
 
         MapChangingFirst?.Invoke();
         MapChangingSecond?.Invoke();
-        foreach (RoomNode node in Map.Instance.AllNodes)
-        {
-            if (node != null && node != RoomNode.Undefined)
-            {
-                if (!node.Traversable)
-                {
-                    node.Floor.SpriteRenderer.color = Color.red;
-                }
-                else if (node.Reserved)
-                {
-                    node.Floor.SpriteRenderer.color = Color.yellow;
-                }
-                else
-                {
-                    node.Floor.SpriteRenderer.color = Color.white;
-                }
-            }
-        }
+        if(DEBUG)
+            DebugHighlightRoomNodes();
 
         for (int i = 0; i < 3; i++)
         {
@@ -429,6 +387,10 @@ public class GameManager : MonoBehaviour, IDataPersistence
         GameReady = true;
     }
 
+    /// <summary>
+    /// Creates a new <see cref="Actor"/> and adds them to the list of available hires. Waits for the <see cref="Actor"/>'s sprite sheet to be created on a worker thread.
+    /// </summary>
+    /// <returns>Yield returns <see cref="WaitUntil"/> objects to wait for <see cref="Graphics.BuildSpriteJob"/> to complete.</returns>
     IEnumerator CreateActor()
     {
         Actor adventurer = new(out JobHandle jobHandle);
@@ -438,6 +400,28 @@ public class GameManager : MonoBehaviour, IDataPersistence
         _availableHires.Add((adventurer, Tick + 500));
         GUI.Instance.BuildHires(_availableHires);
         _lastAdventurerTick = Tick;
+    }
+
+    void DebugHighlightRoomNodes()
+    {
+        foreach (RoomNode node in Map.Instance.AllNodes)
+        {
+            if (node != null && node != RoomNode.Undefined)
+            {
+                if (!node.Traversable)
+                {
+                    node.Floor.SpriteRenderer.color = Color.red;
+                }
+                else if (node.Reserved)
+                {
+                    node.Floor.SpriteRenderer.color = Color.yellow;
+                }
+                else
+                {
+                    node.Floor.SpriteRenderer.color = Color.white;
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -503,160 +487,10 @@ public class GameManager : MonoBehaviour, IDataPersistence
         if(!Paused)
             _time += Time.deltaTime;
 
-        if(_doubleClick > 0)
+        if (GameMode == GameMode.Play)
         {
-            _doubleClick -= Time.deltaTime;
+            Camera.transform.position = _player.transform.position + Vector3.back * 10;
         }
-
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Application.Quit();
-        }
-
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            _graphics.CycleMode();
-        }
-
-        if (Input.GetKeyDown(KeyCode.B))
-        {
-            if (_gameMode == GameMode.Play)
-            {
-                _gameMode = GameMode.Build;
-                BuildFunctions.BuildMode = BuildMode.None;
-                Paused = true;
-                GUI.Instance.SwitchMode(true);
-                _playWallMode = Graphics.Instance.Mode;
-            }
-            else if(_gameMode == GameMode.Build)
-            {
-                _gameMode = GameMode.Play;
-                _graphics.HideHighlight();
-                Paused = false;
-                Graphics.Instance.ResetSprite();
-                GUI.Instance.SwitchMode(false);
-                Graphics.Instance.Mode = _playWallMode;
-                MapChangingFirst?.Invoke();
-                MapChangingSecond?.Invoke();
-                MapChanged?.Invoke();
-                foreach(RoomNode node in Map.Instance.AllNodes)
-                {
-                    if(node != null && node != RoomNode.Undefined) 
-                    { 
-                        if(!node.Traversable)
-                        {
-                            node.Floor.SpriteRenderer.color = Color.red;
-                        }
-                        else if(node.Reserved)
-                        {
-                            node.Floor.SpriteRenderer.color = Color.yellow;
-                        }
-                        else
-                        {
-                            node.Floor.SpriteRenderer.color = Color.white;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.O))
-        {
-            if (_gameMode == GameMode.Play)
-                _gameMode = GameMode.Overview;
-            else if (_gameMode == GameMode.Overview)
-            {
-                _gameMode = GameMode.Play;
-                GUI.Instance.SetDebugPanel(null);
-            }
-        }
-
-        if(Input.mouseScrollDelta.y != 0)
-        {
-            _camera.orthographicSize -= Input.mouseScrollDelta.y;
-
-            if(_camera.orthographicSize < ZOOMMIN)
-                _camera.orthographicSize = ZOOMMIN;
-            else if(_camera.orthographicSize > ZOOMMAX)
-                _camera.orthographicSize = ZOOMMAX;
-        }
-
-        float _cameraSpeed = _camera.orthographicSize / 200;
-
-        if (GameMode != GameMode.Play)
-        {
-            if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
-            {
-                _camera.transform.Translate(Vector3.up * _cameraSpeed);
-            }
-            if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
-            {
-                _camera.transform.Translate(Vector3.down * _cameraSpeed);
-            }
-            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
-            {
-                _camera.transform.Translate(Vector3.left * _cameraSpeed);
-            }
-            if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
-            {
-                _camera.transform.Translate(Vector3.right * _cameraSpeed);
-            }
-        }
-        else
-        {
-            _camera.transform.position = _player.transform.position + Vector3.back * 10;
-        }
-
-        if (!_placingLine && !_placingArea)
-        {
-            if (Input.GetKeyDown(KeyCode.E))
-                switch (BuildFunctions.Direction)
-                {
-                    case Direction.North:
-                        BuildFunctions.Direction = Direction.East;
-                        break;
-                    case Direction.East:
-                        BuildFunctions.Direction = Direction.South;
-                        break;
-                    case Direction.South:
-                        BuildFunctions.Direction = Direction.West;
-                        break;
-                    case Direction.West:
-                        BuildFunctions.Direction = Direction.North;
-                        break;
-                }
-            if (Input.GetKeyDown(KeyCode.Q))
-                switch (BuildFunctions.Direction)
-                {
-                    case Direction.North:
-                        BuildFunctions.Direction = Direction.West;
-                        break;
-                    case Direction.West:
-                        BuildFunctions.Direction = Direction.South;
-                        break;
-                    case Direction.South:
-                        BuildFunctions.Direction = Direction.East;
-                        break;
-                    case Direction.East:
-                        BuildFunctions.Direction = Direction.North;
-                        break;
-                }
-        }
-
-        if(_gameMode == GameMode.Overview && !IsMouseOverUI())
-        {
-            AdventurerPawn pawn = GetMouseOver<AdventurerPawn>();
-            GUI.Instance.SetDebugPanel(pawn);
-        }
-
-        if (_gameMode == GameMode.Build)
-        {
-            if (IsMouseOverUI() && !_placingLine && !_placingArea)
-                _graphics.HideHighlight();
-            else
-            {
-                KeyMode mode = GetKeyMode();
-
 
         NonMonoUpdate?.Invoke();
     }

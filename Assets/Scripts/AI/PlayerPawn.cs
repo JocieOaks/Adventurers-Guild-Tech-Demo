@@ -13,6 +13,7 @@ public class PlayerPawn : Pawn
     static readonly List<int> s_tieflingSkinTones = new() { 0, 1, 2, 3, 17, 18, 19, 20 };
     static readonly List<int> s_unnaturalHairColors = new() { 0, 1, 2 };
     float _speed = 2.5f;
+
     /// <inheritdoc/>
     public override RoomNode CurrentNode
     {
@@ -37,7 +38,7 @@ public class PlayerPawn : Pawn
         get => base.WorldPositionNonDiscrete; 
         set {
 
-            Vector3Int vector = Map.DirectionToVector(Direction);
+            Vector3Int vector = Utility.DirectionToVector(Direction);
 
             if (vector.x != 0 && !CurrentNode.GetNode(vector.x > 0 ? Direction.East : Direction.West).Traversable)
             {
@@ -66,7 +67,7 @@ public class PlayerPawn : Pawn
     {
         yield return new WaitUntil(() => GameManager.GameReady);
 
-        CurrentNode = Map.GetNodeFromSceneCoordinates(transform.position, 0);
+        CurrentNode = Map.Instance[Utility.SceneCoordinatesToMapCoordinates(transform.position, 0)];
 
         WorldPositionNonDiscrete = WorldPosition;
 

@@ -95,7 +95,7 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
     }
 
     /// <value> The current <c>Stance</c> the <see cref="Pawn"/> is in.</value>
-    public Stance Stance { get; set; } = Stance.Stand;
+    public Stance Stance { get; set; } = global::Stance.Stand;
 
     ///<value> The nearest <see cref="Vector3Int"/> position of the <see cref="Pawn"/> in the <see cref="Map"/>'s coordinate system, and the position of the nearest <see cref="RoomNode"/>.</value>
     public Vector3Int WorldPosition => CurrentNode.SurfacePosition;
@@ -118,7 +118,7 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
             {
                 Room prevRoom = Room;
 
-                CurrentNode = CurrentNode.GetRoomNode(Map.VectorToDirection(_worldPosition - WorldPosition, true));
+                CurrentNode = CurrentNode.GetRoomNode(Utility.VectorToDirection(_worldPosition - WorldPosition, true));
                 if (prevRoom != Room)
                 {
                     prevRoom.ExitRoom(this);
@@ -201,7 +201,7 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
                         foreach (bool[,] pixelArray in spriteObject.GetMaskPixels)
                         {
                             Vector2 pivot = spriteObject.SpriteRenderer.sprite.pivot;
-                            Vector3 relScenePosition = Map.MapCoordinatesToSceneCoordinates(WorldPosition) - (spriteObject.SpriteRenderer.transform.position + transformOffset * spriteObject.OffsetVector);
+                            Vector3 relScenePosition = Utility.MapCoordinatesToSceneCoordinates(WorldPosition) - (spriteObject.SpriteRenderer.transform.position + transformOffset * spriteObject.OffsetVector);
 
                             int xOffset = (int)(pivot.x + relScenePosition.x * 6 - s_maskPivot.x);
                             int yOffset = (int)(pivot.y + relScenePosition.y * 6 - s_maskPivot.y);

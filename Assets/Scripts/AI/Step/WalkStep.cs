@@ -138,7 +138,7 @@ public class WalkStep : TaskStep, IDirected
             _ => 0
         };
 
-        _step = Map.DirectionToVectorNormalized(direction);
+        _step = Utility.DirectionToVectorNormalized(direction);
     }
 
     /// <inheritdoc/>

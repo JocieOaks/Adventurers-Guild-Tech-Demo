@@ -17,16 +17,6 @@ public enum AccentMaterial
 }
 
 /// <summary>
-/// Designates the material used for a <see cref="WallSprite"/> and determines which <see cref="Sprite"/> is used for it.
-/// </summary>
-public enum WallMaterial
-{
-    Brick = 2,
-    Plaster = 1,
-    StoneBrick = 0
-}
-
-/// <summary>
 /// Enum used to represent how <see cref="WallSprite"/>s should appear.
 /// </summary>
 public enum WallDisplayMode
@@ -39,6 +29,15 @@ public enum WallDisplayMode
     Open = 2
 }
 
+/// <summary>
+/// Designates the material used for a <see cref="WallSprite"/> and determines which <see cref="Sprite"/> is used for it.
+/// </summary>
+public enum WallMaterial
+{
+    Brick = 2,
+    Plaster = 1,
+    StoneBrick = 0
+}
 /// <summary>
 /// The <see cref="Graphics"/> class is a singleton that controls graphical aspects of the game, and holds reference to the <see cref="Sprite"/>s used by the game.
 /// </summary>
@@ -81,7 +80,7 @@ public class Graphics : MonoBehaviour
     public Texture2D PawnGradientHorns;
     public Texture2D PawnGradientSkin;
 
-    public Pawn PawnPrefab;
+    public AdventurerPawn PawnPrefab;
 
     public Texture2D PawnTextureBeard;
 
@@ -294,6 +293,33 @@ public class Graphics : MonoBehaviour
         LevelChangedLate?.Invoke();
     }
 
+    public Sprite[] SliceSprites(Color[] pixels)
+    {
+        Texture2D copied = new(_pawnSpriteSheetWidth, _pawnSpriteSheetHeight)
+        {
+            filterMode = FilterMode.Point,
+            wrapMode = TextureWrapMode.Clamp
+        };
+
+        copied.SetPixels(pixels);
+        copied.Apply();
+
+        Sprite[] sprites = new Sprite[48];
+        for (int i = 0; i < headTable.Length; i++)
+            sprites[i] = Sprite.Create(copied, new Rect(64 * (i % 4), 64 * (i / 4), 64, 64), new Vector2(0.5f, 5f / 64), 6);
+        return sprites;
+    }
+
+    /// <summary>
+    /// Calls the update graphics events.
+    /// </summary>
+    public void UpdateGraphics()
+    {
+        UpdatingGraphics?.Invoke();
+        SetCorners();
+        UpdatedGraphics?.Invoke();
+    }
+
     /// <inheritdoc/>
     void Awake()
     {
@@ -325,26 +351,6 @@ public class Graphics : MonoBehaviour
             }
         }
     }
-
-    public Sprite[] SliceSprites(Color[] pixels)
-    {
-        Texture2D copied = new(_pawnSpriteSheetWidth, _pawnSpriteSheetHeight)
-        {
-            filterMode = FilterMode.Point,
-            wrapMode = TextureWrapMode.Clamp
-        };
-
-        copied.SetPixels(pixels);
-        copied.Apply();
-
-        Sprite[] sprites = new Sprite[48];
-        for (int i = 0; i < headTable.Length; i++)
-            sprites[i] = Sprite.Create(copied, new Rect(64 * (i % 4), 64 * (i / 4), 64, 64), new Vector2(0.5f, 5f / 64), 6);
-        return sprites;
-    }
-
-        
-    
 
     /// <summary>
     /// Called when the instance is first created at the start of the game.
@@ -437,11 +443,15 @@ public class Graphics : MonoBehaviour
         Ready = true;
     }
 
+    /// <summary>
+    /// The <see cref="BuildSpriteJob"/> struct is an <see cref="IJob"/> that creates a sprite sheet as an array of pixels, using a worker thread.
+    /// </summary>
     struct BuildSpriteJob : IJob
     {
         bool _narrow, _thick, _orc;
         NativeArray<Color> _pixels;
         int _skinColor, _hairColor, _hornsColor, _ears, _hairType, _beardType, _horns, _bodyHair;
+
         public BuildSpriteJob(int skinColor, int hairColor, int hornsColor, bool narrow, bool thick, int ears, bool orc, int hairType, int beardType, int horns, int bodyHair, NativeArray<Color> pixels)
         {
             _skinColor = skinColor;
@@ -458,6 +468,7 @@ public class Graphics : MonoBehaviour
             _pixels = pixels;
         }
 
+        /// <inheritdoc/>
         public void Execute()
         {
             ListDictionary skinColorMapping = new();
@@ -530,6 +541,16 @@ public class Graphics : MonoBehaviour
             }
         }
 
+        /// <summary>
+        /// Determines the color of a pixel at a given position, based on the 16x16 sprite of an <see cref="Actor"/>'s head.
+        /// </summary>
+        /// <param name="x">The x position of the pixel within the 16x16 square.</param>
+        /// <param name="y">The y position of the pixel within the 16x16 square.</param>
+        /// <param name="headDirection">The direction the head is facing.</param>
+        /// <param name="skinColorMapping">A <see cref="ListDictionary"/> containing the <see cref="Actor"/>'s skin colors.</param>
+        /// <param name="hairColorMapping">A <see cref="ListDictionary"/> containing the <see cref="Actor"/>'s hair colors.</param>
+        /// <param name="hornColorMapping">A <see cref="ListDictionary"/> containing the <see cref="Actor"/>'s horn colors.</param>
+        /// <returns></returns>
         Color GetHeadPixel(int x, int y, int headDirection, ListDictionary skinColorMapping, ListDictionary hairColorMapping, ListDictionary hornColorMapping)
         {
             const int HAIROPTIONS = 5;
@@ -636,192 +657,6 @@ public class Graphics : MonoBehaviour
             return headPixel;
         }
     }
-    /*void ConfigureCorners()
-    {
-        foreach(Vector3Int position in _cornersToBeConfigured)
-        {
-            int index = Corner.GetSpriteIndex(position);
-            if(index == -1)
-            {
-
-            }
-            else
-            {
-                Corner corner = Map.Instance.GetCorner(position);
-            }
-        }
-    }*/   
-    public class Corner : MonoBehaviour
-    {
-        static readonly List<int> ignoreIndeces = new() { 1, 2, 4, 5, 8, 10 };
-        static readonly List<int> maskedIndeces = new() { 1, 2, 7, 8 };
-        bool _configuring = false;
-        Vector3Int _position;
-        int _spriteIndex;
-        SpriteRenderer _spriteRenderer;
-        WallMaterial _wallMaterial;
-        int _x, _y, _z;
-
-        public static int GetSpriteIndex(Vector3Int position)
-        {
-            int index = 0;
-            index += Instance._map.GetWall(MapAlignment.XEdge, position) != null ? 1 : 0;
-            index += Instance._map.GetWall(MapAlignment.YEdge, position + Vector3Int.down) != null ? 2 : 0;
-            index += Instance._map.GetWall(MapAlignment.XEdge, position + Vector3Int.left) != null ? 4 : 0;
-            index += Instance._map.GetWall(MapAlignment.YEdge, position) != null ? 8 : 0;
-
-
-            if (ignoreIndeces.Any(x => x == index))
-            {
-                
-                return -1;
-            }
-            index -= index switch
-            {
-                int n when n >= 10 => 7,
-                int n when n >= 8 => 6,
-                int n when n >= 5 => 5,
-                _ => 3,
-            };
-            if (index < 0)
-            {
-                return -1;
-            }
-
-            return index;
-
-            
-        }
-
-        public void SetCorner(Vector3Int position, WallMaterial wallMaterial)
-        {
-            _x = position.x;
-            _y = position.y;
-            _z = position.z;
-
-            _position = position;
-            _wallMaterial = wallMaterial;
-
-            transform.position = Map.MapCoordinatesToSceneCoordinates(position, MapAlignment.Corner);
-            _spriteRenderer.sortingOrder = GetSortOrder(position) + 3;
-
-            if (!_configuring)
-            {
-                UpdatingGraphics += ConfigureCorner;
-                _configuring = true;
-            }
-        }
-
-        public void UpdateCorner()
-        {
-            ConfigureCorner();
-        }
-
-        private void Awake()
-        {
-            _spriteRenderer = GetComponent<SpriteRenderer>();
-            UpdatedGraphics += SetCornerMode;
-            LevelChangedLate += SetLevel;
-        }
-
-        void ConfigureCorner()
-        {
-            UpdatingGraphics -= ConfigureCorner;
-            _configuring = false;
-
-             
-            _spriteIndex = GetSpriteIndex(_position);
-
-            if(_spriteIndex == -1)
-            {
-                UpdatedGraphics -= SetCornerMode;
-                LevelChangedLate -= SetLevel;
-                //Map.Instance.GetCorner(_x, _y, _z).enabled = false;
-
-                Instance._map.GetWall(MapAlignment.XEdge, _x - 1, _y, _z)?.WallSprite.MaskCorner(false);
-                Instance._map.GetWall(MapAlignment.YEdge, _x, _y - 1, _z)?.WallSprite.MaskCorner(false);
-
-                Destroy(gameObject);
-                return;
-            }
-
-            if (_spriteIndex == 1 || _spriteIndex == 7 || _spriteIndex == 8)
-            {
-                Instance._map.GetWall(MapAlignment.XEdge, _x - 1, _y, _z).WallSprite.MaskCorner(true);
-                Instance._map.GetWall(MapAlignment.YEdge, _x, _y - 1, _z).WallSprite.MaskCorner(false);
-            }
-            else if(_spriteIndex == 2)
-            {
-                Instance._map.GetWall(MapAlignment.XEdge, _x - 1, _y, _z).WallSprite.MaskCorner(false);
-                Instance._map.GetWall(MapAlignment.YEdge, _x, _y - 1, _z).WallSprite.MaskCorner(true);
-            }
-            else
-            {
-                Instance._map.GetWall(MapAlignment.XEdge, _x - 1, _y, _z)?.WallSprite.MaskCorner(false);
-                Instance._map.GetWall(MapAlignment.YEdge, _x, _y - 1, _z)?.WallSprite.MaskCorner(false);
-            }
-        }
-
-        void SetCornerMode()
-        {
-            if (GameManager.Instance.IsOnLevel(_z) == 0)
-            {
-                if (Instance.Mode == WallMode.Open)
-                {
-                    bool? xPos = Instance._map.GetWall(MapAlignment.XEdge, _x, _y, _z)?.WallSprite.IsFullWall;
-                    bool? yNeg = Instance._map.GetWall(MapAlignment.YEdge, _x, _y - 1, _z)?.WallSprite.IsFullWall;
-                    bool? xNeg = Instance._map.GetWall(MapAlignment.XEdge, _x - 1, _y, _z)?.WallSprite.IsFullWall;
-                    bool? yPos = Instance._map.GetWall(MapAlignment.YEdge, _x, _y, _z)?.WallSprite.IsFullWall;
-                    bool fullCorner = (xPos ?? false) || (yNeg ?? false) || (xNeg ?? false) || (yPos ?? false);
-                    _spriteRenderer.sprite = CornerSprites[_spriteIndex, _wallMaterial, fullCorner];
-
-                    if (fullCorner)
-                    {
-                        if (!xPos ?? false)
-                            Instance._map.GetWall(MapAlignment.XEdge, _x, _y, _z).WallSprite.SetEdge();
-                        if (!yPos ?? false)
-                            Instance._map.GetWall(MapAlignment.YEdge, _x, _y, _z).WallSprite.SetEdge();
-                        if (!yNeg ?? false)
-                            Instance._map.GetWall(MapAlignment.YEdge, _x, _y - 1, _z).WallSprite.SetEdge();
-                        if (!xNeg ?? false)
-                            Instance._map.GetWall(MapAlignment.XEdge, _x - 1, _y, _z).WallSprite.SetEdge();
-                    }
-                }
-                else
-                {
-                    _spriteRenderer.sprite = CornerSprites[_spriteIndex, _wallMaterial, Instance.Mode == WallMode.Full];
-                }
-            }
-        }
-
-        void SetLevel()
-        {
-            int level = GameManager.Instance.IsOnLevel(_z);
-            if (level > 0)
-                _spriteRenderer.enabled = false;
-            else
-            {
-                _spriteRenderer.enabled = true;
-                if (level == 0)
-                {
-                    SetCornerMode();
-                }
-                else
-                {
-                    _spriteRenderer.sprite = CornerSprites[_spriteIndex, _wallMaterial, true];
-                }
-            }
-        }
-    }
-    /// <summary>
-    /// Calls the update graphics events.
-    /// </summary>
-    public void UpdateGraphics()
-    {
-        UpdatingGraphics?.Invoke();
-        SetCorners();
-        UpdatedGraphics?.Invoke();
-    }  
 
     /// <summary>
     /// The <see cref="SpriteSheet"/> class is a 3D array of <see cref="Sprite"/>s.

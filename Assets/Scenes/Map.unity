@@ -643,6 +643,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 774c934e63e75db4ebaf384a410fda0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  DEBUG: 0
   _player: {fileID: 207992315}
 --- !u!114 &519420036
 MonoBehaviour:

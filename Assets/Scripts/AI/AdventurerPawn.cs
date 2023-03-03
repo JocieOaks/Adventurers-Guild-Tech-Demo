@@ -1,15 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
-using System.Linq;
-
-public enum Stance
-{
-    Stand,
-    Sit,
-    Lay
-}
 
 /// <summary>
 /// The <see cref="AdventurerPawn"/> class is the counterpart to the <see cref="global::Actor"/> class that controls the active functional aspect of an NPC, including the in game sprite representation and overseeing the AI behaviors.
@@ -214,7 +205,7 @@ public class AdventurerPawn : Pawn
     {
         yield return new WaitUntil(() => GameManager.GameReady);
 
-        CurrentNode = Map.GetNodeFromSceneCoordinates(transform.position, 0);
+        CurrentNode = Map.Instance[Utility.SceneCoordinatesToMapCoordinates(transform.position, 0)];
 
         WorldPositionNonDiscrete = WorldPosition;
 

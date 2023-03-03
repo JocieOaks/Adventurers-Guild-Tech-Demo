@@ -314,7 +314,7 @@ public class Room
             if (nodeQueue.Empty)
                 yield return float.PositiveInfinity;
 
-            current = nodeQueue.Pop();
+            current = nodeQueue.PopMin();
         }
         else if (start.Node is ConnectingNode startConnection)
         {

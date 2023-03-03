@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -456,49 +457,36 @@ public class GUIInputs : MonoBehaviour
 
     }
 
-    SpriteObject GetMouseOver()
-    {
-        RaycastHit2D[] hits;
-        Vector2 ray = GameManager.Camera.ScreenToWorldPoint(Input.mousePosition);
-        //Debug.Log(ray);
-        hits = Physics2D.RaycastAll(ray, Vector2.zero);
-        SpriteObject nearest = null;
-        foreach (RaycastHit2D hit in hits)
-        {
-            if (hit.collider.TryGetComponent(out SpriteObject.SpriteCollider collider))
-            {
-                SpriteObject spriteObject = collider.SpriteObject;
-                if (spriteObject.SpriteRenderer.enabled && (nearest?.SpriteRenderer.sortingOrder ?? -1000) < spriteObject.SpriteRenderer.sortingOrder)
-                    nearest = spriteObject;
-            }
-        }
-
-        return nearest;
-    }
-
     /// <summary>
     /// Gets the object that the mouse is currently hovering over.
     /// </summary>
     /// <typeparam name="T">The type of the object to find.</typeparam>
     /// <returns>Returns the forward most object of type <c>T</c> that the mouse is hovering over.</returns>
-    T GetMouseOver<T>() where T : SpriteObject
+    T GetMouseOver<T>() where T : IWorldPosition
     {
         RaycastHit2D[] hits;
         Vector2 ray = GameManager.Camera.ScreenToWorldPoint(Input.mousePosition);
-        //Debug.Log(ray);
         hits = Physics2D.RaycastAll(ray, Vector2.zero);
-        SpriteObject nearest = null;
+        T nearest = default;
         foreach (RaycastHit2D hit in hits)
         {
+            T next = default;
             if (hit.collider.TryGetComponent(out SpriteObject.SpriteCollider collider))
             {
                 SpriteObject spriteObject = collider.SpriteObject;
-                if (spriteObject is T && spriteObject.SpriteRenderer.enabled && (nearest?.SpriteRenderer.sortingOrder ?? -1000) < spriteObject.SpriteRenderer.sortingOrder)
-                    nearest = spriteObject;
+                if (spriteObject is T tObject && spriteObject.SpriteRenderer.enabled)
+                    next = tObject;
             }
+            else if (hit.collider.TryGetComponent(out Pawn pawn))
+            {
+                if (pawn is T tObject && GameManager.Instance.IsOnLevel(pawn.CurrentLevel) <= 0)
+                    next = tObject;
+            }
+            if (!EqualityComparer<T>.Default.Equals(next, default) && (EqualityComparer<T>.Default.Equals(nearest, default) || Map.IsInFrontOf(next, nearest)))
+                nearest = next;
         }
 
-        return nearest as T;
+        return nearest;
     }
 
     /// <inheritdoc/>
@@ -521,7 +509,12 @@ public class GUIInputs : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.B))
         {
-            GameManager.Instance.CycleGameMode();
+            GameManager.Instance.CycleGameMode(GameMode.Build);
+        }
+
+        if (Input.GetKeyDown(KeyCode.O))
+        {
+            GameManager.Instance.CycleGameMode(GameMode.Overview);
         }
 
         if (Input.mouseScrollDelta.y != 0)
@@ -529,26 +522,29 @@ public class GUIInputs : MonoBehaviour
             GameManager.Instance.ZoomCamera(Input.mouseScrollDelta.y);
         }
 
-        Vector3 translation = Vector3.zero;
+        if (GameManager.Instance.GameMode != GameMode.Play)
+        {
+            Vector3 translation = Vector3.zero;
 
-        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
-        {
-            translation += Vector3.up;
-        }
-        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
-        {
-            translation += Vector3.down;
-        }
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
-        {
-            translation += Vector3.left;
-        }
-        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
-        {
-            translation += Vector3.right;
-        }
+            if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
+            {
+                translation += Vector3.up;
+            }
+            if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+            {
+                translation += Vector3.down;
+            }
+            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+            {
+                translation += Vector3.left;
+            }
+            if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+            {
+                translation += Vector3.right;
+            }
 
-        GameManager.Instance.TranslateCamera(translation);
+            GameManager.Instance.TranslateCamera(translation);
+        }
 
         if (!_placingLine && !_placingArea)
         {
@@ -586,7 +582,12 @@ public class GUIInputs : MonoBehaviour
                 }
         }
 
-        if (GameManager.Instance.GameMode == GameMode.Build)
+        if (GameManager.Instance.DEBUG && GameManager.Instance.GameMode == GameMode.Overview && !IsMouseOverUI())
+        {
+            AdventurerPawn pawn = GetMouseOver<AdventurerPawn>();
+            GUI.Instance.SetDebugPanel(pawn);
+        }
+        else if (GameManager.Instance.GameMode == GameMode.Build)
         {
             if (IsMouseOverUI() && !_placingLine && !_placingArea)
                 Graphics.Instance.HideHighlight();
@@ -609,7 +610,7 @@ public class GUIInputs : MonoBehaviour
                         BuildingArea(mode);
                         break;
                     case BuildMode.Demolish:
-                        Demolish(mode, GetMouseOver());
+                        Demolish(mode, GetMouseOver<SpriteObject>());
                         break;
                 }
             }

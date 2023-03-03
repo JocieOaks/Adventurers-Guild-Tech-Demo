@@ -16,6 +16,8 @@ public class GUI : MonoBehaviour
     [SerializeField] GameObject _adventurerSelect;
     [SerializeField] GameObject _baseBar;
     [SerializeField] GameObject _buildBar;
+    [SerializeField] GameObject _debugPanel;
+    [SerializeField] TextMeshProUGUI _debugPanelText;
     [SerializeField] GameObject _demolishPanel;
     [SerializeField] HireAdventurerPopup _hirePopup;
     [SerializeField] GameObject _hiresPanel;
@@ -25,7 +27,6 @@ public class GUI : MonoBehaviour
     int _questId;
     [SerializeField] GameObject _questPanel;
     [SerializeField] Button _startQuestButton;
-
     /// <value>Gives reference to the <see cref="GUI"/> singleton.</value>
     public static GUI Instance { get; private set; }
 
@@ -123,17 +124,6 @@ public class GUI : MonoBehaviour
         _startQuestButton.interactable = false;
     }
 
-    public void SetDebugPanel(AdventurerPawn pawn)
-    {
-        if (pawn != null)
-        {
-            DebugPanel.gameObject.SetActive(true);
-            DebugPanel.transform.position = Input.mousePosition;
-            DebugPanelText.text = pawn.CurrentTask.GetType().Name + "\n" + pawn.CurrentAction.GetType().Name + "\n" + pawn.CurrentStep.GetType().Name;
-        }
-        else
-            DebugPanel.gameObject.SetActive(false);
-    }
     /// <summary>
     /// Closes the hires panel.
     /// </summary>
@@ -231,6 +221,17 @@ public class GUI : MonoBehaviour
         _adventurerSelect.SetActive(true);
     }
 
+    public void SetDebugPanel(AdventurerPawn pawn)
+    {
+        if (pawn != null)
+        {
+            _debugPanel.gameObject.SetActive(true);
+            _debugPanel.transform.position = Input.mousePosition;
+            _debugPanelText.text = pawn.CurrentTask.GetType().Name + "\n" + pawn.CurrentAction.GetType().Name + "\n" + pawn.CurrentStep.GetType().Name;
+        }
+        else
+            _debugPanel.gameObject.SetActive(false);
+    }
     /// <summary>
     /// Initiates a <see cref="Quest"/> after the questing adventurer has been selected.
     /// </summary>
