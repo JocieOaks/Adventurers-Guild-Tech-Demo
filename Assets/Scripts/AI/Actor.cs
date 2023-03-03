@@ -68,32 +68,8 @@ public class Actor
     public Actor(out JobHandle job)
     {
         Race = (Race)Random.Range(0, 4);
-        int skinColorID;
-        int hairColorID;
-        switch (Race)
-        {
-            case Race.Human:
-                skinColorID = s_humanSkinTones[Random.Range(0, s_humanSkinTones.Count)];
-                hairColorID = s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)];
-                job = Graphics.Instance.BuildSprites(skinColorID, hairColorID, 0, Random.Range(0, 2) == 0, Random.Range(0, 2) == 0, 2, false, Random.Range(0, 6), Random.Range(0, 1f) < 0.7f ? Random.Range(0, 4) : 4, 4, Random.Range(0f, 1f) < 0.75f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0, out _spritePixels);
-                break;
-            case Race.Elf:
-                skinColorID = s_humanSkinTones[Random.Range(0, s_humanSkinTones.Count)];
-                hairColorID = s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)];
-                job = Graphics.Instance.BuildSprites(skinColorID, hairColorID, 0, Random.Range(0, 1f) < 0.7f, Random.Range(0, 1f) < 0.3f, 1, false, Random.Range(0, 6), Random.Range(0, 1f) < 0.5f ? Random.Range(0, 4) : 4, 4, Random.Range(0f, 1f) < 0.5f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0, out _spritePixels);
-                break;
-            case Race.Orc:
-                skinColorID = s_orcSkinTones[Random.Range(0, s_orcSkinTones.Count)];
-                hairColorID = s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)];
-                job = Graphics.Instance.BuildSprites(skinColorID, hairColorID, 0, Random.Range(0, 1f) < 0.3f, Random.Range(0, 1f) < 0.7f, 1, true, Random.Range(0, 6), Random.Range(0, 1f) < 0.7f ? Random.Range(0, 4) : 4, 4, Random.Range(0f, 1f) < 0.8f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0, out _spritePixels);
-                break;
-            default:
-                skinColorID = Random.Range(0, 1f) < 0.7 ? s_tieflingSkinTones[Random.Range(0, s_tieflingSkinTones.Count)] : s_humanSkinTones[Random.Range(0, s_humanSkinTones.Count)];
-                hairColorID = Random.Range(0, 1f) < 0.4 ? s_naturalHairColors[Random.Range(0, s_naturalHairColors.Count)] : s_unnaturalHairColors[Random.Range(0, s_unnaturalHairColors.Count)];
-                int ears = Random.Range(0, 1f) < 0.6f ? 1 : Random.Range(0, 1f) < 0.75 ? 0 : 2;
-                job = Graphics.Instance.BuildSprites(skinColorID, hairColorID, Random.Range(0, 14), Random.Range(0, 2) == 0, Random.Range(0, 2) == 0, ears, Random.Range(0, 1f) < 0.1f, Random.Range(0, 6), Random.Range(0, 1f) < 0.7f ? Random.Range(0, 4) : 4, Random.Range(0, 4), Random.Range(0f, 1f) < 0.75f ? Random.Range(0, 1f) < 0.6f ? 1 : 2 : 0, out _spritePixels);
-                break;
-        }
+        ActorAppearance appearance = new(Race);
+        job = Graphics.Instance.BuildSprites(appearance, out _spritePixels);
 
         Name = GameManager.Instance.Names[Random.Range(0, GameManager.Instance.Names.Count)];
 
@@ -140,6 +116,9 @@ public class Actor
 
         GameManager.Instance.NPCs.Add(this);
     }
+
+    /// <valeu>The characters appearance.</valeu>
+    public ActorAppearance Appearance { get; }
 
     /// <value>A reference to the character's bed.</value>
     public BedSprite Bed { get; set; }

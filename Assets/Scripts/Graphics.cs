@@ -220,10 +220,16 @@ public class Graphics : MonoBehaviour
         }
     }
 
-    public JobHandle BuildSprites(int skinColor, int hairColor, int hornsColor, bool narrow, bool thick, int ears, bool orc, int hairType, int beardType, int horns, int bodyHair, out NativeArray<Color> pixels)
+    /// <summary>
+    /// Initializes and schedules a new <see cref="BuildSpriteJob"/> to create a sprite sheet for a character's appearance.
+    /// </summary>
+    /// <param name="appearance">An <see cref="ActorAppearance"/> defining how the sprite sheet should look.</param>
+    /// <param name="pixels">An out <see cref="NativeArray{T}"/> of <see cref="Color"/> containing the pixel data for the sprite sheet once it's completed.</param>
+    /// <returns>Returns the scheduled <see cref="JobHandle"/> for the <see cref="BuildSpriteJob"/>.</returns>
+    public JobHandle BuildSprites(ActorAppearance appearance, out NativeArray<Color> pixels)
     {
         pixels = new NativeArray<Color>(_pawnSpriteSheetArrayLength, Allocator.Persistent);
-        BuildSpriteJob buildSpriteJob = new(skinColor, hairColor, hornsColor, narrow, thick, ears, orc, hairType, beardType, horns, bodyHair, pixels);
+        BuildSpriteJob buildSpriteJob = new(appearance, pixels);
         return buildSpriteJob.Schedule();
     }
 
@@ -448,23 +454,28 @@ public class Graphics : MonoBehaviour
     /// </summary>
     struct BuildSpriteJob : IJob
     {
-        bool _narrow, _thick, _orc;
+        readonly bool _narrow, _thick, _tusks;
         NativeArray<Color> _pixels;
-        int _skinColor, _hairColor, _hornsColor, _ears, _hairType, _beardType, _horns, _bodyHair;
+        readonly int _skinColor, _hairColor, _hornsColor, _ears, _hairType, _beardType, _horns, _bodyHair;
 
-        public BuildSpriteJob(int skinColor, int hairColor, int hornsColor, bool narrow, bool thick, int ears, bool orc, int hairType, int beardType, int horns, int bodyHair, NativeArray<Color> pixels)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BuildSpriteJob"/> struct.
+        /// </summary>
+        /// <param name="appearance">An <see cref="ActorAppearance"/> defining how the sprite sheet should look.</param>
+        /// <param name="pixels">A <see cref="NativeArray{T}"/> of <see cref="Color"/> containing the pixel data for the sprite sheet once it's completed.</param>
+        public BuildSpriteJob(ActorAppearance appearance, NativeArray<Color> pixels)
         {
-            _skinColor = skinColor;
-            _hairColor = hairColor;
-            _hornsColor = hornsColor;
-            _narrow = narrow;
-            _thick = thick;
-            _ears = ears;
-            _orc = orc;
-            _hairType = hairType;
-            _beardType = beardType;
-            _horns = horns;
-            _bodyHair = bodyHair;
+            _skinColor = appearance.SkinColor;
+            _hairColor = appearance.HairColor;
+            _hornsColor = appearance.HornsColor;
+            _narrow = appearance.Narrow;
+            _thick = appearance.Thick;
+            _ears = appearance.Ears;
+            _tusks = appearance.Tusks;
+            _hairType = appearance.HairType;
+            _beardType = appearance.BeardType;
+            _horns = appearance.Horns;
+            _bodyHair = appearance.BodyHair;
             _pixels = pixels;
         }
 
@@ -578,7 +589,7 @@ public class Graphics : MonoBehaviour
                 }
             }
 
-            if (_orc)
+            if (_tusks)
             {
                 headPixel = _pawnTextureOrcTeeth[32 * (y + 16 * headDirection) + x + (_narrow ? 16 : 0)];
                 if (skinColorMapping.Contains(headPixel))
