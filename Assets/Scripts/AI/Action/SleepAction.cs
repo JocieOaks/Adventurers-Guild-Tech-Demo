@@ -3,7 +3,7 @@
 /// <summary>
 /// The <see cref="SleepAction"/> class is a <see cref="TaskAction"/> for when a <see cref="AdventurerPawn"/> is sleeping.
 /// </summary>
-public class SleepAction : TaskAction
+public class SleepAction : ActorAction
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="SleepAction"/> class.

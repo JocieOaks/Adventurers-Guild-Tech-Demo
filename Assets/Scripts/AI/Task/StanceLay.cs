@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 /// <summary>
 /// The <see cref="StanceLay"/> class is a <see cref="Task"/> for having a <see cref="AdventurerPawn"/> transition into <see cref="Stance.Lay"/>.
 /// </summary>
-public class StanceLay : Task, IRecoverableTask
+public class StanceLay : Task, IRecoverableTask, IPlayerTask
 {
     BedSprite bed;
 
@@ -11,6 +13,15 @@ public class StanceLay : Task, IRecoverableTask
     /// Initializes a new instance of the <see cref="StanceLay"/> class.
     /// </summary>
     public StanceLay() : base(null, true, null, null) { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StanceSit"/> class with a specified <see cref="BedSprite"/>.
+    /// </summary>
+    /// <param name="bed">The <see cref="BedSprite"/> to lay in.</param>
+    public StanceLay(BedSprite bed) : base(null, true, null, null)
+    {
+        this.bed = bed;
+    }
 
     /// <value>The list of all <see cref="IInteractable"/>s that can be laid on by a <see cref="AdventurerPawn"/>.</value>
     public static List<IInteractable> LayingObjects { get; } = new List<IInteractable>();
@@ -38,9 +49,15 @@ public class StanceLay : Task, IRecoverableTask
     { 
         bed = GetBed(actor.Stats);
         if (bed == null)
-            yield break;
-        yield return new TravelAction(bed, actor);
-        yield return new LayDownAction(bed, actor);
+            return Enumerable.Empty<TaskAction>();
+        return GetActions(actor.Pawn);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerable<TaskAction> GetActions(Pawn pawn)
+    {
+        yield return new TravelAction(bed, pawn);
+        yield return new LayDownAction(bed, pawn);
     }
 
     /// <inheritdoc/>
@@ -50,8 +67,8 @@ public class StanceLay : Task, IRecoverableTask
             bed = GetBed(actor.Stats);
         if (bed == null)
             yield break;
-        yield return new TravelAction(bed, actor);
-        yield return new LayDownAction(bed, actor);
+        yield return new TravelAction(bed, actor.Pawn);
+        yield return new LayDownAction(bed, actor.Pawn);
     }
 
     /// <inheritdoc/>

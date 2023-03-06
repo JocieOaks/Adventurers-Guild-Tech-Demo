@@ -1,16 +1,16 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// The <see cref="SitStep"/> class is a <see cref="TaskStep"/> for a <see cref="AdventurerPawn"/> to lay down.
+/// The <see cref="SitStep"/> class is a <see cref="TaskStep"/> for a <see cref="Pawn"/> to lay down.
 /// </summary>
 public class LayStep : TaskStep
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="LayStep"/> class.
     /// </summary>
-    /// <param name="pawn">The <see cref="AdventurerPawn"/> that is laying down.</param>
-    /// <param name="bed">The <see cref="BedSprite"/> the <see cref="AdventurerPawn"/> is laying in.</param>
-    public LayStep(AdventurerPawn pawn, BedSprite bed) : base(pawn)
+    /// <param name="pawn">The <see cref="Pawn"/> that is laying down.</param>
+    /// <param name="bed">The <see cref="BedSprite"/> the <see cref="Pawn"/> is laying in.</param>
+    public LayStep(Pawn pawn, BedSprite bed) : base(pawn)
     {
         pawn.Stance = Stance.Lay;
         bed.Enter(pawn);

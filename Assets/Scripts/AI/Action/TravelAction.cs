@@ -17,8 +17,8 @@ public class TravelAction : TaskAction
     /// Initializes a new instance of the <see cref="TravelAction"/> class
     /// </summary>
     /// <param name="destination">The <see cref="Map"/> coordinates of <see cref="Actor"/>'s destination.</param>
-    /// <param name="actor">The <see cref="Actor"/> that is traveling.</param>
-    public TravelAction(Vector3Int destination, Actor actor) : base(actor)
+    /// <param name="pawn">The <see cref="Pawn"/> that is traveling.</param>
+    public TravelAction(Vector3Int destination, Pawn pawn) : base(pawn)
     {
         Destination = destination;
     }
@@ -27,8 +27,8 @@ public class TravelAction : TaskAction
     /// Initializes a new instance of the <see cref="TravelAction"/> class
     /// </summary>
     /// <param name="destination">The <see cref="IWorldPosition"/> the <see cref="Actor"/> is trying to reach..</param>
-    /// <param name="actor">The <see cref="Actor"/> that is traveling.</param>
-    public TravelAction(IWorldPosition destination, Actor actor) : base(actor)
+    /// <param name="pawn">The <see cref="Pawn"/> that is traveling.</param>
+    public TravelAction(IWorldPosition destination, Pawn pawn) : base(pawn)
     {
         Destination = destination.WorldPosition;
     }
@@ -56,7 +56,7 @@ public class TravelAction : TaskAction
 
         if (!_ready || _walkingPath.Count > 0 || !_pawn.CurrentStep.IsComplete())
             return 0;
-        else if (_actor.Stats.Position == Destination)
+        else if (_pawn.WorldPosition == Destination)
         {
             GameManager.MapChanged -= OnMapEdited;
             return 1;
@@ -65,7 +65,7 @@ public class TravelAction : TaskAction
         {
             foreach(RoomNode node in interactable.InteractionPoints)
             {
-                if (_actor.Stats.Position == node.WorldPosition)
+                if (_pawn.WorldPosition == node.WorldPosition)
                 {
                     GameManager.MapChanged -= OnMapEdited;
                     return 1;
@@ -80,7 +80,7 @@ public class TravelAction : TaskAction
     public override void Initialize()
     {
         GameManager.MapChanged += OnMapEdited;
-        if(_actor.Stats.Stance != Stance.Stand)
+        if(_pawn.Stance != Stance.Stand)
         {
             _pawn.Stance = Stance.Stand;
         }
@@ -145,7 +145,7 @@ public class TravelAction : TaskAction
     IEnumerator Pathfind()
     {
         NativeArray<(bool isDoor, Vector3Int position)> walkingPath = new(100, Allocator.Persistent);
-        NavigateJob navigate = new(_actor.Stats.Position, Destination, walkingPath);
+        NavigateJob navigate = new(_pawn.WorldPosition, Destination, walkingPath);
         JobHandle navigateJobHandle = navigate.Schedule();
         yield return new WaitUntil(() => navigateJobHandle.IsCompleted);
         navigateJobHandle.Complete();

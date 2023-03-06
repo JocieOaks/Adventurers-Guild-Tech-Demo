@@ -30,7 +30,7 @@ public class WanderTask : Task
     /// <inheritdoc/>
     public override IEnumerable<TaskAction> GetActions(Actor actor)
     {
-        yield return new TravelAction(_node.WorldPosition, actor);
+        yield return new TravelAction(_node.WorldPosition, actor.Pawn);
     }
 
     /// <inheritdoc/>

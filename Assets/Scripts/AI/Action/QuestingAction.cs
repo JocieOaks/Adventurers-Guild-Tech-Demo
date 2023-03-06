@@ -1,7 +1,7 @@
 ﻿/// <summary>
 /// The <see cref="QuestingAction"/> class is a <see cref="TaskAction"/> for when a <see cref="AdventurerPawn"/> is on a <see cref="Quest"/>.
 /// </summary>
-public class QuestingAction : TaskAction
+public class QuestingAction : ActorAction
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="QuestingAction"/> class.

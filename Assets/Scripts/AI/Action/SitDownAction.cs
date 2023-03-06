@@ -14,8 +14,8 @@ public class SitDownAction : TaskAction
     /// Initializes a new instance of the <see cref="SitDownAction"/> class.
     /// </summary>
     /// <param name="seat">The seat the <see cref="Actor"/> is sitting in.</param>
-    /// <param name="actor">The <see cref="Actor"/> that is sitting.</param>
-    public SitDownAction(IOccupied seat, Actor actor) : base(actor)
+    /// <param name="pawn">The <see cref="Pawn"/> that is sitting.</param>
+    public SitDownAction(IOccupied seat, Pawn pawn) : base(pawn)
     {
         _seat = seat;
     }

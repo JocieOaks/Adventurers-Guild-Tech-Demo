@@ -25,7 +25,7 @@ public class WaitTask : Task
     /// <inheritdoc/>
     public override IEnumerable<TaskAction> GetActions(Actor actor)
     {
-        yield return new WaitAction(actor, _time);
+        yield return new WaitAction(_time, actor.Pawn);
     }
 
     /// <inheritdoc/>

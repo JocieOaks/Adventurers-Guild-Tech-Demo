@@ -7,39 +7,32 @@ using UnityEngine;
 /// </summary>
 public class AdventurerPawn : Pawn
 {
-    readonly Queue<TaskAction> _taskActions = new();
     Actor _actor;
-    public Task CurrentTask { get; private set; }
-
     [SerializeField] SpriteRenderer _emoji;
     Planner _planner;
-    int _recovery = 0;
     [SerializeField] SpriteRenderer _speechBubble;
-
     /// <value>The <see cref="AdventurerPawn"/>'s corresponding <see cref="global::Actor"/>.</value>
-    public Actor Actor { 
-        get => _actor; 
+    public Actor Actor
+    {
+        get => _actor;
         set
         {
             _actor ??= value;
-        } 
+        }
     }
 
-    /// <value> The current <see cref="TaskAction"/> the <see cref="AdventurerPawn"/> is performing.</value> 
-    public TaskAction CurrentAction { get; private set; }
-
+    public Task CurrentTask { get; private set; }
     /// <value>Returns true if the <see cref="AdventurerPawn"/> is currently engaged in a <see cref="Conversation"/> with another <see cref="AdventurerPawn"/>.</value>
     public bool IsInConversation => Social.Conversation != null;
 
     /// <value> Returns true if the <see cref="AdventurerPawn"/> is currently speaking.</value>
     public bool IsSpeaking => _speechBubble.gameObject.activeSelf;
 
-    /// <value>The <see cref="SocialAI"/> that runs the <see cref="AdventurerPawn"/>'s social behaviours.</value>
-    public SocialAI Social { get; private set; }
-
     /// <inheritdoc/>
     public override string Name => Actor.Name;
 
+    /// <value>The <see cref="SocialAI"/> that runs the <see cref="AdventurerPawn"/>'s social behaviours.</value>
+    public SocialAI Social { get; private set; }
     /// <summary>
     /// Sets the <see cref="AdventurerPawn"/> to begin going on a <see cref="Quest"/>
     /// </summary>
@@ -69,6 +62,7 @@ public class AdventurerPawn : Pawn
 
         _planner.OverrideTask(task);
     }
+
     /// <summary>
     /// Displays a speech bubble over the <see cref="AdventurerPawn"/>'s <see cref="Sprite"/>, to visually indicate that they are speaking with another <see cref="AdventurerPawn"/>.
     /// </summary>
@@ -101,104 +95,48 @@ public class AdventurerPawn : Pawn
         _speechBubble.gameObject.SetActive(false);
     }
 
-    /// <summary>
-    /// Initializes the Planner and Social for the Pawn, and setsup the starting Task.
-    /// </summary>
-    void InitializeAI()
+    /// <inheritdoc/>
+    protected override void OnTaskFail()
     {
-        Social = new SocialAI(this);
-
-        CurrentTask = new WaitTask(0.5f);
-
-        _planner = new Planner(Actor, CurrentTask);
-        Map.Instance.StartCoroutine(_planner.AStar());
-
-        foreach (TaskAction action in CurrentTask.GetActions(Actor))
-            _taskActions.Enqueue(action);
-
-        CurrentAction = _taskActions.Dequeue();
-        CurrentAction.Initialize();
-
-        CurrentStep = new WaitStep(this, null, false);
-    }
-
-    /// <summary>
-    /// Evaluates the state of the current <see cref="Task"/> and <see cref="TaskAction"/>s and updates them if necessary.
-    /// </summary>
-    void ManageTask()
-    {
-        bool recover = false;
-        foreach (TaskAction action in _taskActions)
+        _taskActions.Clear();
+        if (!CurrentNode.Traversable)
         {
-            if (action.Complete() == -1)
+            foreach (RoomNode node in CurrentNode.NextNodes)
             {
-                recover = true;
-                CurrentAction = action;
-                break;
+                if (node.Traversable)
+                {
+                    ForcePosition(node);
+                    break;
+                }
             }
+            if (!CurrentNode.Traversable)
+                ForcePosition(Vector3Int.one);
         }
 
-        if (recover || CurrentAction != null && CurrentAction.Complete() == -1)
+        if (CurrentTask is IRecoverableTask recovery && _recovery < 4)
         {
-            _recovery++;
-            _taskActions.Clear();
-            if(!CurrentNode.Traversable)
-            {
-                foreach(RoomNode node in CurrentNode.NextNodes)
-                {
-                    if(node.Traversable)
-                    {
-                        ForcePosition(node);
-                        break;
-                    }
-                }
-                if (!CurrentNode.Traversable)
-                    ForcePosition(Vector3Int.one);
-            }
-            
-            if (CurrentTask is IRecoverableTask recovery && _recovery < 4)
-            {
-                foreach (TaskAction action in recovery.Recover(Actor, CurrentAction))
-                    _taskActions.Enqueue(action);
-            }
-            else
-            {
-                CurrentTask = new WaitTask(0.5f);
-                foreach (TaskAction action in CurrentTask.GetActions(Actor))
-                    _taskActions.Enqueue(action);
-
-                _planner.OverrideTask(CurrentTask);
-            }
-            CurrentAction = null;
+            foreach (TaskAction action in recovery.Recover(Actor, CurrentAction))
+                _taskActions.Enqueue(action);
         }
         else
         {
-            _recovery = 0;
+            CurrentTask = new WaitTask(0.5f);
+            foreach (TaskAction action in CurrentTask.GetActions(Actor))
+                _taskActions.Enqueue(action);
+
+            _planner.OverrideTask(CurrentTask);
         }
-
-        if (CurrentAction == null || CurrentAction.Complete() != 0)
-        {
-            if (_taskActions.Count == 0)
-            {
-                CurrentTask = _planner.GetTask();
-
-                foreach (TaskAction action in CurrentTask.GetActions(Actor))
-                    _taskActions.Enqueue(action);
-            }
-
-            if (_taskActions.Count > 0)
-            {
-                CurrentAction = _taskActions.Dequeue();
-                CurrentAction.Initialize();
-            }
-            else
-            {
-                CurrentAction = new WaitAction(Actor, 2);
-                CurrentAction.Initialize();
-            }
-        }
+        CurrentAction = null;
     }
 
+    /// <inheritdoc/>
+    protected override void OnTaskFinish()
+    {
+        CurrentTask = _planner.GetTask();
+
+        foreach (TaskAction action in CurrentTask.GetActions(Actor))
+            _taskActions.Enqueue(action);
+    }
 
     /// <inheritdoc/>
     protected override IEnumerator Startup()
@@ -220,6 +158,27 @@ public class AdventurerPawn : Pawn
         Graphics.LevelChangedLate += BuildSpriteMask;
 
         _ready = true;
+    }
+
+    /// <summary>
+    /// Initializes the Planner and Social for the Pawn, and setsup the starting Task.
+    /// </summary>
+    void InitializeAI()
+    {
+        Social = new SocialAI(this);
+
+        CurrentTask = new WaitTask(0.5f);
+
+        _planner = new Planner(Actor, CurrentTask);
+        Map.Instance.StartCoroutine(_planner.AStar());
+
+        foreach (TaskAction action in CurrentTask.GetActions(Actor))
+            _taskActions.Enqueue(action);
+
+        CurrentAction = _taskActions.Dequeue();
+        CurrentAction.Initialize();
+
+        CurrentStep = new WaitStep(this, null, false);
     }
 
     // Update is called once per frame

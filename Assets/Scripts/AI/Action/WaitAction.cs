@@ -11,9 +11,9 @@ public class WaitAction : TaskAction
     /// <summary>
     /// Initializes a new instance of the <see cref="WaitAction"/> class.
     /// </summary>
-    /// <param name="actor">The <see cref="Actor"/> performing the <see cref="WaitAction"/>.</param>
     /// <param name="time">The length of time in seconds for the <see cref="Actor"/> to be waiting.</param>
-    public WaitAction(Actor actor, float time) : base(actor)
+    /// <param name="pawn">The <see cref="Pawn"/> performing the <see cref="WaitAction"/>.</param>
+    public WaitAction(float time, Pawn pawn) : base(pawn)
     {
         _time = time;
     }
@@ -38,15 +38,21 @@ public class WaitAction : TaskAction
         {
             if (_pawn.CurrentNode.Reserved)
             {
-                foreach ((RoomNode node, float) node in _pawn.CurrentNode.NextNodes)
+                if (_pawn is AdventurerPawn)
                 {
-                    if (!node.node.Reserved)
+                    foreach ((RoomNode node, float) node in _pawn.CurrentNode.NextNodes)
                     {
-                        _pawn.CurrentStep = new WalkStep(node.node.WorldPosition, _pawn, step);
-                        return;
+                        if (!node.node.Reserved)
+                        {
+                            _pawn.CurrentStep = new WalkStep(node.node.WorldPosition, _pawn, step);
+                            return;
+                        }
                     }
+                    Debug.Log("No Unreserved Location");
                 }
-                Debug.Log("No Unreserved Location");
+                else if(step is not WaitStep)
+                _pawn.CurrentStep = new WaitStep(_pawn, _pawn.CurrentStep, false);
+
             }
             else if (step is not WaitStep)
                 _pawn.CurrentStep = new WaitStep(_pawn, _pawn.CurrentStep, true);

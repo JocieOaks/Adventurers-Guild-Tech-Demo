@@ -1,6 +1,6 @@
 /// <summary>
-/// The <see cref="TaskStep"/> class is the base class for small single steps for a <see cref="AdventurerPawn"/> to take.
-/// <see cref="TaskStep"/> is also responsible for controlling <see cref="AdventurerPawn"/> animations.
+/// The <see cref="TaskStep"/> class is the base class for small single steps for a <see cref="Pawn"/> to take.
+/// <see cref="TaskStep"/> is also responsible for controlling <see cref="Pawn"/> animations.
 /// </summary>
 public abstract class TaskStep
 {
@@ -16,7 +16,7 @@ public abstract class TaskStep
     /// <summary>
     /// Initializes a new instance of <see cref="TaskStep"/>.
     /// </summary>
-    /// <param name="pawn">The <see cref="AdventurerPawn"/> performing the <see cref="TaskStep"/>.</param>
+    /// <param name="pawn">The <see cref="Pawn"/> performing the <see cref="TaskStep"/>.</param>
     protected TaskStep(Pawn pawn)
     {
         _pawn = pawn;

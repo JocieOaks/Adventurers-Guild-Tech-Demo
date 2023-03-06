@@ -14,8 +14,8 @@ public class LayDownAction : TaskAction
     /// Initializes a new instance of the <see cref="LayDownAction"/>.
     /// </summary>
     /// <param name="bed">The <see cref="BedSprite"/> the <see cref="Actor"/> is laying in.</param>
-    /// <param name="actor">The <see cref="Actor"/> laying down.</param>
-    public LayDownAction(BedSprite bed, Actor actor) : base(actor)
+    /// <param name="pawn">The <see cref="Pawn"/> laying down.</param>
+    public LayDownAction(BedSprite bed, Pawn pawn) : base(pawn)
     {
         _bed = bed;
     }

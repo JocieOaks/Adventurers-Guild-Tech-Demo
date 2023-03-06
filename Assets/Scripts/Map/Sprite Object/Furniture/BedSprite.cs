@@ -193,13 +193,15 @@ public class BedSprite : SpriteObject, IOccupied
         ReserveInteractionPoints();
     }
 
-    public void StartPlayerInteraction(PlayerPawn pawn)
+    /// <inheritdoc/>
+    public void StartPlayerInteraction()
     {
-        throw new System.NotImplementedException();
+        PlayerPawn.Instance.SetTask(new StanceLay(this));
     }
 
-    public void EndPlayerInteraction(PlayerPawn pawn)
+    /// <inheritdoc/>
+    public void EndPlayerInteraction()
     {
-        throw new System.NotImplementedException();
+        Exit(PlayerPawn.Instance);
     }
 }

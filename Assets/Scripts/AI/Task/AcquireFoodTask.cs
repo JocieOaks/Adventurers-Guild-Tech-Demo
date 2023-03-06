@@ -39,7 +39,7 @@ public class AcquireFoodTask : Task, ISetupTask, IRecoverableTask
         IInteractable foodSource = GetFoodSource(actor.Stats);
         if (foodSource == null)
             yield break;
-        yield return new TravelAction(foodSource.WorldPosition, actor);
+        yield return new TravelAction(foodSource.WorldPosition, actor.Pawn);
         yield return new AcquireFoodAction(actor, foodSource);
     }
 
@@ -49,7 +49,7 @@ public class AcquireFoodTask : Task, ISetupTask, IRecoverableTask
         IInteractable foodSource = GetFoodSource(actor.Stats);
         if (foodSource == null)
             yield break;
-        yield return new TravelAction(foodSource.WorldPosition, actor);
+        yield return new TravelAction(foodSource.WorldPosition, actor.Pawn);
         yield return new AcquireFoodAction(actor, foodSource);
     }
 

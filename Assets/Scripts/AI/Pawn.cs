@@ -28,6 +28,9 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
     [SerializeField] protected SpriteRenderer _spriteRenderer;
     static readonly Vector2 s_maskPivot = new(36, 18);
 
+    protected readonly Queue<TaskAction> _taskActions = new();
+    protected int _recovery = 0;
+
     protected readonly List<Collider2D> _overlappingColliders = new();
     [SerializeField] PolygonCollider2D _collider;
     SpriteMask _mask;
@@ -37,6 +40,9 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
     Texture2D _maskTexture;
     SortingGroup _sortingGroup;
     Vector3 _worldPosition;
+
+    /// <value> The current <see cref="TaskAction"/> the <see cref="AdventurerPawn"/> is performing.</value> 
+    public TaskAction CurrentAction { get; protected set; }
 
     /// <value> The z coordinate of <see cref="AdventurerPawn"/>'s position.</value>
     public int CurrentLevel => CurrentNode.SurfacePosition.z;
@@ -244,6 +250,62 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
             _mask.transform.position = Utility.MapCoordinatesToSceneCoordinates(WorldPosition);
         }
     }
+
+    /// <summary>
+    /// Evaluates the state of the current <see cref="Task"/> and <see cref="TaskAction"/>s and updates them if necessary.
+    /// </summary>
+    protected void ManageTask()
+    {
+        bool recover = false;
+        foreach (TaskAction action in _taskActions)
+        {
+            if (action.Complete() == -1)
+            {
+                recover = true;
+                CurrentAction = action;
+                break;
+            }
+        }
+
+        if (recover || CurrentAction != null && CurrentAction.Complete() == -1)
+        {
+            _recovery++;
+            OnTaskFail();
+        }
+        else
+        {
+            _recovery = 0;
+        }
+
+        if (CurrentAction == null || CurrentAction.Complete() != 0)
+        {
+            if (_taskActions.Count == 0)
+            {
+                OnTaskFinish();
+            }
+
+            if (_taskActions.Count > 0)
+            {
+                CurrentAction = _taskActions.Dequeue();
+                CurrentAction.Initialize();
+            }
+            else
+            {
+                CurrentAction = new WaitAction(2, this);
+                CurrentAction.Initialize();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Called when the current <see cref="Task"/> has completed.
+    /// </summary>
+    protected abstract void OnTaskFinish();
+
+    /// <summary>
+    /// Called when the current <see cref="Task"/> has failed and must be recovered from or ended.
+    /// </summary>
+    protected abstract void OnTaskFail();
 
     /// <summary>
     /// Initializes _sortingGroup and the mask elements for the Pawn.

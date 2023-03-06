@@ -17,7 +17,7 @@ public class WalkStep : TaskStep, IDirected
     /// <param name="end">The <see cref="Map"/> coordinates of the <see cref="Pawn"/>'s destination. 
     /// <param name="pawn">The <see cref="Pawn"/> performing the <see cref="WalkStep"/>.</param>
     /// <param name="step">The previous <see cref="TaskStep"/> to be performing.</param>
-    public WalkStep(Vector3Int end, AdventurerPawn pawn, TaskStep step) : this(end, pawn)
+    public WalkStep(Vector3Int end, Pawn pawn, TaskStep step) : this(end, pawn)
     {
         if (step is WalkStep walk)
         {
@@ -29,9 +29,9 @@ public class WalkStep : TaskStep, IDirected
     /// <summary>
     /// Initializes a new instance of the <see cref="WalkStep"/> class.
     /// </summary>
-    /// <param name="end">The <see cref="Map"/> coordinates of the <see cref="AdventurerPawn"/>'s destination.
-    /// <param name="pawn">The <see cref="AdventurerPawn"/> performing the <see cref="WalkStep"/>.</param>
-    public WalkStep(Vector3Int end, AdventurerPawn pawn) : base(pawn)
+    /// <param name="end">The <see cref="Map"/> coordinates of the <see cref="Pawn"/>'s destination.
+    /// <param name="pawn">The <see cref="Pawn"/> performing the <see cref="WalkStep"/>.</param>
+    public WalkStep(Vector3Int end, Pawn pawn) : base(pawn)
     {
         if(pawn.Occupying != null)
         {

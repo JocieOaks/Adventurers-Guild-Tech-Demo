@@ -3,7 +3,7 @@
 /// <summary>
 /// The <see cref="EatAction"/> class is a <see cref="TaskAction"/> for eating.
 /// </summary>
-public class EatAction : TaskAction
+public class EatAction : ActorAction
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="EatAction"/> class.

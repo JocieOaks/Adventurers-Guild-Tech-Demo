@@ -3,7 +3,7 @@
 /// <summary>
 /// The <see cref="AcquireFoodAction"/> class is a <see cref="TaskAction"/> for a <see cref="AdventurerPawn"/> to obtain food. Will be replaced when the inventory system is more fleshed out.
 /// </summary>
-public class AcquireFoodAction : TaskAction
+public class AcquireFoodAction : ActorAction
 {
     readonly IInteractable _interactable;
 

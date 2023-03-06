@@ -1,16 +1,16 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// The <see cref="SitStep"/> class is a <see cref="TaskStep"/> for a <see cref="AdventurerPawn"/> to sit down.
+/// The <see cref="SitStep"/> class is a <see cref="TaskStep"/> for a <see cref="Pawn"/> to sit down.
 /// </summary>
 public class SitStep : TaskStep, IDirected
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="SitStep"/> task.
     /// </summary>
-    /// <param name="pawn">The <see cref="AdventurerPawn"/> that is sitting down.</param>
-    /// <param name="seat">The seat on which the <see cref="AdventurerPawn"/> is sitting.</param>
-    public SitStep(AdventurerPawn pawn, IOccupied seat) : base(pawn)
+    /// <param name="pawn">The <see cref="Pawn"/> that is sitting down.</param>
+    /// <param name="seat">The seat on which the <see cref="Pawn"/> is sitting.</param>
+    public SitStep(Pawn pawn, IOccupied seat) : base(pawn)
     {
         seat.Enter(pawn);
 

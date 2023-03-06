@@ -3,7 +3,7 @@
 /// <summary>
 /// The <see cref="LeaveConversationAction"/> class is a <see cref="TaskAction"/> for a <see cref="AdventurerPawn"/> to leave a <see cref="Conversation"/>.
 /// </summary>
-public class LeaveConversationAction : TaskAction
+public class LeaveConversationAction : ActorAction
 {
     const float DELAY = 1.0f;
     float _period;

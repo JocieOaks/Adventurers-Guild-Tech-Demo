@@ -3,7 +3,7 @@
 /// <summary>
 /// The <see cref="ApproachAction"/> is a <see cref="TaskAction"/> for a <see cref="AdventurerPawn"/> to reposition during a <see cref="Conversation"/> so that it is in a better talking position.
 /// </summary>
-public class ApproachAction : TaskAction
+public class ApproachAction : ActorAction
 {
     bool _complete = false;
     readonly Conversation _conversation;

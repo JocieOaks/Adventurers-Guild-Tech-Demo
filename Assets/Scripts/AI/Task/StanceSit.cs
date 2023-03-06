@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
 /// The <see cref="StanceSit"/> class is a <see cref="Task"/> for having a <see cref="AdventurerPawn"/> transition into <see cref="Stance.Sit"/>.
 /// </summary>
-public class StanceSit : Task, IRecoverableTask
+public class StanceSit : Task, IRecoverableTask, IPlayerTask
 {
     IOccupied seat;
 
@@ -11,6 +12,15 @@ public class StanceSit : Task, IRecoverableTask
     /// Initalizes a new instance of the <see cref="StanceSit"/> class.
     /// </summary>
     public StanceSit() : base(null, true, null, null) { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StanceSit"/> class with a specified seat.
+    /// </summary>
+    /// <param name="seat">The <see cref="IOccupied"/> to be sat in.</param>
+    public StanceSit(IOccupied seat) : base(null, true, null, null)
+    {
+        this.seat = seat;
+    }
 
     /// <value>The list of all <see cref="IInteractable"/>s that can be sat on.</value>
     public static List<IInteractable> SittingObjects { get; } = new();
@@ -36,12 +46,17 @@ public class StanceSit : Task, IRecoverableTask
     /// <inheritdoc/>
     public override IEnumerable<TaskAction> GetActions(Actor actor)
     {
-        //Debug.Log(actor.Stats.Name + " Sit");
         seat = GetSeat(actor.Stats);
         if (seat == null)
-            yield break;
-        yield return new TravelAction(seat, actor);
-        yield return new SitDownAction(seat, actor);
+            return Enumerable.Empty<TaskAction>();
+        return GetActions(actor.Pawn);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerable<TaskAction> GetActions(Pawn pawn)
+    {
+        yield return new TravelAction(seat, pawn);
+        yield return new SitDownAction(seat, pawn);
     }
 
     /// <inheritdoc/>
@@ -51,8 +66,8 @@ public class StanceSit : Task, IRecoverableTask
             seat = GetSeat(actor.Stats);
         if(seat == null)
             yield break;
-        yield return new TravelAction(seat, actor);
-        yield return new SitDownAction(seat, actor);
+        yield return new TravelAction(seat, actor.Pawn);
+        yield return new SitDownAction(seat, actor.Pawn);
     }
 
     /// <inheritdoc/>

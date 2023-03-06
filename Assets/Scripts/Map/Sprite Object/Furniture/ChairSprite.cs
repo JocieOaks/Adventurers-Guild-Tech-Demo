@@ -158,9 +158,10 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
         base.Destroy();
     }
 
-    public void EndPlayerInteraction(PlayerPawn pawn)
+    /// <inheritdoc/>
+    public void EndPlayerInteraction()
     {
-        throw new System.NotImplementedException();
+        Exit(PlayerPawn.Instance);
     }
 
     /// <inheritdoc/>
@@ -218,9 +219,10 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
         else return 1;
     }
 
-    public void StartPlayerInteraction(PlayerPawn pawn)
+    /// <inheritdoc/>
+    public void StartPlayerInteraction()
     {
-        throw new System.NotImplementedException();
+        PlayerPawn.Instance.SetTask(new StanceSit(this));
     }
 
     /// <inheritdoc/>
