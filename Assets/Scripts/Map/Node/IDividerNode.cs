@@ -12,9 +12,6 @@ public interface IDividerNode : INode
 
     /// <value>The second <see cref="RoomNode"/> connected to the <see cref="IDividerNode"/>.</value>
     RoomNode SecondNode { get; }
-    
-    /// <value>The <see cref="MapAlignment"/> of the <see cref="IDividerNode"/>.</value>
-    MapAlignment Alignment { get; }
 
     /// <summary>
     /// Tests if the <see cref="IDividerNode"/> borders a given <see cref="Room"/>.

@@ -7,19 +7,11 @@ using UnityEngine;
 /// </summary>
 public static class Utility
 {
-
     public static readonly float RAD2_2 = Mathf.Sqrt(2) / 2;
+    public static readonly float RAD3_2 = Mathf.Sqrt(3) / 2;
     public static readonly float RAD6_4 = Mathf.Sqrt(5) / 4;
 
-    /// <summary>
-    /// Calculates the <see cref="SpriteRenderer"/> sorting order of an object at this position.
-    /// </summary>
-    /// <param name="position">The position of the object.</param>
-    /// <returns>Returns the sort order at the given position.</returns>
-    public static int GetSortOrder(Vector3Int position)
-    {
-        return 1 - 2 * position.x - 2 * position.y + 2 * position.z;
-    }
+    static readonly Vector3Int s_alignmentVector = new(1, 1);
 
     /// <summary>
     /// Converts a <see cref="Direction"/> to the <see cref="MapAlignment"/> that is perpendicular to it.
@@ -71,6 +63,51 @@ public static class Utility
             Direction.SouthWest => new Vector3(-RAD2_2, -RAD2_2),
             _ => default,
         };
+    }
+
+    /// <summary>
+    /// Calculates the <see cref="SpriteRenderer"/> sorting order of an object at this position.
+    /// </summary>
+    /// <param name="position">The position of the object.</param>
+    /// <returns>Returns the sort order at the given position.</returns>
+    public static int GetSortOrder(Vector3Int position)
+    {
+        return 1 - 2 * position.x - 2 * position.y + 2 * position.z;
+    }
+
+    /// <summary>
+    /// Determines if an <see cref="IWorldPosition"/> is closer to the camera than another <see cref="IWorldPosition"/>.
+    /// </summary>
+    /// <param name="first">The first <see cref="IWorldPosition"/> being compared.</param>
+    /// <param name="second">The second <see cref="IWorldPosition"/> being compared.</param>
+    /// <returns>Returns true if <c>first</c> is closer than <c>second</c>.</returns>
+    public static bool IsInFrontOf(IWorldPosition first, IWorldPosition second)
+    {
+        Vector3 relPosition = second.NearestCornerPosition - first.NearestCornerPosition;
+
+        if(first.Alignment == MapAlignment.XEdge)
+        {
+            relPosition += new Vector3(0, 0.5f);
+        }
+        else if (first.Alignment == MapAlignment.YEdge)
+        {
+            relPosition += new Vector3(0.5f, 0);
+        }
+
+        if (second.Alignment == MapAlignment.XEdge)
+        {
+            relPosition -= new Vector3(0, 0.5f);
+        }
+        else if (second.Alignment == MapAlignment.YEdge)
+        {
+            relPosition -= new Vector3(0.5f, 0);
+        }
+
+        bool xIntersection = (relPosition.x > 0 && first.Dimensions.x > relPosition.x) || (second.Dimensions.x > -relPosition.x);
+        bool yIntersection = (relPosition.y > 0 && first.Dimensions.y > relPosition.y) || (second.Dimensions.y > -relPosition.y);
+        //_alignmentVector is a static vector that points from the camera inward. (1,1,0)
+        //If the dot product of the alignment vector and the relative position of the second to the first is positive, it means that the second is further into screen than the first
+        return relPosition.z - first.Dimensions.z < 0 && (-relPosition.z >= second.Dimensions.z || (xIntersection && relPosition.y >= 0 || yIntersection && relPosition.x >= 0));
     }
 
     /// <summary>

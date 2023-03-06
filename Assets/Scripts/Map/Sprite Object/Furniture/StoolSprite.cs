@@ -125,6 +125,11 @@ public class StoolSprite : SpriteObject, IOccupied
         base.Destroy();
     }
 
+    public void EndPlayerInteraction(PlayerPawn pawn)
+    {
+        throw new System.NotImplementedException();
+    }
+
     /// <inheritdoc/>
     public void Enter(Pawn pawn)
     {
@@ -178,6 +183,11 @@ public class StoolSprite : SpriteObject, IOccupied
         if (nodePosition == WorldPosition)
             return 0.5f;
         else return 1;
+    }
+
+    public void StartPlayerInteraction(PlayerPawn pawn)
+    {
+        throw new System.NotImplementedException();
     }
 
     /// <inheritdoc/>

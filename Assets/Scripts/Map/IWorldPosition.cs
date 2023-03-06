@@ -5,8 +5,14 @@
 /// </summary>
 public interface IWorldPosition
 {
+    /// <value>The position of an <see cref="IWorldPosition"/> within a tile. Very few objects have an alignment that is not <see cref="MapAlignment.Center"/>.</value>
+    MapAlignment Alignment { get; }
+
     /// <value>The 3D dimensions of the <see cref="IWorldPosition"/> in terms of <see cref="Map"/> coordinates. 
     Vector3Int Dimensions { get; }
+
+    /// <value>Determines where the lower corner of <see cref="Dimensions"/> is. For most objects it is at <see cref="WorldPosition"/>.</value>
+    Vector3Int NearestCornerPosition { get; }
 
     /// <value>Gives the <see cref="INode"/> the object currently occupies. <see cref="INode"/> objects return themselves. Everything else returns <see cref="RoomNode"/>.</value>
     INode Node { get; }

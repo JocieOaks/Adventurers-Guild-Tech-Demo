@@ -23,7 +23,7 @@ public class StairSprite : AreaSpriteObject, IDirected
     /// <param name="direction">The <see cref="Direction"/> the <see cref="StairSprite"/> is facing.</param>
     /// <param name="worldPosition">The <see cref="IWorldPosition.WorldPosition"/> of the  <see cref="StairSprite"/>.</param>
     /// <param name="z">The elevation relative to the <see cref="Room"/> the <see cref="StairSprite"/> is in.</param>
-    public StairSprite(Direction direction, Vector3Int worldPosition, int z) : base(z + 1, sprites, direction, worldPosition, "Stair", ObjectDimensions, false)
+    public StairSprite(Direction direction, Vector3Int worldPosition, int z) : base(z + 1, sprites, direction, worldPosition, "Stair", new Vector3Int(1,1,z), false)
     {
         Direction = direction;
 
@@ -119,6 +119,9 @@ public class StairSprite : AreaSpriteObject, IDirected
             }
         }
     }
+
+    /// <inheritdoc/>
+    public override Vector3Int NearestCornerPosition => new Vector3Int(WorldPosition.x, WorldPosition.y, Room.Origin.z);
 
     /// <inheritdoc/>
     public override Vector3 OffsetVector => Vector3.down * 2;

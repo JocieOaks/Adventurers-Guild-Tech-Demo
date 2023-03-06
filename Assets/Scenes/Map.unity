@@ -143,6 +143,8 @@ MonoBehaviour:
   _animationSprites: []
   _spriteRenderer: {fileID: 207992316}
   _collider: {fileID: 207992318}
+  _defaultMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  _outlineMaterial: {fileID: 2100000, guid: 187bf8af3c07f8b42b842079056e4b33, type: 2}
 --- !u!212 &207992316 stripped
 SpriteRenderer:
   m_CorrespondingSourceObject: {fileID: 4592747873440549837, guid: 2e79435de366dcf47b0ed05833b85dbe, type: 3}
@@ -196,7 +198,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &318307013
 SpriteRenderer:
   m_ObjectHideFlags: 0

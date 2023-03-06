@@ -87,11 +87,14 @@ public abstract class SpriteObject :  ISpriteObject
 
     /// <inheritdoc/>
     [JsonIgnore]
-    public Vector3Int Dimensions { get; }
+    public virtual Vector3Int Dimensions { get; }
 
     /// <inheritdoc/>
     [JsonIgnore]
     public abstract IEnumerable<bool[,]> GetMaskPixels { get; }
+
+    /// <inheritdoc/>
+    public virtual Vector3Int NearestCornerPosition => WorldPosition;
 
     /// <inheritdoc/>
     [JsonIgnore]
@@ -142,6 +145,8 @@ public abstract class SpriteObject :  ISpriteObject
     /// All other sprites of the <see cref="SpriteObject"/> will be a child of <see cref="Transform"/>.</value>
     [JsonIgnore]
     protected Transform Transform => _spriteRenderers[0].transform;
+
+    public virtual MapAlignment Alignment => MapAlignment.Center;
 
     /// <inheritdoc/>
     public virtual void Destroy()
@@ -202,6 +207,16 @@ public abstract class SpriteObject :  ISpriteObject
     public void SaveData(GameData gameData)
     {
         gameData.SpriteObjects.Add(this);
+    }
+
+    /// <summary>
+    /// Sets the <see cref="Material"/> for the <see cref="SpriteObject"/>'s <see cref="global::SpriteRenderer"/>. Used to outline the <see cref="SpriteObject"/>.
+    /// </summary>
+    /// <param name="material">The <see cref="Material"/> to use.</param>
+    public void SetMaterial(Material material)
+    {
+        for (int i = 0; i < _spriteRenderers.Length; i++)
+            _spriteRenderers[i].material = material;
     }
 
     /// <inheritdoc/>

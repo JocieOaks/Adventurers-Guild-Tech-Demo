@@ -30,7 +30,7 @@ public abstract class LinearSpriteObject : SpriteObject
 
     /// <value>The <see cref="MapAlignment"/> of the <see cref="LinearSpriteObject"/>.</value>
     [JsonProperty]
-    public MapAlignment Alignment { get; }
+    public override MapAlignment Alignment { get; }
 
     /// <summary>
     /// Called when the created <see cref="LinearSpriteObject"/>s are confirmed.

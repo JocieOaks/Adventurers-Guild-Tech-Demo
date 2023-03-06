@@ -8,9 +8,6 @@ using UnityEngine;
 /// </summary>
 public class RoomNode : INode
 {
-
-
-
     readonly List<INode> _adjacentNodes = new();
 
     readonly List<(RoomNode, float)> _nextNodes = new();
@@ -79,6 +76,8 @@ public class RoomNode : INode
     /// <value>A quick accessor for the x and y room positions of the <see cref="RoomNode"/> as a tuple of two ints.</value>
     public (int x, int y) Coords => (RoomPosition.x, RoomPosition.y);
 
+    public Vector3Int Dimensions => new Vector3Int(1, 1, Room.Height);
+
     /// <value>Determines if a <see cref="SpriteObject"/>is currently placed at the <see cref ="RoomNode"/>.</value>
     public bool Empty
     {
@@ -87,6 +86,9 @@ public class RoomNode : INode
 
     /// <value> Returns the <see cref="global::FloorSprite"/> <see cref="SpriteObject"/> associated with this <see cref="RoomNode"/>.</value>
     public FloorSprite Floor { get; }
+
+    /// <inheritdoc/>
+    public Vector3Int NearestCornerPosition => WorldPosition;
 
     /// <value>The <see cref="List{T}"/> of all <see cref="RoomNode"/>'s that are a single step away from this <see cref="RoomNode"/> in terms of <see cref="AdventurerPawn"/> navigation.
     /// If the list is not already made it will be created.</value>
@@ -327,7 +329,8 @@ public class RoomNode : INode
         }
     }
 
-    public Vector3Int Dimensions => new Vector3Int(1,1,Room.Height);
+    /// <inheritdoc/>
+    public MapAlignment Alignment =>  MapAlignment.Center;
 
     /// <summary>
     /// Evaluates if a given path of <see cref="RoomNode"/>'s remains valid.
@@ -384,32 +387,6 @@ public class RoomNode : INode
         };
     }
 
-    public RoomNode GetRoomNode(Direction direction)
-    { 
-        switch(direction)
-        {
-            case Direction.North:
-            case Direction.South:
-            case Direction.East:
-            case Direction.West:
-                INode node = GetNode(direction);
-                if (node is IDividerNode divider)
-                    return divider.GetOppositeRoomNode(this);
-                else
-                    return node as RoomNode;
-            default:
-                return direction switch
-                {
-                    Direction.NorthEast => NorthEast,
-                    Direction.SouthEast => SouthEast,
-                    Direction.NorthWest => NorthWest,
-                    Direction.SouthWest => SouthWest,
-                    Direction.Undirected => this,
-                    _ => throw new System.ArgumentException("Not a valid direction for GetRoomNode()")
-                };
-        }
-    }
-
     /// <summary>
     /// Get the <see cref="INode"/> in a given cardinal <see cref="Direction"/> as a given type.
     /// </summary>
@@ -448,6 +425,38 @@ public class RoomNode : INode
             return (T)(INode)(node as DoorConnector).WallNode;
         }
         return default;
+    }
+
+    /// <summary>
+    /// Finds the <see cref="RoomNode"/> that is directly in the given direction, ignoring any <see cref="IDividerNode"/>s that may be in between.
+    /// </summary>
+    /// <param name="direction">The <see cref="Direction"/> of the desired <see cref="RoomNode"/>.</param>
+    /// <returns>Returns the desired <see cref="RoomNode"/>.</returns>
+    /// <exception cref="System.ArgumentException">Thrown when <c>direction</c> is not a valid <see cref="Direction"/>.</exception>
+    public RoomNode GetRoomNode(Direction direction)
+    { 
+        switch(direction)
+        {
+            case Direction.North:
+            case Direction.South:
+            case Direction.East:
+            case Direction.West:
+                INode node = GetNode(direction);
+                if (node is IDividerNode divider)
+                    return divider.GetOppositeRoomNode(this);
+                else
+                    return node as RoomNode;
+            default:
+                return direction switch
+                {
+                    Direction.NorthEast => NorthEast,
+                    Direction.SouthEast => SouthEast,
+                    Direction.NorthWest => NorthWest,
+                    Direction.SouthWest => SouthWest,
+                    Direction.Undirected => this,
+                    _ => throw new System.ArgumentException("Not a valid direction for GetRoomNode()")
+                };
+        }
     }
 
     /// <inheritdoc/>

@@ -7,11 +7,12 @@ using UnityEngine.Rendering;
 
 public class PlayerPawn : Pawn
 {
-    static readonly List<int> s_humanSkinTones = new() { 9, 10, 11, 12, 13, 14, 15, 16, 20 };
-    static readonly List<int> s_naturalHairColors = new() { 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 };
-    static readonly List<int> s_orcSkinTones = new() { 4, 5, 6, 7, 8, 16 };
-    static readonly List<int> s_tieflingSkinTones = new() { 0, 1, 2, 3, 17, 18, 19, 20 };
-    static readonly List<int> s_unnaturalHairColors = new() { 0, 1, 2 };
+    const float DIRECTIONDELAYTIME = 0.025f;
+
+    [SerializeField] Material _defaultMaterial;
+    float _directionDelay = 0;
+    IWorldPosition _nearestInteractable;
+    [SerializeField] Material _outlineMaterial;
     float _speed = 2.5f;
 
     /// <inheritdoc/>
@@ -28,6 +29,9 @@ public class PlayerPawn : Pawn
                 GameManager.Instance.ChangeLevel(true);
         }
     }
+
+    /// <inheritdoc/>
+    public override string Name => "Player";
 
     /// <inheritdoc/>
     public override float Speed => _speed * CurrentNode.SpeedMultiplier;
@@ -58,10 +62,6 @@ public class PlayerPawn : Pawn
             base.WorldPositionNonDiscrete = value;
         } 
     }
-
-    /// <inheritdoc/>
-    public override string Name => "Player";
-
     /// <inheritdoc/>
     protected override IEnumerator Startup()
     {
@@ -99,6 +99,78 @@ public class PlayerPawn : Pawn
         _ready = true;
     }
 
+    /// <summary>
+    /// Determined is a specified interactable is closer than <see cref="_nearestInteractable"/>.
+    /// </summary>
+    /// <param name="worldPosition">The interactable as an <see cref="IWorldPosition"/>.</param>
+    /// <param name="nearestDistance">The distance between the <see cref="PlayerPawn"/> and <see cref="_nearestInteractable"/>.</param>
+    void CompareInteractables(IWorldPosition worldPosition, ref float nearestDistance)
+    {
+        Vector3 relativePosition = worldPosition.WorldPosition - WorldPositionNonDiscrete;
+        float distance = relativePosition.magnitude;
+
+
+        if (distance < 2.5 && 
+            distance < nearestDistance &&
+            Vector3.Dot(relativePosition / distance, Utility.DirectionToVectorNormalized(Direction)) > Utility.RAD3_2) //Determines if the interactable is within a 60 degree FOV.
+        {
+            _nearestInteractable = worldPosition;
+            nearestDistance = distance;
+        }
+    }
+
+    /// <summary>
+    /// Determines the nearest interactable <see cref="IWorldPosition"/> that the <see cref="PlayerPawn"/> is facing, if any.
+    /// </summary>
+    void FindNearbyInteractable()
+    {
+        IWorldPosition previousInteractable = _nearestInteractable;
+        _nearestInteractable = null;
+        float nearestDistance = float.PositiveInfinity;
+        foreach(Collider2D collider in _overlappingColliders)
+        {
+            if(collider.TryGetComponent(out SpriteObject.SpriteCollider spriteCollider) && spriteCollider.SpriteObject is IPlayerInteractable interactable)
+            {
+                CompareInteractables(interactable, ref nearestDistance);
+            }
+            else if(collider.TryGetComponent(out AdventurerPawn pawn))
+            {
+                CompareInteractables(pawn, ref nearestDistance);
+            }
+        }
+
+        if(previousInteractable != _nearestInteractable)
+        {
+            SetInteractableMaterial(previousInteractable, _defaultMaterial);
+            if(_nearestInteractable != null)
+            {
+                SetInteractableMaterial(_nearestInteractable, _outlineMaterial);
+            }
+        }
+    }
+
+    /// <inheritdoc/>
+    private void FixedUpdate()
+    {
+        FindNearbyInteractable();
+    }
+
+    /// <summary>
+    /// Sets the <see cref="Material"/> for an <see cref="IWorldPosition"/>'s <see cref="SpriteRenderer"/>. Used to outline the <see cref="IWorldPosition"/>.
+    /// </summary>
+    /// <param name="worldPosition">The <see cref="IWorldPosition"/> whose <see cref="Material"/> is being set.</param>
+    /// <param name="material">The <see cref="Material"/> to use.</param>
+    void SetInteractableMaterial(IWorldPosition worldPosition, Material material)
+    {
+        if(worldPosition is SpriteObject spriteObject)
+        {
+            spriteObject.SetMaterial(material);
+        }
+        else if(worldPosition is Pawn pawn)
+        {
+            pawn.SetMaterial(material);
+        }
+    }
     // Update is called once per frame
     void Update()
     {
@@ -122,7 +194,7 @@ public class PlayerPawn : Pawn
                 movement += new Vector3Int(1, -1);
             }
 
-            if(Input.GetKey(KeyCode.LeftShift))
+            if (Input.GetKey(KeyCode.LeftShift))
             {
                 _speed = 4f;
             }
@@ -144,21 +216,24 @@ public class PlayerPawn : Pawn
                 _ => Direction.Undirected,
             };
 
-            if(direction == Direction.Undirected)
+
+            if (direction == Direction.Undirected)
             {
-                if(CurrentStep is not WaitStep)
+                if (CurrentStep is not WaitStep)
                 {
                     CurrentStep = new WaitStep(this, CurrentStep, false);
                 }
             }
-            else
+            else if (CurrentStep is not WalkStep || direction != Direction)
             {
-                if(CurrentStep is not WalkStep step || step.Direction != direction)
+                _directionDelay += Time.deltaTime;
+                if (_directionDelay > DIRECTIONDELAYTIME)
                 {
+                    _directionDelay = 0;
+
                     CurrentStep = new WalkStep(direction, this, CurrentStep);
                 }
             }
-
             CurrentStep.Perform();
         }
     }

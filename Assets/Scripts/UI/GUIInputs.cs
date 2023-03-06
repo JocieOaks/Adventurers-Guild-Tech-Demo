@@ -482,7 +482,7 @@ public class GUIInputs : MonoBehaviour
                 if (pawn is T tObject && GameManager.Instance.IsOnLevel(pawn.CurrentLevel) <= 0)
                     next = tObject;
             }
-            if (!EqualityComparer<T>.Default.Equals(next, default) && (EqualityComparer<T>.Default.Equals(nearest, default) || Map.IsInFrontOf(next, nearest)))
+            if (!EqualityComparer<T>.Default.Equals(next, default) && (EqualityComparer<T>.Default.Equals(nearest, default) || Utility.IsInFrontOf(next, nearest)))
                 nearest = next;
         }
 

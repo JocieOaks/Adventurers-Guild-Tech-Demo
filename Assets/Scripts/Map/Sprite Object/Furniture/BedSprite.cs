@@ -192,4 +192,14 @@ public class BedSprite : SpriteObject, IOccupied
         _interactionPoints = null;
         ReserveInteractionPoints();
     }
+
+    public void StartPlayerInteraction(PlayerPawn pawn)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void EndPlayerInteraction(PlayerPawn pawn)
+    {
+        throw new System.NotImplementedException();
+    }
 }

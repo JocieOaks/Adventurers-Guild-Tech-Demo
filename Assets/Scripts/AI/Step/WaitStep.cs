@@ -79,30 +79,19 @@ public class WaitStep : TaskStep, IDirected
     /// <param name="direction">The <see cref="global::Direction"/> for the <see cref="Pawn"/> to face.</param>
     public void SetDirection(Direction direction)
     {
-        switch (direction)
+        Direction = direction;
+
+        animationIndex = direction switch
         {
-            case Direction.North:
-                Direction = Direction.North;
-                animationIndex = 44;
-                break;
-            case Direction.NorthEast:
-            case Direction.East:
-                Direction = Direction.East;
-                animationIndex = 45;
-                break;
-            case Direction.SouthEast:
-            case Direction.South:
-            case Direction.SouthWest:
-                Direction = Direction.South;
-                _period = Mathf.Clamp(_period, 0, 2.75f);
-                animationIndex = 30;
-                break;
-            default:
-                Direction = Direction.West;
-                _period = Mathf.Clamp(_period, 0, 2.75f);
-                animationIndex = 24;
-                break;
-        }
+            Direction.North => 44,
+            Direction.NorthEast => 45,
+            Direction.East => 45,
+            Direction.SouthEast => 30,
+            Direction.South => 30,
+            Direction.SouthWest => 30,
+            _ => 24
+        };
+        _period = Mathf.Clamp(_period, 0, 2.75f);
     }
 
     /// <inheritdoc/>

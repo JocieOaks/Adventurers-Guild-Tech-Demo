@@ -42,7 +42,13 @@ public abstract class BlockingNode : IDividerNode
     public MapAlignment Alignment { get; }
 
     /// <inheritdoc/>
+    public abstract Vector3Int Dimensions { get; }
+
+    /// <inheritdoc/>
     public RoomNode FirstNode { get; }
+
+    /// <inheritdoc/>
+    public Vector3Int NearestCornerPosition => WorldPosition;
 
     /// <inheritdoc/>
     public INode Node => this;
@@ -58,10 +64,6 @@ public abstract class BlockingNode : IDividerNode
 
     /// <inheritdoc/>
     public Vector3Int WorldPosition { get; private set; }
-
-    /// <inheritdoc/>
-    public abstract Vector3Int Dimensions { get; }
-
     /// <inheritdoc/>
     public bool HasNavigatedTo(RoomNode node)
     {

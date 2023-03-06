@@ -2,7 +2,6 @@
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.UIElements;
 
 /// <summary>
 /// Enum referring to the <see cref="Sprite"/> to be used for a portion of a door.
@@ -166,6 +165,9 @@ public class WallSprite : LinearSpriteObject
     public static WallMaterial WallMaterial { get; private set; } = WallMaterial.Brick;
 
     /// <inheritdoc/>
+    public override Vector3Int Dimensions => IsDoor && (_doorSpriteType == DoorSpriteType.DoorXMid || _doorSpriteType == DoorSpriteType.DoorYMid) ? base.Dimensions - new Vector3Int(0, 05) : base.Dimensions;
+
+    /// <inheritdoc/>
     public override IEnumerable<bool[,]> GetMaskPixels
     {
         get
@@ -231,6 +233,8 @@ public class WallSprite : LinearSpriteObject
         }
     }
 
+    /// <inheritdoc/>
+    public override Vector3Int NearestCornerPosition => IsDoor && (_doorSpriteType == DoorSpriteType.DoorXMid || _doorSpriteType == DoorSpriteType.DoorYMid)? WorldPosition + new Vector3Int(0,0,5) : WorldPosition;
     /// <inheritdoc/>
     public override Vector3 OffsetVector => 2 * Vector3.up;
 

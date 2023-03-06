@@ -158,6 +158,11 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
         base.Destroy();
     }
 
+    public void EndPlayerInteraction(PlayerPawn pawn)
+    {
+        throw new System.NotImplementedException();
+    }
+
     /// <inheritdoc/>
     public void Enter(Pawn pawn)
     {
@@ -211,6 +216,11 @@ public class ChairSprite : SpriteObject, IOccupied, IDirected
         if (nodePosition == WorldPosition)
             return 0.5f;
         else return 1;
+    }
+
+    public void StartPlayerInteraction(PlayerPawn pawn)
+    {
+        throw new System.NotImplementedException();
     }
 
     /// <inheritdoc/>

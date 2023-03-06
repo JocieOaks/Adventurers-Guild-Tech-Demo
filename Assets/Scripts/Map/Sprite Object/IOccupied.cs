@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public interface IOccupied : IInteractable
+public interface IOccupied : IInteractable, IPlayerInteractable
 {
     /// <value>The <see cref="AdventurerPawn"/> occuping the <see cref="IOccupied"/>. Null if empty.</value>
     public Pawn Occupant { get; set; }

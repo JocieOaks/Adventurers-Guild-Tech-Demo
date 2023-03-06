@@ -22,7 +22,6 @@ public class TableRoundSprite : SpriteObject
     public TableRoundSprite(Vector3Int worldPosition)
         : base(3, sprites, Direction.Undirected, worldPosition, "Round Table", new Vector3Int(1, 1, 2), true)
     {
-        Dimensions = ObjectDimensions;
         _spriteRenderers[1].sprite = Graphics.Instance.TableRound[1];
         _spriteRenderers[1].sortingOrder = Utility.GetSortOrder(WorldPosition + Vector3Int.up);
         _spriteRenderers[2].sprite = Graphics.Instance.TableRound[2];
@@ -35,7 +34,10 @@ public class TableRoundSprite : SpriteObject
     /// <value>he 3D dimensions of the <see cref="SpriteObject"/> in terms of <see cref="Map"/> coordinates. 
     /// Normally should be equivalent to <see cref="ObjectDimensions"/> but can be publicly accessed without knowing the <see cref="SpriteObject"/>'s type.</value>
     [JsonIgnore]
-    public new Vector3Int Dimensions { get; }
+    public override Vector3Int Dimensions => ObjectDimensions;
+
+    /// <inheritdoc/>
+    public override Vector3Int NearestCornerPosition => WorldPosition;
 
     /// <inheritdoc/>
     [JsonIgnore]

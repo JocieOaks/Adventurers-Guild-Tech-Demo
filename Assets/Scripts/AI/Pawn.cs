@@ -28,7 +28,7 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
     [SerializeField] protected SpriteRenderer _spriteRenderer;
     static readonly Vector2 s_maskPivot = new(36, 18);
 
-    readonly List<Collider2D> _overlappingColliders = new();
+    protected readonly List<Collider2D> _overlappingColliders = new();
     [SerializeField] PolygonCollider2D _collider;
     SpriteMask _mask;
 
@@ -68,6 +68,9 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
                 return Direction.Undirected;
         }
     }
+
+    /// <inheritdoc/>
+    public Vector3Int NearestCornerPosition => WorldPosition - new Vector3Int(1,1,0);
 
     /// <summary>
     /// The name of the <see cref="Pawn"/>.
@@ -135,6 +138,8 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
     /// <inheritdoc/>
     public Vector3Int Dimensions => new Vector3Int(3,3,5);
 
+    public MapAlignment Alignment => MapAlignment.Center;
+
     /// <summary>
     /// Forces the <see cref="Pawn"/> to a specified <see cref="RoomNode"/>, even if it is not adjacent to their previous position.
     /// </summary>
@@ -159,6 +164,15 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
     public bool HasNavigatedTo(RoomNode node)
     {
         return Vector3Int.Distance(node.WorldPosition, WorldPosition) < 5;
+    }
+
+    /// <summary>
+    /// Sets the <see cref="Material"/> for the <see cref="Pawn"/>'s <see cref="SpriteRenderer"/>. Used to outline the <see cref="Pawn"/>.
+    /// </summary>
+    /// <param name="material">The <see cref="Material"/> to use.</param>
+    public void SetMaterial(Material material)
+    {
+        _spriteRenderer.material = material;
     }
 
     /// <summary>
@@ -194,7 +208,7 @@ public abstract class Pawn : MonoBehaviour, IWorldPosition
                 {
                     SpriteObject spriteObject = collider.SpriteObject;
 
-                    if (spriteObject.SpriteRenderer.enabled && Map.IsInFrontOf(spriteObject, this))
+                    if (spriteObject.SpriteRenderer.enabled && Utility.IsInFrontOf(spriteObject, this))
                     { 
                         //Builds a flattened 2D array for the SpriteMask by checking the pixels of the SpriteObjects in front of the Pawn.
                         int transformOffset = 0;

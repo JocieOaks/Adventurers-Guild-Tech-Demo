@@ -61,6 +61,9 @@ public abstract class ConnectingNode : IDividerNode
     public bool IsWithinSingleRoom => (FirstNode.Room == SecondNode.Room);
 
     /// <inheritdoc/>
+    public Vector3Int NearestCornerPosition => WorldPosition;
+
+    /// <inheritdoc/>
     public INode Node => this;
 
     /// <inheritdoc/>
