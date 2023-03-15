@@ -26,7 +26,7 @@ public class LayStep : TaskStep
 
         if (_period >= _frame * BREATHTIME)
         {
-            _pawn.SetSprite(24 + +_idleFrames[_frame]);
+            _pawn.SetSprite(34);//24 + _idleFrames[_frame]);
             _frame++;
             if (_frame == 22)
             {

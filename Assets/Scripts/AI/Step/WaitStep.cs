@@ -48,7 +48,7 @@ public class WaitStep : TaskStep, IDirected
             {
                 if (_period >= _frame * BREATHTIME)
                 {
-                    _pawn.SetSprite(animationIndex + _idleFrames[_frame]);
+                    _pawn.SetSprite(animationIndex);// + _idleFrames[_frame]);
                     _frame++;
                     if (_frame >= 22)
                     {
@@ -83,13 +83,14 @@ public class WaitStep : TaskStep, IDirected
 
         animationIndex = direction switch
         {
-            Direction.North => 44,
-            Direction.NorthEast => 45,
-            Direction.East => 45,
-            Direction.SouthEast => 30,
-            Direction.South => 30,
-            Direction.SouthWest => 30,
-            _ => 24
+            Direction.North => 24,
+            Direction.NorthEast => 19,
+            Direction.East => 14,
+            Direction.SouthEast => 9,
+            Direction.South => 4,
+            Direction.SouthWest => 39,
+            Direction.West => 34,
+            _ => 29
         };
         _period = Mathf.Clamp(_period, 0, 2.75f);
     }

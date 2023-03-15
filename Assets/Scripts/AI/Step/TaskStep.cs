@@ -6,7 +6,7 @@ public abstract class TaskStep
 {
 
     protected const float BREATHTIME = 0.125f;
-    protected const float STEPTIME = 0.625f;
+    protected const float STEPTIME = 0.5f;
     protected static int[] _idleFrames = new int[] { 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
     protected Pawn _pawn;
     protected int _frame = 0;

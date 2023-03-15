@@ -75,35 +75,35 @@ public class WalkStep : TaskStep, IDirected
         switch (best)
         {
             case 0:
-                _animationOffset = 0;
+                _animationOffset = 15;
                 Direction = Direction.NorthEast;
                 break;
             case 1:
-                _animationOffset = 36;
+                _animationOffset = 10;
                 Direction = Direction.East;
                 break;
             case 2:
-                _animationOffset = 4;
+                _animationOffset = 5;
                 Direction = Direction.SouthEast;
                 break;
             case 3:
-                _animationOffset = 16;
+                _animationOffset = 0;
                 Direction = Direction.South;
                 break;
             case 4:
-                _animationOffset = 12;
+                _animationOffset = 35;
                 Direction = Direction.SouthWest;
                 break;
             case 5:
-                _animationOffset = 20;
+                _animationOffset = 30;
                 Direction = Direction.West;
                 break;
             case 6:
-                _animationOffset = 8;
+                _animationOffset = 25;
                 Direction = Direction.NorthWest;
                 break;
             case 7:
-                _animationOffset = 40;
+                _animationOffset = 20;
                 Direction = Direction.North;
                 break;
         }
@@ -127,14 +127,14 @@ public class WalkStep : TaskStep, IDirected
 
         _animationOffset = direction switch
         {
-            Direction.NorthEast => 0,
-            Direction.East => 36,
-            Direction.SouthEast => 4,
-            Direction.South => 16,
-            Direction.SouthWest => 12,
-            Direction.West => 20,
-            Direction.NorthWest => 8,
-            Direction.North => 40,
+            Direction.NorthEast => 15,
+            Direction.East => 10,
+            Direction.SouthEast => 5,
+            Direction.South => 0,
+            Direction.SouthWest => 35,
+            Direction.West => 30,
+            Direction.NorthWest => 25,
+            Direction.North => 20,
             _ => 0
         };
 
@@ -170,7 +170,7 @@ public class WalkStep : TaskStep, IDirected
                 _frame++;
                 if (_frame >= 4)
                 {
-                    _period -= 2.5f;
+                    _period -= 4 * STEPTIME;
                     _frame = 0;
                 }
             }

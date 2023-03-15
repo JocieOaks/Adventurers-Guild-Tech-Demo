@@ -57,7 +57,7 @@ public class SitStep : TaskStep, IDirected
         {
             if (_period >= _frame * BREATHTIME)
             {
-                _pawn.SetSprite(24 + _idleFrames[_frame]);
+                _pawn.SetSprite(34); // 24 + _idleFrames[_frame]);
                 _frame++;
                 if (_frame == 22)
                 {
@@ -70,7 +70,7 @@ public class SitStep : TaskStep, IDirected
         {
             if (_period >= _frame * BREATHTIME)
             {
-                _pawn.SetSprite(30 + _idleFrames[_frame]);
+                _pawn.SetSprite(4); // 30 + _idleFrames[_frame]);
                 _frame++;
                 if (_frame == 22)
                 {
@@ -83,7 +83,7 @@ public class SitStep : TaskStep, IDirected
         {
             if (_period >= _frame * BREATHTIME)
             {
-                _pawn.SetSprite(47);
+                _pawn.SetSprite(14);// 47);
                 _frame += 100;
             }
         }
@@ -91,7 +91,7 @@ public class SitStep : TaskStep, IDirected
         {
             if (_period >= _frame * BREATHTIME)
             {
-                _pawn.SetSprite(46);
+                _pawn.SetSprite(24);// 46);
                 _frame += 100;
             }
         }

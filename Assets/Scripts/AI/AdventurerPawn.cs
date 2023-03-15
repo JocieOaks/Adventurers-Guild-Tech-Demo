@@ -11,6 +11,7 @@ public class AdventurerPawn : Pawn
     [SerializeField] SpriteRenderer _emoji;
     Planner _planner;
     [SerializeField] SpriteRenderer _speechBubble;
+
     /// <value>The <see cref="AdventurerPawn"/>'s corresponding <see cref="global::Actor"/>.</value>
     public Actor Actor
     {
@@ -21,7 +22,9 @@ public class AdventurerPawn : Pawn
         }
     }
 
+    /// <value>The <see cref="Task"/> the <see cref="AdventurerPawn"/> is currently performing.</value>
     public Task CurrentTask { get; private set; }
+
     /// <value>Returns true if the <see cref="AdventurerPawn"/> is currently engaged in a <see cref="Conversation"/> with another <see cref="AdventurerPawn"/>.</value>
     public bool IsInConversation => Social.Conversation != null;
 
@@ -33,6 +36,7 @@ public class AdventurerPawn : Pawn
 
     /// <value>The <see cref="SocialAI"/> that runs the <see cref="AdventurerPawn"/>'s social behaviours.</value>
     public SocialAI Social { get; private set; }
+
     /// <summary>
     /// Sets the <see cref="AdventurerPawn"/> to begin going on a <see cref="Quest"/>
     /// </summary>

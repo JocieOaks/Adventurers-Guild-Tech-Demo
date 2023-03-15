@@ -310,9 +310,9 @@ public class Graphics : MonoBehaviour
         copied.SetPixels(pixels);
         copied.Apply();
 
-        Sprite[] sprites = new Sprite[48];
-        for (int i = 0; i < headTable.Length; i++)
-            sprites[i] = Sprite.Create(copied, new Rect(64 * (i % 4), 64 * (i / 4), 64, 64), new Vector2(0.5f, 5f / 64), 6);
+        Sprite[] sprites = new Sprite[40];
+        for (int i = 0; i < 40; i++)
+            sprites[i] = Sprite.Create(copied, new Rect(64 * (i % 5), 64 * (i / 5), 64, 64), new Vector2(0.5f, 5f / 64), 6);
         return sprites;
     }
 
@@ -440,11 +440,11 @@ public class Graphics : MonoBehaviour
 
         _pawnTextureOrcTeeth = PawnTextureOrcTeeth.GetPixels();
 
-        _pawnSpriteSheetWidth = PawnTextureBodyThick.width;
+        _pawnSpriteSheetWidth = PawnTextureBodyMuscular.width;
 
-        _pawnSpriteSheetHeight = PawnTextureBodyThick.height;
+        _pawnSpriteSheetHeight = PawnTextureBodyMuscular.height;
 
-        _pawnSpriteSheetArrayLength = _pawnTextureBodyThick.Length;
+        _pawnSpriteSheetArrayLength = _pawnTextureBodyMuscular.Length;
 
         Ready = true;
     }
@@ -506,10 +506,14 @@ public class Graphics : MonoBehaviour
             }
 
 
-            for (int i = 0; i < _pawnTextureBodyThick.Length; i++)
+            for (int i = 0; i < _pawnSpriteSheetArrayLength; i++)
             {
                 Color bodyPixel = Color.clear;
-                if (_bodyHair == 1)
+                //Temp change for testing new sprites
+                bodyPixel = _pawnTextureBodyMuscular[i];
+                if (skinColorMapping.Contains(bodyPixel))
+                    bodyPixel = (Color)skinColorMapping[bodyPixel];
+                /*if (_bodyHair == 1)
                     bodyPixel = _thick ? _pawnTextureBodyHairThick[i] : _pawnTextureBodyHairMuscular[i];
                 else if (_bodyHair == 2)
                     bodyPixel = _thick ? _pawnTextureChestHairThick[i] : _pawnTextureChestHairMuscular[i];
@@ -524,11 +528,11 @@ public class Graphics : MonoBehaviour
                 {
                     if (hairColorMapping.Contains(bodyPixel))
                         bodyPixel = (Color)hairColorMapping[bodyPixel];
-                }
+                }*/
                 _pixels[i] = bodyPixel;
             }
 
-            for (int i = 0; i < headTable.Length; i++)
+            /*for (int i = 0; i < headTable.Length; i++)
             {
                 (int x, int y, int headDirection, bool flipped) = headTable[i];
                 x += 64 * (i % 4);
@@ -549,7 +553,7 @@ public class Graphics : MonoBehaviour
                         }
                     }
                 }
-            }
+            }*/
         }
 
         /// <summary>
