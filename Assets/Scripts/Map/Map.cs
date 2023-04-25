@@ -288,49 +288,51 @@ public class Map : MonoBehaviour, IDataPersistence
         Room startingRoom = Instance[startPosition].Room;
         Room endingRoom = end.Room;
 
-        Dictionary<INode, float> g_score = new();
+        Dictionary<INode, (float score, ILockBox queueNode)> g_score = new();
 
         PriorityQueue<INode, float> nodeQueue = new(false);
 
         if (startingRoom == endingRoom)
         {
             float score = Vector3Int.Distance(startPosition, endPosition);
-            g_score[end] = score;
-
-            nodeQueue.Push(end, score);
+            g_score[end] = (score, nodeQueue.Push(end, score));
         }
 
         foreach (ConnectingNode node in startingRoom.Connections)
         {
             float score = Vector3Int.Distance(startPosition, node.WorldPosition);
-            g_score[node] = score;
-            nodeQueue.Push(node, score + Vector3Int.Distance(node.WorldPosition, endPosition));
+            g_score[node] = (score, nodeQueue.Push(node, score + Vector3Int.Distance(node.WorldPosition, endPosition)));
         }
 
         while (!nodeQueue.Empty && nodeQueue.Count < 50)
         {
-            INode currentNode = nodeQueue.PopMin();
+            INode currentNode = nodeQueue.Pop();
             if (currentNode == end)
             {
-                return g_score[end];
+                return g_score[end].score;
             }
 
             if (!currentNode.Traversable)
                 continue;
             ConnectingNode current = currentNode as ConnectingNode;
 
-            float currentScore = g_score[current];
+            float currentScore = g_score[current].score;
 
             if (current.AdjacentToRoom(endingRoom))
             {
                 float nextScore = currentScore + Vector3Int.Distance(current.WorldPosition, endPosition);
-                if (g_score.TryGetValue(end, out var score) && score < nextScore)
+                if (g_score.TryGetValue(end, out var score))
                 {
-                    continue;
+                    if (score.score < nextScore)
+                        continue;
+                    else
+                    {
+                        g_score[end] = (nextScore, score.queueNode);
+                        nodeQueue.ChangePriority(score.queueNode, nextScore);
+                    }
                 }
-
-                g_score[end] = nextScore;
-                nodeQueue.Push(end, nextScore, true);
+                else
+                    g_score[end] = (nextScore, nodeQueue.Push(end, nextScore));
             }
 
             List<ConnectingNode> nextNodes = current.ConnectionNodes;
@@ -338,12 +340,18 @@ public class Map : MonoBehaviour, IDataPersistence
             foreach (ConnectingNode next in nextNodes)
             {
                 float nextScore = current.GetDistance(next) + currentScore;
-                if (g_score.TryGetValue(next, out var score) && score < nextScore)
-                {
-                    continue;
+                if (g_score.TryGetValue(next, out var score))
+                { 
+                    if (score.score < nextScore)
+                        continue;
+                    else
+                    {
+                        g_score[end] = (nextScore, score.queueNode);
+                        nodeQueue.ChangePriority(score.queueNode, nextScore + Vector3.Distance(endPosition, next.WorldPosition));
+                    }
                 }
-                g_score[next] = nextScore;
-                nodeQueue.Push(next, nextScore + Vector3.Distance(endPosition, next.WorldPosition), true);
+                else
+                    g_score[next] = (nextScore, nodeQueue.Push(next, nextScore + Vector3.Distance(endPosition, next.WorldPosition)));
             }
         }
 
@@ -603,7 +611,7 @@ public class Map : MonoBehaviour, IDataPersistence
         Room startingRoom = start.Room;
         Room endingRoom = end.Room;
 
-        Dictionary<IWorldPosition, float> g_score = new();
+        Dictionary<IWorldPosition, (float score, ILockBox queueNode)> g_score = new();
         Dictionary<IWorldPosition, IWorldPosition> immediatePredecessor = new();
         Dictionary<(IWorldPosition, IWorldPosition), IEnumerator> paths = new();
 
@@ -611,7 +619,7 @@ public class Map : MonoBehaviour, IDataPersistence
 
         Vector3Int endPosition = end.WorldPosition;
 
-        g_score.Add(start, 0);
+        g_score.Add(start, (0, null));
 
         if (startingRoom == endingRoom)
         {
@@ -625,12 +633,12 @@ public class Map : MonoBehaviour, IDataPersistence
 
         while (!nodeQueue.Empty && nodeQueue.Count < 50)
         {
-            (IWorldPosition prevNode, IWorldPosition current) = nodeQueue.PopMin();
+            (IWorldPosition prevNode, IWorldPosition current) = nodeQueue.Pop();
             if (current == end)
             {
                 if (immediatePredecessor.TryGetValue(end, out IWorldPosition preceding) && preceding == prevNode)
                 {
-                    yield return g_score[end];
+                    yield return g_score[end].score;
                     if (end is RoomNode)
                         yield return end;
                     IEnumerator path = paths[(preceding, end)];
@@ -662,7 +670,9 @@ public class Map : MonoBehaviour, IDataPersistence
                 {
 
                     if (GetPath(prevNode, end, endingRoom, out float score))
+                    {
                         nodeQueue.Push((prevNode, end), score);
+                    }
 
                     continue;
                 }
@@ -679,7 +689,7 @@ public class Map : MonoBehaviour, IDataPersistence
             }
             else
             {
-                currentScore = g_score[currentNode];
+                currentScore = g_score[currentNode].score;
             }
 
             if (currentNode.AdjacentToRoom(endingRoom))
@@ -694,15 +704,18 @@ public class Map : MonoBehaviour, IDataPersistence
                 float nextScore = currentNode.GetDistance(next) + currentScore;
                 if (g_score.TryGetValue(next, out var score))
                 {
-                    if (score < nextScore)
+                    if (score.score < nextScore)
                         continue;
                     else
-                        nodeQueue.Push((currentNode, next), nextScore + Vector3.Distance(endPosition, next.WorldPosition), true);
+                    {
+                        nodeQueue.ChangePriority(score.queueNode, nextScore + Vector3.Distance(endPosition, next.WorldPosition));
+                        g_score[next] = (nextScore, score.queueNode);
+                    }
                 }
                 else
-                    nodeQueue.Push((currentNode, next), nextScore + Vector3.Distance(endPosition, next.WorldPosition));
+                    g_score[next] = (nextScore, nodeQueue.Push((currentNode, next), nextScore + Vector3.Distance(endPosition, next.WorldPosition)));
 
-                g_score[next] = nextScore;
+                
                 immediatePredecessor[next] = currentNode;
             }
 
@@ -715,14 +728,16 @@ public class Map : MonoBehaviour, IDataPersistence
         {
             IEnumerator pathIter = room.Navigate(start, end);
             pathIter.MoveNext();
-            if (!g_score.TryGetValue(end, out score) || score > (float)pathIter.Current + g_score[start])
+            if (!g_score.TryGetValue(end, out (float score, ILockBox queueNode) gScore) || gScore.score > (float)pathIter.Current + g_score[start].score)
             {
                 paths[(start, end)] = pathIter;
-                score = (float)pathIter.Current + g_score[start];
-                g_score[end] = score;
+                score = (float)pathIter.Current + g_score[start].score;
+                g_score[end] = (score, null);
                 immediatePredecessor[end] = start;
                 return true;
             }
+
+            score = gScore.score;
 
             return false;
         }

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Profiling;
+using Unity.VisualScripting.ReorderableList.Element_Adder_Menu;
+using UnityEditor;
 
 // This is a very quick and simple implementation. Need to actually implement a binary heap or the like, or find a library that has a better implementationg.
 
@@ -13,68 +15,50 @@ using Unity.Profiling;
 public class PriorityQueue<T1, T2> where T2 : System.IComparable
 {
 
-    static readonly ProfilerMarker s_PopMarker = new("PriorityQueue.Pop");
+    PairingHeap<T1,T2> _heap;
 
-    static readonly ProfilerMarker s_PushMarker = new("PriorityQueue.Push");
-
-    readonly List<(T1 element, T2 priority)> _elements = new();
-    readonly IComparer _getBestPriority;
     /// <summary>
     /// Initializes a new instance of the <see cref="PriorityQueue{T1, T2}"/> class.
     /// </summary>
     /// <param name="max"> Sets whether an element has greater priority when T2 is greater or lesser.</param>
     public PriorityQueue(bool max)
     {
-        if (max)
-        {
-            _getBestPriority = new MaxComparer();
-        }
-        else
-        {
-            _getBestPriority = new MinComparer();
-        }
+        _heap = new PairingHeap<T1, T2>(max);
     }
 
     /// <value>The number of elements in the <see cref="PriorityQueue{T1, T2}"/>.</value>
-    public int Count => _elements.Count();
+    public int Count { get; private set; }
 
     /// <value>Returns true if the <see cref="PriorityQueue{T1, T2}"/> has no elements.</value>
-    public bool Empty => Count <= 0;
+    public bool Empty => _heap.RootElement() == null;
+
+    /// <summary>
+    /// Change the priority of a particular heap node.
+    /// </summary>
+    /// <param name="node">The node being modified, as an <see cref="ILockBox"/>.</param>
+    /// <param name="priority">The new priority for the node.</param>
+    public void ChangePriority(ILockBox node, T2 priority)
+    {
+        _heap.ChangePriority(node, priority);
+    }
 
     /// <summary>
     /// Removes all the elements in the <see cref="PriorityQueue{T1, T2}"/>.
     /// </summary>
     public void Clear()
     {
-        _elements.Clear();
+        _heap.Clear();
+        Count = 0;
     }
 
     /// <summary>
-    /// Gives the element with the smallest priority and then removes it from the <see cref="PriorityQueue{T1, T2}"/>.
+    /// Gives the element with the best priority and then removes it from the <see cref="PriorityQueue{T1, T2}"/>.
     /// </summary>
-    /// <returns>Returns the element with the smallest priority.</returns>
-    public T1 PopMin()
+    /// <returns>Returns the element with the best priority.</returns>
+    public T1 Pop()
     {
-        using (s_PopMarker.Auto())
-        {
-            (T1, T2) element = _elements.Find(x => EqualityComparer<T2>.Default.Equals(x.priority, _elements.Min(x => x.priority)));
-            _elements.Remove(element);
-            return element.Item1;
-        }
-    }
-
-    /// <summary>
-    /// Gives the element with the largest priority and then removes it from the <see cref="PriorityQueue{T1, T2}"/>.
-    /// </summary>
-    /// <returns>Returns the element with the largest priority.</returns>
-    public T1 PopMax()
-    {
-        using (s_PopMarker.Auto())
-        {
-            (T1, T2) element = _elements.Find(x => EqualityComparer<T2>.Default.Equals(x.priority, _elements.Max(x => x.priority)));
-            _elements.Remove(element);
-            return element.Item1;
-        }
+        Count--;
+        return _heap.Pop();
     }
 
     /// <summary>
@@ -82,53 +66,9 @@ public class PriorityQueue<T1, T2> where T2 : System.IComparable
     /// </summary>
     /// <param name="element">The element being added to the <see cref="PriorityQueue{T1, T2}"/>.</param>
     /// <param name="priority">The priority associated with <c>element</c>.</param>
-    /// <param name="replace">When true, if the <see cref="PriorityQueue{T1, T2}"/> alreadt has <c>element</c> in the queue, it will only keep the element with the highest priority.</param>
-    public void Push(T1 element, T2 priority, bool replace = false)
+    public ILockBox Push(T1 element, T2 priority)
     {
-        using (s_PushMarker.Auto())
-        {
-            if (replace)
-            {
-                for (int i = 0; i < Count; i++)
-                {
-                    if (EqualityComparer<T1>.Default.Equals(_elements[i].element, element))
-                    {
-                        if (_getBestPriority.Compare(_elements[i], (element, priority)) > 0)
-                        {
-                            _elements[i] = (element, priority);
-                        }
-                        return;
-                    }
-                }
-
-            }
-
-            _elements.Add((element, priority));
-
-        }
-    }
-
-    /// <summary>
-    /// The <see cref="MaxComparer"/> class is an <see cref="IComparer"/> where a greater value when using <see cref="IComparer.Compare(object, object)"/> has higher priority.
-    /// </summary>
-    class MaxComparer : IComparer
-    { 
-        /// <inheritdoc/>
-        public int Compare(object x, object y)
-        {
-            return (((T1 element, T2 priority))x).priority.CompareTo((((T1 element, T2 priority))y).priority);
-        }
-    }
-
-    /// <summary>
-    /// The <see cref="MinComparer"/> class is an <see cref="IComparer"/> where a lesser value when using <see cref="IComparer.Compare(object, object)"/> has higher priority.
-    /// </summary>
-    class MinComparer : IComparer
-    {
-        /// <inheritdoc/>
-        public int Compare(object x, object y)
-        {
-            return (((T1 element, T2 priority))y).priority.CompareTo((((T1 element, T2 priority))x).priority);
-        }
+        Count++;
+        return _heap.Insert(element, priority);
     }
 }

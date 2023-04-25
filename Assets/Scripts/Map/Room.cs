@@ -160,7 +160,7 @@ public class Room
                 Map.Instance.AddRooms(SplitOffRooms(node1, node2));
                 return;
             }
-            current = nodeQueue.PopMin();
+            current = nodeQueue.Pop();
             (x, y) = current.Coords;
             currentScore = g_score[x, y];
         }
@@ -287,13 +287,13 @@ public class Room
     {
         PriorityQueue<RoomNode, float> nodeQueue = new(false);
         RoomNode[,] immediatePredecessor = new RoomNode[Map.Instance.MapWidth, Map.Instance.MapLength];
-        float[,] g_score = new float[Map.Instance.MapWidth, Map.Instance.MapLength];
+        (float score, ILockBox queueNode)[,] g_score = new (float score, ILockBox queueNode)[Map.Instance.MapWidth, Map.Instance.MapLength];
 
         for (int i = 0; i < Width; i++)
         {
             for (int j = 0; j < Length; j++)
             {
-                g_score[i, j] = float.PositiveInfinity;
+                g_score[i, j] = (float.PositiveInfinity, null);
             }
         }
 
@@ -307,14 +307,14 @@ public class Room
                 {
                     nodeQueue.Push(roomNode, 0);
                     (int nodex, int nodey) = roomNode.Coords;
-                    g_score[nodex, nodey] = 0;
+                    g_score[nodex, nodey] = (0, null);
                 }
             }
 
             if (nodeQueue.Empty)
                 yield return float.PositiveInfinity;
 
-            current = nodeQueue.PopMin();
+            current = nodeQueue.Pop();
         }
         else if (start.Node is ConnectingNode startConnection)
         {
@@ -326,14 +326,14 @@ public class Room
                     {
                         nodeQueue.Push(roomNode, 0);
                         (int nodex, int nodey) = roomNode.Coords;
-                        g_score[nodex, nodey] = 0;
+                        g_score[nodex, nodey] = (0, null);
                     }
                 }
 
                 if (nodeQueue.Empty)
                     yield return float.PositiveInfinity;
 
-                current = nodeQueue.PopMin();
+                current = nodeQueue.Pop();
             }
             else
             {
@@ -346,13 +346,13 @@ public class Room
         {
             current = roomNode;
             (int nodex, int nodey) = roomNode.Coords;
-            g_score[nodex, nodey] = 0;
+            g_score[nodex, nodey] = (0, null);
         }
         else
             throw new System.ArgumentException();
 
         (int x, int y) = current.Coords;
-        g_score[x, y] = 0;
+        g_score[x, y] = (0, null);
         immediatePredecessor[x, y] = null;
         float currentScore = 0;
 
@@ -378,9 +378,9 @@ public class Room
             {
                 yield return float.PositiveInfinity;
             }
-            current = nodeQueue.PopMin();
+            current = nodeQueue.Pop();
             (x, y) = current.Coords;
-            currentScore = g_score[x, y];
+            currentScore = g_score[x, y].score;
         }
 
         yield return currentScore;
@@ -397,21 +397,22 @@ public class Room
             try
             {
                 (int nextX, int nextY) = node.Coords;
-                float prev = g_score[nextX, nextY];
+                (float prev, ILockBox queueNode) = g_score[nextX, nextY];
                 float newScore = currentScore + stepLength;
 
-                if (g_score[nextX, nextY] > currentScore + stepLength)
+                if (prev > currentScore + stepLength)
                 {
                     int xDiff = Mathf.Abs(nextX - (end.WorldPosition.x - Origin.x));
                     int yDiff = Mathf.Abs(nextY - (end.WorldPosition.y - Origin.y));
                     float h_score = xDiff < yDiff ? yDiff + xDiff * (RAD2 - 1) : xDiff + yDiff * (RAD2 - 1);
 
-                    if (g_score[nextX, nextY] == float.PositiveInfinity)
-                        nodeQueue.Push(node, currentScore + stepLength + h_score);
+                    if (prev == float.PositiveInfinity)
+                        g_score[nextX, nextY] = (currentScore + stepLength, nodeQueue.Push(node, currentScore + stepLength + h_score));
                     else
-                        nodeQueue.Push(node, currentScore + stepLength + h_score, true);
-
-                    g_score[nextX, nextY] = currentScore + stepLength;
+                    {
+                        nodeQueue.ChangePriority(queueNode, currentScore + stepLength + h_score);
+                        g_score[nextX, nextY].score = currentScore + stepLength;
+                    }
 
                     immediatePredecessor[nextX, nextY] = current;
                 }

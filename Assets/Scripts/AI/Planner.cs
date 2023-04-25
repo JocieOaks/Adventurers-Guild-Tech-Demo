@@ -64,7 +64,7 @@ public class Planner
                 yield return new WaitForFixedUpdate();
                 if (_priorityQueue.Count > 0)
                 {
-                    current = _priorityQueue.PopMax();
+                    current = _priorityQueue.Pop();
                     if (current.Depth < 4)
                     {
                         foreach (Task task in GetTasks())
