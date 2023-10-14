@@ -9,9 +9,9 @@ using Unity.Jobs;
 /// </summary>
 public class TravelAction : TaskAction
 {
-    bool _ready = false;
-    readonly Queue<INode> _walkingPath = new();
-    RoomNode nextNode;
+    private bool _ready = false;
+    private PathLink _root;
+    private RoomNode nextNode;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TravelAction"/> class
@@ -45,16 +45,19 @@ public class TravelAction : TaskAction
     /// <inheritdoc/>
     public override int Complete()
     {
-        foreach(INode node in _walkingPath)
+        PathLink pathLink = _root;
+        while(pathLink != null)
         {
+            INode node = pathLink.Node;
             if (!node.Traversable)
             {
                 GameManager.MapChanged -= OnMapEdited;
                 return -1;
             }
+            pathLink = pathLink.Next;
         }
 
-        if (!_ready || _walkingPath.Count > 0 || !_pawn.CurrentStep.IsComplete())
+        if (!_ready || _root != null || !_pawn.CurrentStep.IsComplete())
             return 0;
         else if (_pawn.WorldPosition == Destination)
         {
@@ -112,9 +115,10 @@ public class TravelAction : TaskAction
     /// </summary>
     void NextStep()
     {
-        if (_walkingPath.Count > 0)
+        if (_root != null)
         {
-            INode node = _walkingPath.Dequeue();
+            INode node = _root.Node;
+            _root = _root.Next;
             if (node is RoomNode roomNode)
             {
                 nextNode = roomNode;
@@ -134,7 +138,7 @@ public class TravelAction : TaskAction
     void OnMapEdited()
     {
         _ready = false;
-        _walkingPath.Clear();
+        _root = null;
         _pawn.StartCoroutine(Pathfind());
     }
 
@@ -150,7 +154,10 @@ public class TravelAction : TaskAction
         yield return new WaitUntil(() => navigateJobHandle.IsCompleted);
         navigateJobHandle.Complete();
 
-        for (int i = 0; i < walkingPath.Length; i++)
+        _root = new PathLink(Map.Instance[walkingPath[0].position], _pawn);
+        PathLink current = _root;
+
+        for (int i = 1; i < walkingPath.Length; i++)
         {
             if (walkingPath[i] == default)
             {
@@ -158,7 +165,7 @@ public class TravelAction : TaskAction
                     Destination = walkingPath[i - 1].position;
                 break;
             }
-            _walkingPath.Enqueue(walkingPath[i].isDoor ? Map.Instance.GetConnectionNode(walkingPath[i].position) : Map.Instance[walkingPath[i].position]);
+            current = new PathLink(walkingPath[i].isDoor ? Map.Instance.GetConnectionNode(walkingPath[i].position) : Map.Instance[walkingPath[i].position], current);
         }
 
         walkingPath.Dispose();

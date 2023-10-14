@@ -11,9 +11,9 @@ public class Room
 
     protected RoomNode[,] _nodes;
     protected List<Pawn> _occupants = new();
-    const float RAD2 = 1.41421356237f;
-    readonly List<ConnectingNode> _connections;
-    bool _updating = false;
+    private const float RAD2 = 1.41421356237f;
+    private readonly List<ConnectingNode> _connections;
+    private bool _updating = false;
 
     /// <summary>
     /// Initializes a new empty <see cref="Room"/> object.
@@ -613,7 +613,7 @@ public class Room
     /// </summary>
     /// <param name="connection1">The first <see cref="ConnectingNode"/></param>
     /// <param name="connection2">The second <see cref="ConnectingNode"/></param>
-    void ConstructPaths(ConnectingNode connection1, ConnectingNode connection2)
+    private void ConstructPaths(ConnectingNode connection1, ConnectingNode connection2)
     {
         List<RoomNode> path = new();
         IEnumerator navigationIter = Navigate(connection1, connection2);
@@ -652,7 +652,7 @@ public class Room
     /// <summary>
     /// Update's the pathways between the <see cref="ConnectingNode"/>s that border this <see cref="Room"/>.
     /// </summary>
-    void UpdatePaths()
+    private void UpdatePaths()
     {
         foreach(RoomNode node in Nodes)
         {
