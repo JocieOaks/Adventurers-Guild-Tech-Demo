@@ -13,33 +13,30 @@ namespace Assets.Scripts.Utility
         private readonly IComparer _comparer;
         private Node _root;
 
+        /// <value>The priority of the root entry in the <see cref="PairingHeap{T1, T2}"/>.</value>
+        public T2 RootPriority => _root.Priority;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PairingHeap{T1, T2}"/> class.
         /// </summary>
-        /// <param name="max"> Sets whether an element has greater priority when T2 is greater or lesser.</param>
-        public PairingHeap(bool max)
+        /// <param name="comparer"> Sets whether an element has greater priority when T2 is greater or lesser.</param>
+        public PairingHeap(IComparer comparer)
         {
-            if (max)
-            {
-                _comparer = new MaxComparer();
-            }
-            else
-            {
-                _comparer = new MinComparer();
-            }
+            _comparer = comparer;
         }
 
         /// <value>The root of the <see cref="PairingHeap{T1, T2}"/>.</value>
         private Node Root
         {
-            get 
-            { 
-                if(_root != null)
-                    while(_root.Parent != null)
+            get
+            {
+                if (_root != null)
+                    while (_root.Parent != null)
                     {
                         _root = _root.Parent;
                     }
-                return _root; 
+
+                return _root;
             }
             set => _root = value;
         }
@@ -48,11 +45,11 @@ namespace Assets.Scripts.Utility
         /// Change the priority of a particular <see cref="Node"/>. The <see cref="Node"/> may have previously been removed from the 
         /// <see cref="PairingHeap{T1, T2}"/> in which case it is added back into the <see cref="PairingHeap{T1, T2}"/>.
         /// </summary>
-        /// <param name="lockbox">The <see cref="Node"/> being modified, as an <see cref="ILockBox"/>.</param>
+        /// <param name="reference">The <see cref="Node"/> being modified, as an <see cref="IReference"/>.</param>
         /// <param name="priority">The new priority for the <see cref="Node"/>.</param>
-        public void ChangePriority(ILockBox lockbox, T2 priority)
+        public void ChangePriority(IReference reference, T2 priority)
         {
-            Node node = (Node)lockbox;
+            Node node = (Node)reference;
             node.Parent?.Children.Remove(node);
             node.Parent = null;
             node.Priority = priority;
@@ -74,7 +71,7 @@ namespace Assets.Scripts.Utility
         /// <returns>Returns the element with the best priority.</returns>
         public T1 RootElement()
         {
-            if(Root == null )
+            if (Root == null)
                 return default;
             return Root.Element;
         }
@@ -84,9 +81,8 @@ namespace Assets.Scripts.Utility
         /// </summary>
         /// <param name="element">The element being sorted.</param>
         /// <param name="priority">The priority of <c>element</c>.</param>
-        /// <returns>Returns the created <see cref="Node"/> as an <see cref="ILockBox"/> so that it can be used in the future by 
-        /// <see cref="ChangePriority(ILockBox, T2)"/>.</returns>
-        public ILockBox Insert(T1 element, T2 priority)
+        /// <returns>Returns the created <see cref="Node"/> as an <see cref="IReference"/> so that the entry can be modified in the future without needing to search the <see cref="PairingHeap{T1, T2}"/>.</returns>
+        public IReference Insert(T1 element, T2 priority)
         {
             Node node = new Node(element, priority);
             if (Root == null)
@@ -95,6 +91,7 @@ namespace Assets.Scripts.Utility
             }
             else
                 Meld(node, Root);
+
             return node;
         }
 
@@ -152,33 +149,9 @@ namespace Assets.Scripts.Utility
         }
 
         /// <summary>
-        /// The <see cref="MaxComparer"/> class is an <see cref="IComparer"/> where a greater value when using <see cref="IComparer.Compare(object, object)"/> has higher priority.
-        /// </summary>
-        private class MaxComparer : IComparer
-        {
-            /// <inheritdoc/>
-            public int Compare(object x, object y)
-            {
-                return (((Node)x)!).Priority.CompareTo((((Node)y)!).Priority);
-            }
-        }
-
-        /// <summary>
-        /// The <see cref="MinComparer"/> class is an <see cref="IComparer"/> where a lesser value when using <see cref="IComparer.Compare(object, object)"/> has higher priority.
-        /// </summary>
-        private class MinComparer : IComparer
-        {
-            /// <inheritdoc/>
-            public int Compare(object x, object y)
-            {
-                return (((Node)y)!).Priority.CompareTo((((Node)x)!).Priority);
-            }
-        }
-
-        /// <summary>
         /// The <see cref="Node"/> class is a node for the <see cref="PairingHeap{T1, T2}"/> data structure.
         /// </summary>
-        private class Node : ILockBox
+        private class Node : IReference
         {
             /// <summary>
             /// Initializes a new instance of the <see cref="Node"/> class.

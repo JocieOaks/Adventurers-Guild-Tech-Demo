@@ -298,9 +298,9 @@ namespace Assets.Scripts.Map
             Room startingRoom = Instance[startPosition].Room;
             Room endingRoom = end.Room;
 
-            Dictionary<INode, (float score, ILockBox queueNode)> gScore = new();
+        Dictionary<INode, (float score, IReference queueNode)> gScore = new();
 
-            PriorityQueue<INode, float> nodeQueue = new(false);
+        PriorityQueue<INode, float> nodeQueue = new(new PriorityQueue<INode, float>.MinComparer());
 
             if (startingRoom == endingRoom)
             {
@@ -604,6 +604,19 @@ namespace Assets.Scripts.Map
             Ready = true;
         }
 
+    private const float RAD2 = 1.41421356237f;
+    /// <summary>
+    /// Estimates the distance between two <see cref="RoomNode"/>s using an admissible heuristic.
+    /// </summary>
+    /// <param name="start">The starting <see cref="RoomNode"/>.</param>
+    /// <param name="end">The ending <see cref="RoomNode"/>.</param>
+    /// <returns>Returns the estimated path length from <paramref name="start"/> to <paramref name="end"/>.</returns>
+    public static float EstimateDistance(IWorldPosition start, IWorldPosition end)
+    {
+        int xDiff = Mathf.Abs(start.WorldPosition.x - end.WorldPosition.x);
+        int yDiff = Mathf.Abs(start.WorldPosition.y - end.WorldPosition.y);
+        return xDiff < yDiff ? yDiff + xDiff * (RAD2 - 1) : xDiff + yDiff * (RAD2 - 1);
+    }
         /// <summary>
         /// Finds the shortest path for an <see cref="AdventurerPawn"/> to take to travel from one <see cref="IWorldPosition"/> to another.
         /// </summary>
@@ -620,11 +633,11 @@ namespace Assets.Scripts.Map
             Room startingRoom = start.Room;
             Room endingRoom = end.Room;
 
-            Dictionary<IWorldPosition, (float score, ILockBox queueNode)> gScore = new();
-            Dictionary<IWorldPosition, IWorldPosition> immediatePredecessor = new();
-            Dictionary<(IWorldPosition, IWorldPosition), IEnumerator> paths = new();
+        Dictionary<IWorldPosition, (float score, IReference queueNode)> gScore = new();
+        Dictionary<IWorldPosition, IWorldPosition> immediatePredecessor = new();
+        Dictionary<(IWorldPosition, IWorldPosition), IEnumerator> paths = new();
 
-            PriorityQueue<(IWorldPosition, IWorldPosition), float> nodeQueue = new(false);
+        PriorityQueue<(IWorldPosition, IWorldPosition), float> nodeQueue = new(new PriorityQueue<INode, float>.MinComparer());
 
             Vector3Int endPosition = end.WorldPosition;
 
@@ -737,7 +750,7 @@ namespace Assets.Scripts.Map
             {
                 IEnumerator pathIter = room.Navigate(pathStart, pathEnd);
                 pathIter.MoveNext();
-                if (!gScore.TryGetValue(pathEnd, out (float score, ILockBox queueNode) prev) || prev.score > (float)pathIter.Current! + gScore[pathStart].score)
+                if (!gScore.TryGetValue(pathEnd, out (float score, IReference queueNode) prev) || prev.score > (float)pathIter.Current! + gScore[pathStart].score)
                 {
                     paths[(pathStart, pathEnd)] = pathIter;
                     score = (float)pathIter.Current! + gScore[pathStart].score;

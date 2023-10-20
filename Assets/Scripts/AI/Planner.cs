@@ -13,7 +13,9 @@ namespace Assets.Scripts.AI
     public class Planner
     {
         private (PlanNode node, float utility) _best;
-        private readonly PriorityQueue<PlanNode, float> _priorityQueue = new(true);
+
+        private readonly PriorityQueue<PlanNode, float> _priorityQueue =
+            new(new PriorityQueue<PlanNode, float>.MaxComparer());
 
         private bool _reset;
         private readonly Actor _actor;
@@ -249,7 +251,8 @@ namespace Assets.Scripts.AI
                 if (startState.Conversation == null)
                     startState.PrimaryActor.Social -= time / 5;
                 else
-                    startState.PrimaryActor.Social += time / startState.Conversation.PositionUtility(startState.ConversationDistance);
+                    startState.PrimaryActor.Social +=
+                        time / startState.Conversation.PositionUtility(startState.ConversationDistance);
 
                 startState.PreviousTask = task;
                 return task.ChangeWorldState(startState);
@@ -267,7 +270,7 @@ namespace Assets.Scripts.AI
                 WorldState prevState = WorldState;
 
                 _payoff?.RemoveAll(PayoffUtility);
-            
+
 
                 return utility / time;
 
@@ -288,6 +291,7 @@ namespace Assets.Scripts.AI
                             time += payoffTime;
                             prevState = nextState;
                         }
+
                         return false;
                     }
                     else

@@ -17,7 +17,6 @@ namespace Assets.Scripts.Map
 
         protected RoomNode[,] _nodes;
         private readonly List<Pawn> _occupants = new();
-        private const float RAD2 = 1.41421356237f;
         private readonly List<ConnectingNode> _connections;
         private bool _updating;
 
@@ -113,16 +112,16 @@ namespace Assets.Scripts.Map
             _connections.Add(connection);
         }
 
-        /// <summary>
-        /// Determines if two <see cref="RoomNode"/>s are directly accessible to one another without traversing a <see cref="ConnectingNode"/> and thus should be part of the same <see cref="Room"/>.
-        /// </summary>
-        /// <param name="node1">First <see cref="RoomNode"/> being evaluated.</param>
-        /// <param name="node2">Second <see cref="RoomNode"/> being evaluated.</param>
-        /// <returns>Returns true if the two <see cref="RoomNode"/>s should be part of the same <see cref="Room"/>.</returns>
-        public void CheckContiguous(RoomNode node1, RoomNode node2)
-        {
-            PriorityQueue<RoomNode, float> nodeQueue = new(false);
-            RegisterForUpdate();
+    /// <summary>
+    /// Determines if two <see cref="RoomNode"/>s are directly accessible to one another without traversing a <see cref="ConnectingNode"/> and thus should be part of the same <see cref="Room"/>.
+    /// </summary>
+    /// <param name="node1">First <see cref="RoomNode"/> being evaluated.</param>
+    /// <param name="node2">Second <see cref="RoomNode"/> being evaluated.</param>
+    /// <returns>Returns true if the two <see cref="RoomNode"/>s should be part of the same <see cref="Room"/>.</returns>
+    public void CheckContiguous(RoomNode node1, RoomNode node2)
+    {
+        PriorityQueue<RoomNode, float> nodeQueue = new(new PriorityQueue<RoomNode, float>.MinComparer());
+        RegisterForUpdate();
 
             RoomNode[,] immediatePredecessor = new RoomNode[Width, Length];
             int[,] gScore = new int[Width, Length];
@@ -282,18 +281,18 @@ namespace Assets.Scripts.Map
             return _occupants.Any(x => x == pawn);
         }
 
-        /// <summary>
-        /// Evaluates the shortest route from one <see cref="IWorldPosition"/> to another, where both are located within this <see cref="Room"/>.
-        /// </summary>
-        /// <param name="start">The starting <see cref="IWorldPosition"/>.</param>
-        /// <param name="end">The ending <see cref="IWorldPosition"/>.</param>
-        /// <returns>The <see cref="IEnumerator"/> first returns the distance from <c>start</c> to <c>end</c>, and then all the steps between the two, in reverse order.
-        /// The initial distance may be <see cref="float.PositiveInfinity"/> if no path exists between the two <see cref="IWorldPosition"/>.</returns>
-        public IEnumerator Navigate(IWorldPosition start, IWorldPosition end)
-        {
-            PriorityQueue<RoomNode, float> nodeQueue = new(false);
-            RoomNode[,] immediatePredecessor = new RoomNode[Map.Instance.MapWidth, Map.Instance.MapLength];
-            (float score, ILockBox queueNode)[,] gScore = new (float score, ILockBox queueNode)[Map.Instance.MapWidth, Map.Instance.MapLength];
+    /// <summary>
+    /// Evaluates the shortest route from one <see cref="IWorldPosition"/> to another, where both are located within this <see cref="Room"/>.
+    /// </summary>
+    /// <param name="start">The starting <see cref="IWorldPosition"/>.</param>
+    /// <param name="end">The ending <see cref="IWorldPosition"/>.</param>
+    /// <returns>The <see cref="IEnumerator"/> first returns the distance from <c>start</c> to <c>end</c>, and then all the steps between the two, in reverse order.
+    /// The initial distance may be <see cref="float.PositiveInfinity"/> if no path exists between the two <see cref="IWorldPosition"/>.</returns>
+    public IEnumerator Navigate(IWorldPosition start, IWorldPosition end)
+    {
+        PriorityQueue<RoomNode, float> nodeQueue = new(new PriorityQueue<RoomNode, float>.MinComparer());
+        RoomNode[,] immediatePredecessor = new RoomNode[Width, Length];
+        (float score, IReference queueNode)[,] gScore = new (float score, IReference queueNode)[Width, Length];
 
             for (int i = 0; i < Width; i++)
             {
@@ -392,14 +391,12 @@ namespace Assets.Scripts.Map
                 try
                 {
                     (int nextX, int nextY) = node.Coords;
-                    (float prev, ILockBox queueNode) = gScore[nextX, nextY];
+                    (float prev, IReference queueNode) = gScore[nextX, nextY];
                     float newScore = currentScore + stepLength;
 
-                    if (prev > newScore)
-                    {
-                        int xDiff = Mathf.Abs(nextX - (end.WorldPosition.x - Origin.x));
-                        int yDiff = Mathf.Abs(nextY - (end.WorldPosition.y - Origin.y));
-                        float hScore = xDiff < yDiff ? yDiff + xDiff * (RAD2 - 1) : xDiff + yDiff * (RAD2 - 1);
+                if (prev > newScore)
+                {
+                    float hScore = Map.EstimateDistance(node, end);
 
                         if (float.IsPositiveInfinity(prev))
                             gScore[nextX, nextY] = (newScore, nodeQueue.Push(node, newScore + hScore));
