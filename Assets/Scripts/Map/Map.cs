@@ -288,9 +288,9 @@ public class Map : MonoBehaviour, IDataPersistence
         Room startingRoom = Instance[startPosition].Room;
         Room endingRoom = end.Room;
 
-        Dictionary<INode, (float score, ILockBox queueNode)> g_score = new();
+        Dictionary<INode, (float score, IReference queueNode)> g_score = new();
 
-        PriorityQueue<INode, float> nodeQueue = new(false);
+        PriorityQueue<INode, float> nodeQueue = new(new PriorityQueue<INode, float>.MinComparer());
 
         if (startingRoom == endingRoom)
         {
@@ -595,6 +595,20 @@ public class Map : MonoBehaviour, IDataPersistence
         Ready = true;
     }
 
+    private const float RAD2 = 1.41421356237f;
+    /// <summary>
+    /// Estimates the distance between two <see cref="RoomNode"/>s using an admissible heuristic.
+    /// </summary>
+    /// <param name="start">The starting <see cref="RoomNode"/>.</param>
+    /// <param name="end">The ending <see cref="RoomNode"/>.</param>
+    /// <returns>Returns the estimated path length from <paramref name="start"/> to <paramref name="end"/>.</returns>
+    public static float EstimateDistance(IWorldPosition start, IWorldPosition end)
+    {
+        int xDiff = Mathf.Abs(start.WorldPosition.x - end.WorldPosition.x);
+        int yDiff = Mathf.Abs(start.WorldPosition.y - end.WorldPosition.y);
+        return xDiff < yDiff ? yDiff + xDiff * (RAD2 - 1) : xDiff + yDiff * (RAD2 - 1);
+    }
+
     /// <summary>
     /// Finds the shortest path for an <see cref="AdventurerPawn"/> to take to travel from one <see cref="IWorldPosition"/> to another.
     /// </summary>
@@ -611,11 +625,11 @@ public class Map : MonoBehaviour, IDataPersistence
         Room startingRoom = start.Room;
         Room endingRoom = end.Room;
 
-        Dictionary<IWorldPosition, (float score, ILockBox queueNode)> g_score = new();
+        Dictionary<IWorldPosition, (float score, IReference queueNode)> g_score = new();
         Dictionary<IWorldPosition, IWorldPosition> immediatePredecessor = new();
         Dictionary<(IWorldPosition, IWorldPosition), IEnumerator> paths = new();
 
-        PriorityQueue<(IWorldPosition, IWorldPosition), float> nodeQueue = new(false);
+        PriorityQueue<(IWorldPosition, IWorldPosition), float> nodeQueue = new(new PriorityQueue<INode, float>.MinComparer());
 
         Vector3Int endPosition = end.WorldPosition;
 
@@ -728,7 +742,7 @@ public class Map : MonoBehaviour, IDataPersistence
         {
             IEnumerator pathIter = room.Navigate(start, end);
             pathIter.MoveNext();
-            if (!g_score.TryGetValue(end, out (float score, ILockBox queueNode) gScore) || gScore.score > (float)pathIter.Current + g_score[start].score)
+            if (!g_score.TryGetValue(end, out (float score, IReference queueNode) gScore) || gScore.score > (float)pathIter.Current + g_score[start].score)
             {
                 paths[(start, end)] = pathIter;
                 score = (float)pathIter.Current + g_score[start].score;

@@ -115,7 +115,7 @@ public class Room
     /// <returns>Returns true if the two <see cref="RoomNode"/>s should be part of the same <see cref="Room"/>.</returns>
     public void CheckContiguous(RoomNode node1, RoomNode node2)
     {
-        PriorityQueue<RoomNode, float> nodeQueue = new(false);
+        PriorityQueue<RoomNode, float> nodeQueue = new(new PriorityQueue<RoomNode, float>.MinComparer());
         RegisterForUpdate();
 
         RoomNode[,] immediatePredecessor = new RoomNode[Width, Length];
@@ -285,9 +285,9 @@ public class Room
     /// The initial distance may be <see cref="float.PositiveInfinity"/> if no path exists between the two <see cref="IWorldPosition"/>.</returns>
     public IEnumerator Navigate(IWorldPosition start, IWorldPosition end)
     {
-        PriorityQueue<RoomNode, float> nodeQueue = new(false);
-        RoomNode[,] immediatePredecessor = new RoomNode[Map.Instance.MapWidth, Map.Instance.MapLength];
-        (float score, ILockBox queueNode)[,] g_score = new (float score, ILockBox queueNode)[Map.Instance.MapWidth, Map.Instance.MapLength];
+        PriorityQueue<RoomNode, float> nodeQueue = new(new PriorityQueue<RoomNode, float>.MinComparer());
+        RoomNode[,] immediatePredecessor = new RoomNode[Width, Length];
+        (float score, IReference queueNode)[,] g_score = new (float score, IReference queueNode)[Width, Length];
 
         for (int i = 0; i < Width; i++)
         {
@@ -397,14 +397,12 @@ public class Room
             try
             {
                 (int nextX, int nextY) = node.Coords;
-                (float prev, ILockBox queueNode) = g_score[nextX, nextY];
+                (float prev, IReference queueNode) = g_score[nextX, nextY];
                 float newScore = currentScore + stepLength;
 
                 if (prev > currentScore + stepLength)
                 {
-                    int xDiff = Mathf.Abs(nextX - (end.WorldPosition.x - Origin.x));
-                    int yDiff = Mathf.Abs(nextY - (end.WorldPosition.y - Origin.y));
-                    float h_score = xDiff < yDiff ? yDiff + xDiff * (RAD2 - 1) : xDiff + yDiff * (RAD2 - 1);
+                    float h_score = h_score = Map.EstimateDistance(node, end);
 
                     if (prev == float.PositiveInfinity)
                         g_score[nextX, nextY] = (currentScore + stepLength, nodeQueue.Push(node, currentScore + stepLength + h_score));

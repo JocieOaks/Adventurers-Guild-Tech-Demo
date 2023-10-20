@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.Profiling;
 using Unity.VisualScripting.ReorderableList.Element_Adder_Menu;
 using UnityEditor;
+using UnityEditor.Experimental.GraphView;
 
 // This is a very quick and simple implementation. Need to actually implement a binary heap or the like, or find a library that has a better implementationg.
 
@@ -20,10 +21,10 @@ public class PriorityQueue<T1, T2> where T2 : System.IComparable
     /// <summary>
     /// Initializes a new instance of the <see cref="PriorityQueue{T1, T2}"/> class.
     /// </summary>
-    /// <param name="max"> Sets whether an element has greater priority when T2 is greater or lesser.</param>
-    public PriorityQueue(bool max)
+    /// <param name="comparer">An <see cref="IComparer"/> used to determine the order of priority for entries into the <see cref="PriorityQueue{T1, T2}"/>.</param>
+    public PriorityQueue(IComparer comparer)
     {
-        _heap = new PairingHeap<T1, T2>(max);
+        _heap = new PairingHeap<T1, T2>(comparer);
     }
 
     /// <value>The number of elements in the <see cref="PriorityQueue{T1, T2}"/>.</value>
@@ -35,9 +36,9 @@ public class PriorityQueue<T1, T2> where T2 : System.IComparable
     /// <summary>
     /// Change the priority of a particular heap node.
     /// </summary>
-    /// <param name="node">The node being modified, as an <see cref="ILockBox"/>.</param>
+    /// <param name="node">The node being modified, as an <see cref="IReference"/>.</param>
     /// <param name="priority">The new priority for the node.</param>
-    public void ChangePriority(ILockBox node, T2 priority)
+    public void ChangePriority(IReference node, T2 priority)
     {
         _heap.ChangePriority(node, priority);
     }
@@ -66,9 +67,37 @@ public class PriorityQueue<T1, T2> where T2 : System.IComparable
     /// </summary>
     /// <param name="element">The element being added to the <see cref="PriorityQueue{T1, T2}"/>.</param>
     /// <param name="priority">The priority associated with <c>element</c>.</param>
-    public ILockBox Push(T1 element, T2 priority)
+    /// <returns>Returns an <see cref="IReference"/> to the entry in the <see cref="PriorityQueue{T1, T2}"/>. Used to make changes in priority to the entry without needing to search the queue.</returns>
+    public IReference Push(T1 element, T2 priority)
     {
         Count++;
         return _heap.Insert(element, priority);
+    }
+
+    /// <value>The priority of the entry with the highest priority in the <see cref="PriorityQueue{T1, T2}"/>.</value>
+    public T2 TopPriority => _heap.RootPriority;
+
+    /// <summary>
+    /// The <see cref="MaxComparer"/> class is an <see cref="IComparer"/> where a greater value when using <see cref="IComparer.Compare(object, object)"/> has higher priority.
+    /// </summary>
+    public class MaxComparer : IComparer
+    {
+        /// <inheritdoc/>
+        public int Compare(object x, object y)
+        {
+            return ((T2)x).CompareTo((T2)y);
+        }
+    }
+
+    /// <summary>
+    /// The <see cref="MinComparer"/> class is an <see cref="IComparer"/> where a lesser value when using <see cref="IComparer.Compare(object, object)"/> has higher priority.
+    /// </summary>
+    public class MinComparer : IComparer
+    {
+        /// <inheritdoc/>
+        public int Compare(object x, object y)
+        {
+            return ((T2)y).CompareTo((T2)x);
+        }
     }
 }

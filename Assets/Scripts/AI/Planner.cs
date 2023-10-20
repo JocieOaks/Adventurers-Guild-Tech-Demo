@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 public class Planner
 {
     (PlanNode node, float utility) _best;
-    readonly PriorityQueue<PlanNode, float> _priorityQueue = new(true);
+    readonly PriorityQueue<PlanNode, float> _priorityQueue = new(new PriorityQueue<PlanNode, float>.MaxComparer());
 
     bool _reset = false;
     readonly Actor _actor;
