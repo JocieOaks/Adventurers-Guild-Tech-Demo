@@ -1,207 +1,207 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
-using Newtonsoft.Json;
 using System.Linq;
+using Assets.Scripts.AI;
+using Assets.Scripts.AI.Task;
+using Assets.Scripts.Map.Node;
+using Newtonsoft.Json;
+using UnityEngine;
 
-/// <summary>
-/// The <see cref="BedSprite"/> class is a <see cref="SpriteObject"/> for bed furniture.
-/// </summary>
-[System.Serializable]
-public class BedSprite : SpriteObject, IOccupied
+namespace Assets.Scripts.Map.Sprite_Object.Furniture
 {
-    // Initialized the first time GetMaskPixels is called, _pixels is the sprite mask for all Beds.
-    static bool[,] _pixels;
-    static readonly Sprite[] sprites = new Sprite[] { Graphics.Instance.BedSprite[1] };
-
-    List<RoomNode> _interactionPoints;
-
-    [JsonConstructor]
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="BedSprite"/> class.
+    /// The <see cref="BedSprite"/> class is a <see cref="SpriteObject"/> for bed furniture.
     /// </summary>
-    /// <param name="worldPosition">The <see cref="IWorldPosition.WorldPosition"/> of the  <see cref="BedSprite"/>.</param>
-    public BedSprite(Vector3Int worldPosition) :
-        base(5, sprites, Direction.Undirected, worldPosition, "Bed", ObjectDimensions, true)
+    [System.Serializable]
+    public class BedSprite : SpriteObject, IOccupied
     {
-        StanceLay.LayingObjects.Add(this);
-        _spriteRenderers[1].sprite = Graphics.Instance.BedSprite[0];
-        _spriteRenderers[1].sortingOrder = Utility.GetSortOrder(WorldPosition + Vector3Int.up);
+        // Initialized the first time GetMaskPixels is called, _pixels is the sprite mask for all Beds.
+        private static bool[,] s_pixels;
+        private static readonly Sprite[] s_sprites = { Graphics.Instance.BedSprite[1] };
 
-        for (int i = 2; i < _spriteRenderers.Length; i++)
+        private List<RoomNode> _interactionPoints;
+
+
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BedSprite"/> class.
+        /// </summary>
+        /// <param name="worldPosition">The <see cref="IWorldPosition.WorldPosition"/> of the  <see cref="BedSprite"/>.</param>
+        [JsonConstructor]
+        public BedSprite(Vector3Int worldPosition) :
+            base(5, s_sprites, Direction.Undirected, worldPosition, "Bed", ObjectDimensions, true)
         {
-            _spriteRenderers[i].sprite = Graphics.Instance.BedSprite[i];
-            _spriteRenderers[i].sortingOrder = Utility.GetSortOrder(WorldPosition + Vector3Int.right * (i - 1));
-        }
+            StanceLay.LayingObjects.Add(this);
+            SpriteRenderers[1].sprite = Graphics.Instance.BedSprite[0];
+            SpriteRenderers[1].sortingOrder = Utility.Utility.GetSortOrder(WorldPosition + Vector3Int.up);
 
-    }
-
-    /// <value>The 3D dimensions of a <see cref="BedSprite"/> in terms of <see cref="Map"/> coordinates.</value>
-    public static new Vector3Int ObjectDimensions { get; } = new Vector3Int(4, 2, 1);
-
-    /// <inheritdoc/>
-    [JsonIgnore]
-    public override IEnumerable<bool[,]> GetMaskPixels
-    {
-        get
-        {
-            if (_pixels == default)
+            for (int i = 2; i < SpriteRenderers.Length; i++)
             {
-                BuildPixelArray(Graphics.Instance.BedSprite, ref _pixels);
+                SpriteRenderers[i].sprite = Graphics.Instance.BedSprite[i];
+                SpriteRenderers[i].sortingOrder = Utility.Utility.GetSortOrder(WorldPosition + Vector3Int.right * (i - 1));
             }
 
-            yield return _pixels;
         }
-    }
 
-    [JsonIgnore]
-    /// <inheritdoc/>
-    public IEnumerable<RoomNode> InteractionPoints
-    {
-        get
+        /// <value>The 3D dimensions of a <see cref="BedSprite"/> in terms of <see cref="Map"/> coordinates.</value>
+        public new static Vector3Int ObjectDimensions { get; } = new(4, 2, 1);
+
+        /// <inheritdoc/>
+        [JsonIgnore]
+        public override IEnumerable<bool[,]> GetMaskPixels
         {
-            if (_interactionPoints == null)
+            get
             {
-                _interactionPoints = new List<RoomNode>();
-                for (int i = -2; i < 6; i++)
+                if (s_pixels == default)
                 {
-                    for (int j = -2; j < 4; j++)
+                    BuildPixelArray(Graphics.Instance.BedSprite, ref s_pixels);
+                }
+
+                yield return s_pixels;
+            }
+        }
+        /// <inheritdoc/>
+        [JsonIgnore]
+        public IEnumerable<RoomNode> InteractionPoints
+        {
+            get
+            {
+                if (_interactionPoints == null)
+                {
+                    _interactionPoints = new List<RoomNode>();
+                    for (int i = -2; i < 6; i++)
                     {
-                        RoomNode roomNode = Map.Instance[WorldPosition + new Vector3Int(i, j)];
-                        if (roomNode.Traversable)
-                            _interactionPoints.Add(roomNode);
+                        for (int j = -2; j < 4; j++)
+                        {
+                            RoomNode roomNode = Map.Instance[WorldPosition + new Vector3Int(i, j)];
+                            if (roomNode.Traversable)
+                                _interactionPoints.Add(roomNode);
+                        }
                     }
                 }
+                return _interactionPoints;
             }
-            return _interactionPoints;
         }
-    }
 
-    /// <inheritdoc/>
-    [JsonIgnore]
-    public Pawn Occupant { get; set; }
+        /// <inheritdoc/>
+        [JsonIgnore]
+        public Pawn Occupant { get; set; }
 
-    /// <inheritdoc/>
-    [JsonIgnore]
-    public bool Occupied => Occupant != null;
+        /// <inheritdoc/>
+        [JsonIgnore]
+        public bool Occupied => Occupant != null;
     
-    /// <value>The <see cref="AdventurerPawn"/> that owns this <see cref="BedSprite"/>.</value>
-    public AdventurerPawn Owner { get; private set; }
+        /// <value>The <see cref="AdventurerPawn"/> that owns this <see cref="BedSprite"/>.</value>
+        public AdventurerPawn Owner { get; private set; }
 
-    /// <inheritdoc/>
-    [JsonProperty]
-    protected override string ObjectType { get; } = "Bed";
+        /// <inheritdoc/>
+        [JsonProperty]
+        protected override string ObjectType { get; } = "Bed";
 
-    /// <summary>
-    /// Checks if a new <see cref="BedSprite"/> can be created at a given <see cref="Map"/> position.
-    /// </summary>
-    /// <param name="position"><see cref="Map"/> position to check.</param>
-    /// <returns>Returns true a <see cref="BedSprite"/> can be created at <c>position</c>.</returns>
-    public static bool CheckObject(Vector3Int position)
-    {
-        return Map.Instance.CanPlaceObject(position, ObjectDimensions);
-    }
-
-    /// <summary>
-    /// Initializes a new <see cref="BedSprite"/> at the given <see cref="Map"/> position.
-    /// </summary>
-    /// <param name="position"><see cref="Map"/> position to create the new <see cref="BedSprite"/>.</param>
-    public static void CreateBed(Vector3Int position)
-    {
-        new BedSprite(position);
-    }
-
-    /// <summary>
-    /// Places a highlight object with a <see cref="BedSprite"/> <see cref="Sprite"/> at the given position.
-    /// </summary>
-    /// <param name="highlight">The highlight game object that is being placed.</param>
-    /// <param name="position"><see cref="Map"/> position to place the highlight.</param>
-    public static void PlaceHighlight(SpriteRenderer highlight, Vector3Int position)
-    {
-        if (CheckObject(position))
+        /// <summary>
+        /// Checks if a new <see cref="BedSprite"/> can be created at a given <see cref="Map"/> position.
+        /// </summary>
+        /// <param name="position"><see cref="Map"/> position to check.</param>
+        /// <returns>Returns true a <see cref="BedSprite"/> can be created at <c>position</c>.</returns>
+        public static bool CheckObject(Vector3Int position)
         {
-            highlight.enabled = true;
-            highlight.flipX = false;
-            highlight.sprite = Graphics.Instance.BedSprite[1];
-            highlight.transform.position = Utility.MapCoordinatesToSceneCoordinates(position);
-            highlight.sortingOrder = Utility.GetSortOrder(position);
+            return Map.Instance.CanPlaceObject(position, ObjectDimensions);
         }
-        else
-            highlight.enabled = false;
-    }
 
-    /// <inheritdoc/>
-    public override void Destroy()
-    {
-        StanceLay.LayingObjects.Remove(this);
-        base.Destroy();
-    }
+        /// <summary>
+        /// Initializes a new <see cref="BedSprite"/> at the given <see cref="Map"/> position.
+        /// </summary>
+        /// <param name="position"><see cref="Map"/> position to create the new <see cref="BedSprite"/>.</param>
+        public static void CreateBed(Vector3Int position)
+        {
+            // ReSharper disable once ObjectCreationAsStatement
+            new BedSprite(position);
+        }
 
-    /// <inheritdoc/>
-    public void Enter(Pawn pawn)
-    {
-        pawn.transform.Rotate(0, 0, -55);
-        pawn.ForcePosition(WorldPosition + Vector3Int.up);
-        pawn.Occupying = this;
-        Occupant = pawn;
-    }
-
-    /// <inheritdoc/>
-    public void Exit(Pawn pawn, Vector3Int exitTo = default)
-    {
-        if (pawn == Occupant)
+        /// <summary>
+        /// Places a highlight object with a <see cref="BedSprite"/> <see cref="Sprite"/> at the given position.
+        /// </summary>
+        /// <param name="highlight">The highlight game object that is being placed.</param>
+        /// <param name="position"><see cref="Map"/> position to place the highlight.</param>
+        public static void PlaceHighlight(SpriteRenderer highlight, Vector3Int position)
         {
-            Occupant = null;
-        }
-        if (pawn.Occupying == this)
-        {
-            pawn.Occupying = null;
-        }
-        pawn.transform.Rotate(0, 0, 55);
-        if (exitTo != default)
-        {
-            pawn.ForcePosition(exitTo);
-        }
-        else
-        {
-            RoomNode roomNode = InteractionPoints.FirstOrDefault(x => x.Traversable);
-            if (roomNode == default)
+            if (CheckObject(position))
             {
-                //Emergency option if there's no interaction points to move to.
-                pawn.ForcePosition(Vector3Int.one);
+                highlight.enabled = true;
+                highlight.flipX = false;
+                highlight.sprite = Graphics.Instance.BedSprite[1];
+                highlight.transform.position = Utility.Utility.MapCoordinatesToSceneCoordinates(position);
+                highlight.sortingOrder = Utility.Utility.GetSortOrder(position);
+            }
+            else
+                highlight.enabled = false;
+        }
+
+        /// <inheritdoc/>
+        public override void Destroy()
+        {
+            StanceLay.LayingObjects.Remove(this);
+            base.Destroy();
+        }
+
+        /// <inheritdoc/>
+        public void Enter(Pawn pawn)
+        {
+            pawn.transform.Rotate(0, 0, -55);
+            pawn.ForcePosition(WorldPosition + Vector3Int.up);
+            pawn.Occupying = this;
+            Occupant = pawn;
+        }
+
+        /// <inheritdoc/>
+        public void Exit(Pawn pawn, Vector3Int exitTo = default)
+        {
+            if (pawn == Occupant)
+            {
+                Occupant = null;
+            }
+            if (pawn.Occupying == this)
+            {
+                pawn.Occupying = null;
+            }
+            pawn.transform.Rotate(0, 0, 55);
+            if (exitTo != default)
+            {
+                pawn.ForcePosition(exitTo);
             }
             else
             {
-                pawn.ForcePosition(roomNode.WorldPosition);
+                RoomNode roomNode = InteractionPoints.FirstOrDefault(x => x.Traversable);
+                //Emergency option if there's no interaction points to move to.
+                pawn.ForcePosition(roomNode?.WorldPosition ?? Vector3Int.one);
             }
         }
-    }
 
-    /// <inheritdoc/>
-    public void ReserveInteractionPoints()
-    {
-        foreach (RoomNode roomNode in InteractionPoints)
+        /// <inheritdoc/>
+        public void ReserveInteractionPoints()
         {
-            roomNode.Reserved = true;
+            foreach (RoomNode roomNode in InteractionPoints)
+            {
+                roomNode.Reserved = true;
+            }
         }
-    }
 
-    /// <inheritdoc/>
-    protected override void OnMapChanging()
-    {
-        _interactionPoints = null;
-        ReserveInteractionPoints();
-    }
+        /// <inheritdoc/>
+        protected override void OnMapChanging()
+        {
+            _interactionPoints = null;
+            ReserveInteractionPoints();
+        }
 
-    /// <inheritdoc/>
-    public void StartPlayerInteraction()
-    {
-        PlayerPawn.Instance.SetTask(new StanceLay(this));
-    }
+        /// <inheritdoc/>
+        public void StartPlayerInteraction()
+        {
+            PlayerPawn.Instance.SetTask(new StanceLay(this));
+        }
 
-    /// <inheritdoc/>
-    public void EndPlayerInteraction()
-    {
-        Exit(PlayerPawn.Instance);
+        /// <inheritdoc/>
+        public void EndPlayerInteraction()
+        {
+            Exit(PlayerPawn.Instance);
+        }
     }
 }

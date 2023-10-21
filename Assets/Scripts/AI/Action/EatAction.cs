@@ -1,45 +1,48 @@
 ﻿using UnityEngine;
 
-/// <summary>
-/// The <see cref="EatAction"/> class is a <see cref="TaskAction"/> for eating.
-/// </summary>
-public class EatAction : ActorAction
+namespace Assets.Scripts.AI.Action
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="EatAction"/> class.
+    /// The <see cref="EatAction"/> class is a <see cref="TaskAction"/> for eating.
     /// </summary>
-    /// <param name="actor">The <see cref="Actor"/> that is eating.</param>
-    public EatAction(Actor actor) : base(actor) {}
-
-    /// <inheritdoc/>
-    public override bool CanListen => true;
-
-    /// <inheritdoc/>
-    public override bool CanSpeak => true;
-
-    /// <inheritdoc/>
-    public override int Complete()
+    public class EatAction : ActorAction
     {
-        if (!_actor.Stats.HasFood)
-            return -1;
-        if(_actor.Stats.Hunger >= 10)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EatAction"/> class.
+        /// </summary>
+        /// <param name="actor">The <see cref="Actor"/> that is eating.</param>
+        public EatAction(Actor actor) : base(actor) {}
+
+        /// <inheritdoc/>
+        public override bool CanListen => true;
+
+        /// <inheritdoc/>
+        public override bool CanSpeak => true;
+
+        /// <inheritdoc/>
+        public override int Complete()
         {
-            _actor.HasFood = false;
+            if (!Actor.Stats.HasFood)
+                return -1;
+            if(Actor.Stats.Hunger >= 10)
+            {
+                Actor.HasFood = false;
 
-            return 1;
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
         }
-        else
+
+        /// <inheritdoc/>
+        public override void Initialize() {}
+
+        /// <inheritdoc/>
+        public override void Perform()
         {
-            return 0;
+            Actor.ChangeNeeds(Needs.Hunger, Time.deltaTime / 1.5f);
         }
-    }
-
-    /// <inheritdoc/>
-    public override void Initialize() {}
-
-    /// <inheritdoc/>
-    public override void Perform()
-    {
-        _actor.ChangeNeeds(Needs.Hunger, Time.deltaTime / 1.5f);
     }
 }

@@ -1,98 +1,104 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.Map;
+using Assets.Scripts.Map.Sprite_Object;
+using Assets.Scripts.Map.Sprite_Object.Furniture;
+using UnityEngine;
 
-/// <summary>
-/// The <see cref="SitStep"/> class is a <see cref="TaskStep"/> for a <see cref="Pawn"/> to sit down.
-/// </summary>
-public class SitStep : TaskStep, IDirected
+namespace Assets.Scripts.AI.Step
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="SitStep"/> task.
+    /// The <see cref="SitStep"/> class is a <see cref="TaskStep"/> for a <see cref="Pawn"/> to sit down.
     /// </summary>
-    /// <param name="pawn">The <see cref="Pawn"/> that is sitting down.</param>
-    /// <param name="seat">The seat on which the <see cref="Pawn"/> is sitting.</param>
-    public SitStep(Pawn pawn, IOccupied seat) : base(pawn)
+    public class SitStep : TaskStep, IDirected
     {
-        seat.Enter(pawn);
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SitStep"/> task.
+        /// </summary>
+        /// <param name="pawn">The <see cref="Pawn"/> that is sitting down.</param>
+        /// <param name="seat">The seat on which the <see cref="Pawn"/> is sitting.</param>
+        public SitStep(Pawn pawn, IOccupied seat) : base(pawn)
+        {
+            seat.Enter(pawn);
 
-        if (seat is ChairSprite chair)
-        {
-            Direction = chair.Direction;
-        }
-        else if (seat is StoolSprite stool)
-        {
-            if (Map.Instance[stool.WorldPosition + Utility.DirectionToVector(Direction.North) * 2].Occupant is BarSprite)
+            if (seat is ChairSprite chair)
             {
+                Direction = chair.Direction;
+            }
+            else if (seat is StoolSprite stool)
+            {
+                if (Map.Map.Instance[stool.WorldPosition + Utility.Utility.DirectionToVector(Direction.North) * 2].Occupant is BarSprite)
+                {
+                    Direction = Direction.North;
+                }
+                else if (Map.Map.Instance[stool.WorldPosition + Utility.Utility.DirectionToVector(Direction.South) * 2].Occupant is BarSprite)
+                {
+                    Direction = Direction.South;
+                }
+                else if (Map.Map.Instance[stool.WorldPosition + Utility.Utility.DirectionToVector(Direction.East) * 2].Occupant is BarSprite)
+                {
+                    Direction = Direction.East;
+                }
+                else if (Map.Map.Instance[stool.WorldPosition + Utility.Utility.DirectionToVector(Direction.West) * 2].Occupant is BarSprite)
+                {
+                    Direction = Direction.West;
+                }
+            }
+            else
                 Direction = Direction.North;
-            }
-            else if (Map.Instance[stool.WorldPosition + Utility.DirectionToVector(Direction.South) * 2].Occupant is BarSprite)
-            {
-                Direction = Direction.South;
-            }
-            else if (Map.Instance[stool.WorldPosition + Utility.DirectionToVector(Direction.East) * 2].Occupant is BarSprite)
-            {
-                Direction = Direction.East;
-            }
-            else if (Map.Instance[stool.WorldPosition + Utility.DirectionToVector(Direction.West) * 2].Occupant is BarSprite)
-            {
-                Direction = Direction.West;
-            }
+
+            pawn.Stance = Stance.Sit;
         }
-        else
-            Direction = Direction.North;
 
-        pawn.Stance = Stance.Sit;
-    }
+        /// <inheritdoc/>
+        public Direction Direction { get; }
 
-    /// <inheritdoc/>
-    public Direction Direction { get; }
+        /// <inheritdoc/>
+        protected override bool Complete => true;
 
-    /// <inheritdoc/>
-    protected override bool _isComplete => true;
-
-    /// <inheritdoc/>
-    public override void Perform()
-    {
-        _period += Time.deltaTime;
-        if (Direction == Direction.West)
+        /// <inheritdoc/>
+        public override void Perform()
         {
-            if (_period >= _frame * BREATHTIME)
+            Period += Time.deltaTime;
+            if (Direction == Direction.West)
             {
-                _pawn.SetSprite(34); // 24 + _idleFrames[_frame]);
-                _frame++;
-                if (_frame == 22)
+                if (Period >= Frame * BREATH_TIME)
                 {
-                    _period -= 2.75f;
-                    _frame = 0;
+                    Pawn.SetSprite(34); // 24 + _idleFrames[_frame]);
+                    Frame++;
+                    if (Frame == 22)
+                    {
+                        Period -= 2.75f;
+                        Frame = 0;
+                    }
                 }
             }
-        }
-        else if (Direction == Direction.South)
-        {
-            if (_period >= _frame * BREATHTIME)
+            else if (Direction == Direction.South)
             {
-                _pawn.SetSprite(4); // 30 + _idleFrames[_frame]);
-                _frame++;
-                if (_frame == 22)
+                if (Period >= Frame * BREATH_TIME)
                 {
-                    _period -= 2.75f;
-                    _frame = 0;
+                    Pawn.SetSprite(4); // 30 + _idleFrames[_frame]);
+                    Frame++;
+                    if (Frame == 22)
+                    {
+                        Period -= 2.75f;
+                        Frame = 0;
+                    }
                 }
             }
-        }
-        else if (Direction == Direction.East)
-        {
-            if (_period >= _frame * BREATHTIME)
+            else if (Direction == Direction.East)
             {
-                _pawn.SetSprite(14);// 47);
-                _frame += 100;
+                if (Period >= Frame * BREATH_TIME)
+                {
+                    Pawn.SetSprite(14);// 47);
+                    Frame += 100;
+                }
             }
-        }
-        else
-        {
-            if (_period >= _frame * BREATHTIME)
+            else
             {
-                _pawn.SetSprite(24);// 46);
-                _frame += 100;
+                if (Period >= Frame * BREATH_TIME)
+                {
+                    Pawn.SetSprite(24);// 46);
+                    Frame += 100;
+                }
             }
         }
     }

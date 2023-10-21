@@ -1,332 +1,319 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.Linq;
+using Assets.Scripts.AI;
+using Assets.Scripts.Map.Node;
+using Assets.Scripts.Map.Sprite_Object;
+using Assets.Scripts.Utility;
+using UnityEngine;
 
-/// <summary>
-/// Class <see cref="Room"/> models a closed space within a <see cref="Map"/>.
-/// </summary>
-public class Room
+namespace Assets.Scripts.Map
 {
-
-    protected RoomNode[,] _nodes;
-    protected List<Pawn> _occupants = new();
-    private const float RAD2 = 1.41421356237f;
-    private readonly List<ConnectingNode> _connections;
-    private bool _updating = false;
-
     /// <summary>
-    /// Initializes a new empty <see cref="Room"/> object.
+    /// Class <see cref="Room"/> models a closed space within a <see cref="Map"/>.
     /// </summary>
-    /// <param name="x">The width of the <see cref="Room"/>.</param>
-    /// <param name="y">The length of the <see cref="Room"/>.</param>
-    /// <param name="originPosition">The position of the origin in the <see cref="Room"/>'s coordinate grid within a <see cref="Map"/>.</param>
-    public Room(int x, int y, Vector3Int originPosition)
+    public class Room
     {
-        _nodes = new RoomNode[x, y];
-        Origin = originPosition;
-        _connections = new List<ConnectingNode>();
-    }
 
-    /// <summary>
-    /// Initializes a new <see cref="Room"/> object based on an array of <see cref="RoomNode"/>s.
-    /// </summary>
-    /// <param name="nodes">An array of <see cref="RoomNode"/>s that the <see cref="Room"/> contains.</param>
-    /// <param name="originPosition">The <see cref="Map"/> position of the lower left corner of the room.</param>
-    public Room(RoomNode[,] nodes, Vector3Int originPosition)
-    {
-        _nodes = nodes;
-        Origin = originPosition;
-        _connections = new List<ConnectingNode>();
-    }
+        protected RoomNode[,] _nodes;
+        private readonly List<Pawn> _occupants = new();
+        private const float RAD2 = 1.41421356237f;
+        private readonly List<ConnectingNode> _connections;
+        private bool _updating;
 
-    /// <value>Returns an <see cref="IEnumerable"/> of all the <see cref="ConnectingNode"/>s that border this <see cref="Room"/>.</value>
-    public IEnumerable<ConnectingNode> Connections => _connections;
-
-    /// <value>The vertical height of the <see cref="Room"/>.</value>
-    public int Height { get; } = 6;
-
-    ///<value>The length of the <see cref="Room"/> in the y-coordinates.</value>
-    public int Length => _nodes.GetLength(1);
-
-    ///<value>The coordinates of the maximum x and y value in the <see cref="Room"/>s array.
-    ///The <see cref="RoomNode"/> corresponding to the MaxPoint is not necessarily inside of the Room.</value>
-    public (int x, int y) MaxPoint => (Origin.x + Width, Origin.y + Length);
-
-    ///<value>The coordinates of the minimum x and y value in the <see cref="Room"/>s array.
-    ///The <see cref="RoomNode"/> corresponding to the MinPoint is not necessarily inside of the Room.</value>
-    public (int x, int y) MinPoint => (Origin.x, Origin.y);
-
-    public IEnumerable<RoomNode> Nodes
-    {
-        get
+        /// <summary>
+        /// Initializes a new empty <see cref="Room"/> object.
+        /// </summary>
+        /// <param name="x">The width of the <see cref="Room"/>.</param>
+        /// <param name="y">The length of the <see cref="Room"/>.</param>
+        /// <param name="originPosition">The position of the origin in the <see cref="Room"/>'s coordinate grid within a <see cref="Map"/>.</param>
+        public Room(int x, int y, Vector3Int originPosition)
         {
-            for (int i = 0; i < Width; i++)
+            _nodes = new RoomNode[x, y];
+            Origin = originPosition;
+            _connections = new List<ConnectingNode>();
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="Room"/> object based on an array of <see cref="RoomNode"/>s.
+        /// </summary>
+        /// <param name="nodes">An array of <see cref="RoomNode"/>s that the <see cref="Room"/> contains.</param>
+        /// <param name="originPosition">The <see cref="Map"/> position of the lower left corner of the room.</param>
+        public Room(RoomNode[,] nodes, Vector3Int originPosition)
+        {
+            _nodes = nodes;
+            Origin = originPosition;
+            _connections = new List<ConnectingNode>();
+        }
+
+        /// <value>Returns an <see cref="IEnumerable"/> of all the <see cref="ConnectingNode"/>s that border this <see cref="Room"/>.</value>
+        public IEnumerable<ConnectingNode> Connections => _connections;
+
+        /// <value>The vertical height of the <see cref="Room"/>.</value>
+        public int Height { get; } = 6;
+
+        ///<value>The length of the <see cref="Room"/> in the y-coordinates.</value>
+        public int Length => _nodes.GetLength(1);
+
+        ///<value>The coordinates of the maximum x and y value in the <see cref="Room"/>s array.
+        ///The <see cref="RoomNode"/> corresponding to the MaxPoint is not necessarily inside of the Room.</value>
+        public (int x, int y) MaxPoint => (Origin.x + Width, Origin.y + Length);
+
+        ///<value>The coordinates of the minimum x and y value in the <see cref="Room"/>s array.
+        ///The <see cref="RoomNode"/> corresponding to the MinPoint is not necessarily inside of the Room.</value>
+        public (int x, int y) MinPoint => (Origin.x, Origin.y);
+
+        public IEnumerable<RoomNode> Nodes
+        {
+            get
+            {
+                for (int i = 0; i < Width; i++)
                 for (int j = 0; j < Length; j++)
                 {
                     if (_nodes[i, j] != null && _nodes[i, j] != RoomNode.Undefined)
                         yield return _nodes[i, j];
                 }
-        }
-    }
-
-    /// <value>An <see cref="IEnumerable"/> that iterates over all of <see cref="AdventurerPawn"/>s that are currently in the <see cref="Room"/>.</value>
-    public IEnumerable<Pawn> Occupants => _occupants;
-
-    ///<value>The <see cref="Map"/> coordinates of the origin point of the <see cref="Room"/>.</value>
-    public Vector3Int Origin { get; protected set; }
-
-    ///<value>The width of the <see cref="Room"/> in the x-coordinates.</value>
-    public int Width => _nodes.GetLength(0);
-
-    ///<value>Gets the <see cref="RoomNode"/> at a specific location within the <see cref="Room"/> grid. Returns null if there is no <see cref="RoomNode"/> at that location.</value>
-    public virtual RoomNode this[int x, int y]
-    {
-        get
-        {
-            if (x < 0 || y < 0 || x >= Width || y >= Length)
-                return RoomNode.Invalid;
-            else
-                return _nodes[x, y];
-        }
-    }
-
-    /// <summary>
-    /// Adds a new <see cref="ConnectingNode"/> that border's the <see cref="Room"/>.
-    /// </summary>
-    /// <param name="connection">The new <see cref="ConnectingNode"/> that connects to the <see cref="Room"/>.</param>
-    public void AddConnection(ConnectingNode connection)
-    {
-        if (_connections.Contains(connection))
-            return;
-
-        foreach (ConnectingNode door in _connections)
-        {
-            ConstructPaths(door, connection);
-        }
-        _connections.Add(connection);
-    }
-
-    /// <summary>
-    /// Determines if two <see cref="RoomNode"/>s are directly accessible to one another without traversing a <see cref="ConnectingNode"/> and thus should be part of the same <see cref="Room"/>.
-    /// </summary>
-    /// <param name="node1">First <see cref="RoomNode"/> being evaluated.</param>
-    /// <param name="node2">Second <see cref="RoomNode"/> being eveluated.</param>
-    /// <returns>Returns true if the two <see cref="RoomNode"/>s should be part of the same <see cref="Room"/>.</returns>
-    public void CheckContiguous(RoomNode node1, RoomNode node2)
-    {
-        PriorityQueue<RoomNode, float> nodeQueue = new(false);
-        RegisterForUpdate();
-
-        RoomNode[,] immediatePredecessor = new RoomNode[Width, Length];
-        int[,] g_score = new int[Width, Length];
-
-        for (int i = 0; i < Width; i++)
-        {
-            for (int j = 0; j < Length; j++)
-            {
-                g_score[i, j] = int.MaxValue;
             }
         }
 
-        RoomNode current = node1;
-        (int x, int y) = node1.Coords;
-        (int endx, int endy) = node2.Coords;
-        g_score[x, y] = 0;
-        int currentScore = 0;
+        /// <value>An <see cref="IEnumerable"/> that iterates over all of <see cref="AdventurerPawn"/>s that are currently in the <see cref="Room"/>.</value>
+        public IEnumerable<Pawn> Occupants => _occupants;
 
-        while (current != node2)
+        ///<value>The <see cref="Map"/> coordinates of the origin point of the <see cref="Room"/>.</value>
+        public Vector3Int Origin { get; protected set; }
+
+        ///<value>The width of the <see cref="Room"/> in the x-coordinates.</value>
+        public int Width => _nodes.GetLength(0);
+
+        ///<value>Gets the <see cref="RoomNode"/> at a specific location within the <see cref="Room"/> grid. Returns null if there is no <see cref="RoomNode"/> at that location.</value>
+        public virtual RoomNode this[int x, int y]
         {
-            foreach (INode node in current.AdjacentNodes)
+            get
             {
-                if (node != null && node is RoomNode next && node != RoomNode.Undefined)
-                {
-                    (int nextX, int nextY) = next.Coords;
-
-                    if (g_score[nextX, nextY] > currentScore + 1)
-                    {
-                        g_score[nextX, nextY] = currentScore + 1;
-
-                        nodeQueue.Push(next, currentScore + 1 + Mathf.Sqrt(Mathf.Pow(nextX - endx, 2) + Mathf.Pow(nextY - endy, 2)));
-
-                        immediatePredecessor[nextX, nextY] = current;
-                    }
-                }
+                if (x < 0 || y < 0 || x >= Width || y >= Length)
+                    return RoomNode.Invalid;
+                else
+                    return _nodes[x, y];
             }
+        }
 
-
-            if (nodeQueue.Empty)
-            {
-                Map.Instance.AddRooms(SplitOffRooms(node1, node2));
+        /// <summary>
+        /// Adds a new <see cref="ConnectingNode"/> that border's the <see cref="Room"/>.
+        /// </summary>
+        /// <param name="connection">The new <see cref="ConnectingNode"/> that connects to the <see cref="Room"/>.</param>
+        public void AddConnection(ConnectingNode connection)
+        {
+            if (_connections.Contains(connection))
                 return;
+
+            foreach (ConnectingNode door in _connections)
+            {
+                ConstructPaths(door, connection);
             }
-            current = nodeQueue.Pop();
-            (x, y) = current.Coords;
-            currentScore = g_score[x, y];
+            _connections.Add(connection);
         }
-    }
 
-    /// <summary>
-    /// Adds a <see cref="AdventurerPawn"/> to the list of occupants in the <see cref="Room"/>.
-    /// </summary>
-    /// <param name="pawn">The <see cref="AdventurerPawn"/> entering the <see cref="Room"/>.</param>
-    public void EnterRoom(Pawn pawn)
-    {
-        _occupants.Add(pawn);
-        if(pawn is AdventurerPawn realPawn )
-            realPawn.Social.EnterRoom(this);
-    }
+        /// <summary>
+        /// Determines if two <see cref="RoomNode"/>s are directly accessible to one another without traversing a <see cref="ConnectingNode"/> and thus should be part of the same <see cref="Room"/>.
+        /// </summary>
+        /// <param name="node1">First <see cref="RoomNode"/> being evaluated.</param>
+        /// <param name="node2">Second <see cref="RoomNode"/> being evaluated.</param>
+        /// <returns>Returns true if the two <see cref="RoomNode"/>s should be part of the same <see cref="Room"/>.</returns>
+        public void CheckContiguous(RoomNode node1, RoomNode node2)
+        {
+            PriorityQueue<RoomNode, float> nodeQueue = new(false);
+            RegisterForUpdate();
 
-    /// <summary>
-    /// Takes another <see cref="Room"/> and combine's it with this <see cref="Room"/>, expanding the size of the <see cref="RoomNode"/> array if necessary.
-    /// </summary>
-    /// <param name="otherRoom">The other <see cref="Room"/> being combined with this <see cref="Room"/>.</param>
-    public void EnvelopRoom(Room otherRoom)
-    {
-        bool reconfigure = false;
-        int width = Width;
-        int length = Length;
-        Vector3Int newOrigin = Origin;
+            RoomNode[,] immediatePredecessor = new RoomNode[Width, Length];
+            int[,] gScore = new int[Width, Length];
 
-        if (otherRoom.MaxPoint.x > MaxPoint.x)
-        {
-            reconfigure = true;
-            width = otherRoom.MaxPoint.x - MinPoint.x;
-        }
-        if (otherRoom.MinPoint.x < MinPoint.x)
-        {
-            reconfigure = true;
-            width += MinPoint.x - otherRoom.MinPoint.x;
-            newOrigin.x = otherRoom.MinPoint.x;
-        }
-        if (otherRoom.MaxPoint.y > MaxPoint.y)
-        {
-            reconfigure = true;
-            length = otherRoom.MaxPoint.y - MinPoint.y;
-        }
-        if (otherRoom.MinPoint.y < MinPoint.y)
-        {
-            reconfigure = true;
-            length += MinPoint.y - otherRoom.MinPoint.y;
-            newOrigin.y = otherRoom.MinPoint.y;
-        }
-        int xOffset, yOffset;
-        if (reconfigure)
-        {
-            RoomNode[,] nodes = new RoomNode[width, length];
-            xOffset = Origin.x - newOrigin.x;
-            yOffset = Origin.y - newOrigin.y;
             for (int i = 0; i < Width; i++)
             {
                 for (int j = 0; j < Length; j++)
                 {
-                    if (_nodes[i, j] != null)
+                    gScore[i, j] = int.MaxValue;
+                }
+            }
+
+            RoomNode current = node1;
+            (int x, int y) = node1.Coords;
+            (int endX, int endY) = node2.Coords;
+            gScore[x, y] = 0;
+            int currentScore = 0;
+
+            while (current != node2)
+            {
+                foreach (INode node in current.AdjacentNodes)
+                {
+                    if (node is RoomNode next && node != RoomNode.Undefined)
                     {
-                        nodes[i + xOffset, j + yOffset] = _nodes[i, j];
-                        _nodes[i, j].Reassign(this, i + xOffset, j + yOffset);
+                        (int nextX, int nextY) = next.Coords;
+
+                        if (gScore[nextX, nextY] > currentScore + 1)
+                        {
+                            gScore[nextX, nextY] = currentScore + 1;
+
+                            nodeQueue.Push(next, currentScore + 1 + Mathf.Sqrt(Mathf.Pow(nextX - endX, 2) + Mathf.Pow(nextY - endY, 2)));
+
+                            immediatePredecessor[nextX, nextY] = current;
+                        }
+                    }
+                }
+
+
+                if (nodeQueue.Empty)
+                {
+                    Map.Instance.AddRooms(SplitOffRooms(node1, node2));
+                    return;
+                }
+                current = nodeQueue.Pop();
+                (x, y) = current.Coords;
+                currentScore = gScore[x, y];
+            }
+        }
+
+        /// <summary>
+        /// Adds a <see cref="AdventurerPawn"/> to the list of occupants in the <see cref="Room"/>.
+        /// </summary>
+        /// <param name="pawn">The <see cref="AdventurerPawn"/> entering the <see cref="Room"/>.</param>
+        public void EnterRoom(Pawn pawn)
+        {
+            _occupants.Add(pawn);
+            if(pawn is AdventurerPawn realPawn )
+                realPawn.Social.EnterRoom(this);
+        }
+
+        /// <summary>
+        /// Takes another <see cref="Room"/> and combine's it with this <see cref="Room"/>, expanding the size of the <see cref="RoomNode"/> array if necessary.
+        /// </summary>
+        /// <param name="otherRoom">The other <see cref="Room"/> being combined with this <see cref="Room"/>.</param>
+        public void EnvelopRoom(Room otherRoom)
+        {
+            bool reconfigure = false;
+            int width = Width;
+            int length = Length;
+            Vector3Int newOrigin = Origin;
+
+            if (otherRoom.MaxPoint.x > MaxPoint.x)
+            {
+                reconfigure = true;
+                width = otherRoom.MaxPoint.x - MinPoint.x;
+            }
+            if (otherRoom.MinPoint.x < MinPoint.x)
+            {
+                reconfigure = true;
+                width += MinPoint.x - otherRoom.MinPoint.x;
+                newOrigin.x = otherRoom.MinPoint.x;
+            }
+            if (otherRoom.MaxPoint.y > MaxPoint.y)
+            {
+                reconfigure = true;
+                length = otherRoom.MaxPoint.y - MinPoint.y;
+            }
+            if (otherRoom.MinPoint.y < MinPoint.y)
+            {
+                reconfigure = true;
+                length += MinPoint.y - otherRoom.MinPoint.y;
+                newOrigin.y = otherRoom.MinPoint.y;
+            }
+            int xOffset, yOffset;
+            if (reconfigure)
+            {
+                RoomNode[,] nodes = new RoomNode[width, length];
+                xOffset = Origin.x - newOrigin.x;
+                yOffset = Origin.y - newOrigin.y;
+                for (int i = 0; i < Width; i++)
+                {
+                    for (int j = 0; j < Length; j++)
+                    {
+                        if (_nodes[i, j] != null)
+                        {
+                            nodes[i + xOffset, j + yOffset] = _nodes[i, j];
+                            _nodes[i, j].Reassign(this, i + xOffset, j + yOffset);
+                        }
+                    }
+                }
+                _nodes = nodes;
+            }
+            xOffset = otherRoom.Origin.x - newOrigin.x;
+            yOffset = otherRoom.Origin.y - newOrigin.y;
+            for (int i = 0; i < otherRoom.Width; i++)
+            {
+                for (int j = 0; j < otherRoom.Length; j++)
+                {
+                    if (otherRoom._nodes[i, j] != null)
+                    {
+                        _nodes[i + xOffset, j + yOffset] = otherRoom._nodes[i, j];
+                        otherRoom._nodes[i, j].Reassign(this, i + xOffset, j + yOffset);
                     }
                 }
             }
-            _nodes = nodes;
+            _connections.AddRange(otherRoom._connections.Except(_connections));
+
+            RegisterForUpdate();
         }
-        xOffset = otherRoom.Origin.x - newOrigin.x;
-        yOffset = otherRoom.Origin.y - newOrigin.y;
-        for (int i = 0; i < otherRoom.Width; i++)
+
+        /// <summary>
+        /// Removes a <see cref="AdventurerPawn"/> from the list of occupants of the <see cref="Room"/>.
+        /// </summary>
+        /// <param name="pawn">The <see cref="AdventurerPawn"/> exiting the <see cref="Room"/>.</param>
+        public void ExitRoom(Pawn pawn)
         {
-            for (int j = 0; j < otherRoom.Length; j++)
+            _occupants.Remove(pawn);
+        }
+
+        /// <summary>
+        /// Finds the world position within a <see cref="Map"/> of a <see cref="RoomNode"/> that is in a <see cref="Room"/>.
+        /// </summary>
+        /// <param name="node">The <see cref="RoomNode"/> whose world position is being found.</param>
+        /// <returns>The world position of the given <see cref="RoomNode"/>.</returns>
+        public Vector3Int GetWorldPosition(RoomNode node)
+        {
+            return Origin + node.RoomPosition;
+        }
+
+        /// <summary>
+        /// Checks if a given <see cref="AdventurerPawn"/> is within this <see cref="Room"/>.
+        /// </summary>
+        /// <param name="pawn">The <see cref="AdventurerPawn"/> being checked.</param>
+        /// <returns>Returns true if the <c>pawn</c> is in the <see cref="Room"/>.</returns>
+        public bool IsInRoom(AdventurerPawn pawn)
+        {
+            return _occupants.Any(x => x == pawn);
+        }
+
+        /// <summary>
+        /// Evaluates the shortest route from one <see cref="IWorldPosition"/> to another, where both are located within this <see cref="Room"/>.
+        /// </summary>
+        /// <param name="start">The starting <see cref="IWorldPosition"/>.</param>
+        /// <param name="end">The ending <see cref="IWorldPosition"/>.</param>
+        /// <returns>The <see cref="IEnumerator"/> first returns the distance from <c>start</c> to <c>end</c>, and then all the steps between the two, in reverse order.
+        /// The initial distance may be <see cref="float.PositiveInfinity"/> if no path exists between the two <see cref="IWorldPosition"/>.</returns>
+        public IEnumerator Navigate(IWorldPosition start, IWorldPosition end)
+        {
+            PriorityQueue<RoomNode, float> nodeQueue = new(false);
+            RoomNode[,] immediatePredecessor = new RoomNode[Map.Instance.MapWidth, Map.Instance.MapLength];
+            (float score, ILockBox queueNode)[,] gScore = new (float score, ILockBox queueNode)[Map.Instance.MapWidth, Map.Instance.MapLength];
+
+            for (int i = 0; i < Width; i++)
             {
-                if (otherRoom._nodes[i, j] != null)
+                for (int j = 0; j < Length; j++)
                 {
-                    _nodes[i + xOffset, j + yOffset] = otherRoom._nodes[i, j];
-                    otherRoom._nodes[i, j].Reassign(this, i + xOffset, j + yOffset);
-                }
-            }
-        }
-        _connections.AddRange(otherRoom._connections.Except(_connections));
-
-        RegisterForUpdate();
-    }
-
-    /// <summary>
-    /// Removes a <see cref="AdventurerPawn"/> from the list of occupants of the <see cref="Room"/>.
-    /// </summary>
-    /// <param name="pawn">The <see cref="AdventurerPawn"/> exiting the <see cref="Room"/>.</param>
-    public void ExitRoom(Pawn pawn)
-    {
-        _occupants.Remove(pawn);
-    }
-
-    /// <summary>
-    /// Finds the world position within a <see cref="Map"/> of a <see cref="RoomNode"/> that is in a <see cref="Room"/>.
-    /// </summary>
-    /// <param name="node">The <see cref="RoomNode"/> whose world position is being found.</param>
-    /// <returns>The world position of the given <see cref="RoomNode"/>.</returns>
-    public Vector3Int GetWorldPosition(RoomNode node)
-    {
-        return Origin + node.RoomPosition;
-    }
-
-    /// <summary>
-    /// Checks if a given <see cref="AdventurerPawn"/> is within this <see cref="Room"/>.
-    /// </summary>
-    /// <param name="pawn">The <see cref="AdventurerPawn"/> being checked.</param>
-    /// <returns>Retunrs true if the <c>pawn</c> is in the <see cref="Room"/>.</returns>
-    public bool IsInRoom(AdventurerPawn pawn)
-    {
-        return _occupants.Any(x => x == pawn);
-    }
-
-    /// <summary>
-    /// Evaluates the shortest route from one <see cref="IWorldPosition"/> to another, where both are located within this <see cref="Room"/>.
-    /// </summary>
-    /// <param name="start">The starting <see cref="IWorldPosition"/>.</param>
-    /// <param name="end">The ending <see cref="IWorldPosition"/>.</param>
-    /// <returns>The <see cref="IEnumerator"/> first returns the distance from <c>start</c> to <c>end</c>, and then all the steps between the two, in reverse order.
-    /// The initial distance may be <see cref="float.PositiveInfinity"/> if no path exists between the two <see cref="IWorldPosition"/>.</returns>
-    public IEnumerator Navigate(IWorldPosition start, IWorldPosition end)
-    {
-        PriorityQueue<RoomNode, float> nodeQueue = new(false);
-        RoomNode[,] immediatePredecessor = new RoomNode[Map.Instance.MapWidth, Map.Instance.MapLength];
-        (float score, ILockBox queueNode)[,] g_score = new (float score, ILockBox queueNode)[Map.Instance.MapWidth, Map.Instance.MapLength];
-
-        for (int i = 0; i < Width; i++)
-        {
-            for (int j = 0; j < Length; j++)
-            {
-                g_score[i, j] = (float.PositiveInfinity, null);
-            }
-        }
-
-        RoomNode current;
-
-        if(start is IOccupied occupied)
-        {
-            foreach (INode node in occupied.InteractionPoints)
-            {
-                if (node is RoomNode roomNode && roomNode.Traversable)
-                {
-                    nodeQueue.Push(roomNode, 0);
-                    (int nodex, int nodey) = roomNode.Coords;
-                    g_score[nodex, nodey] = (0, null);
+                    gScore[i, j] = (float.PositiveInfinity, null);
                 }
             }
 
-            if (nodeQueue.Empty)
-                yield return float.PositiveInfinity;
+            RoomNode current;
 
-            current = nodeQueue.Pop();
-        }
-        else if (start.Node is ConnectingNode startConnection)
-        {
-            if (startConnection.IsWithinSingleRoom)
+            if(start is IOccupied occupied)
             {
-                foreach (INode node in startConnection.AdjacentNodes)
+                foreach (RoomNode node in occupied.InteractionPoints)
                 {
-                    if (node is RoomNode roomNode && roomNode.Traversable)
+                    if (node.Traversable)
                     {
-                        nodeQueue.Push(roomNode, 0);
-                        (int nodex, int nodey) = roomNode.Coords;
-                        g_score[nodex, nodey] = (0, null);
+                        nodeQueue.Push(node, 0);
+                        (int nodeX, int nodeY) = node.Coords;
+                        gScore[nodeX, nodeY] = (0, null);
                     }
                 }
 
@@ -335,154 +322,161 @@ public class Room
 
                 current = nodeQueue.Pop();
             }
-            else
+            else if (start.Node is ConnectingNode startConnection)
             {
-                current = startConnection.GetRoomNode(this);
-                if (!current.Traversable)
-                    yield return float.PositiveInfinity;
+                if (startConnection.IsWithinSingleRoom)
+                {
+                    foreach (INode node in startConnection.AdjacentNodes)
+                    {
+                        if (node is RoomNode { Traversable: true } roomNode)
+                        {
+                            nodeQueue.Push(roomNode, 0);
+                            (int nodeX, int nodeY) = roomNode.Coords;
+                            gScore[nodeX, nodeY] = (0, null);
+                        }
+                    }
+
+                    if (nodeQueue.Empty)
+                        yield return float.PositiveInfinity;
+
+                    current = nodeQueue.Pop();
+                }
+                else
+                {
+                    current = startConnection.GetRoomNode(this);
+                    if (!current.Traversable)
+                        yield return float.PositiveInfinity;
+                }
             }
-        }
-        else if (start.Node is RoomNode roomNode)
-        {
-            current = roomNode;
-            (int nodex, int nodey) = roomNode.Coords;
-            g_score[nodex, nodey] = (0, null);
-        }
-        else
-            throw new System.ArgumentException();
+            else if (start.Node is RoomNode roomNode)
+            {
+                current = roomNode;
+                (int nodeX, int nodeY) = roomNode.Coords;
+                gScore[nodeX, nodeY] = (0, null);
+            }
+            else
+                throw new System.ArgumentException();
 
-        (int x, int y) = current.Coords;
-        g_score[x, y] = (0, null);
-        immediatePredecessor[x, y] = null;
-        float currentScore = 0;
+            (int x, int y) = current.Coords;
+            gScore[x, y] = (0, null);
+            immediatePredecessor[x, y] = null;
+            float currentScore = 0;
 
-        while (!end.HasNavigatedTo(current))
-        {
-
-            try
+            while (!end.HasNavigatedTo(current))
             {
                 foreach ((RoomNode node, float distance) node in current.NextNodes)
                 {
                     AddNode(node.node, node.distance);
                 }
-            }
-            catch (System.InvalidOperationException)
-            {
 
-                throw;
-            }
-
-
-
-            if (nodeQueue.Empty || nodeQueue.Count > 500)
-            {
-                yield return float.PositiveInfinity;
-            }
-            current = nodeQueue.Pop();
-            (x, y) = current.Coords;
-            currentScore = g_score[x, y].score;
-        }
-
-        yield return currentScore;
-
-        do
-        {
-            yield return current;
-            (x, y) = current.Coords;
-            current = immediatePredecessor[x, y];
-        } while (current != null);
-
-        void AddNode(RoomNode node, float stepLength)
-        {
-            try
-            {
-                (int nextX, int nextY) = node.Coords;
-                (float prev, ILockBox queueNode) = g_score[nextX, nextY];
-                float newScore = currentScore + stepLength;
-
-                if (prev > currentScore + stepLength)
+                if (nodeQueue.Empty || nodeQueue.Count > 500)
                 {
-                    int xDiff = Mathf.Abs(nextX - (end.WorldPosition.x - Origin.x));
-                    int yDiff = Mathf.Abs(nextY - (end.WorldPosition.y - Origin.y));
-                    float h_score = xDiff < yDiff ? yDiff + xDiff * (RAD2 - 1) : xDiff + yDiff * (RAD2 - 1);
+                    yield return float.PositiveInfinity;
+                }
+                current = nodeQueue.Pop();
+                (x, y) = current.Coords;
+                currentScore = gScore[x, y].score;
+            }
 
-                    if (prev == float.PositiveInfinity)
-                        g_score[nextX, nextY] = (currentScore + stepLength, nodeQueue.Push(node, currentScore + stepLength + h_score));
-                    else
+            yield return currentScore;
+
+            do
+            {
+                yield return current;
+                (x, y) = current.Coords;
+                current = immediatePredecessor[x, y];
+            } while (current != null);
+
+            void AddNode(RoomNode node, float stepLength)
+            {
+                try
+                {
+                    (int nextX, int nextY) = node.Coords;
+                    (float prev, ILockBox queueNode) = gScore[nextX, nextY];
+                    float newScore = currentScore + stepLength;
+
+                    if (prev > newScore)
                     {
-                        nodeQueue.ChangePriority(queueNode, currentScore + stepLength + h_score);
-                        g_score[nextX, nextY].score = currentScore + stepLength;
-                    }
+                        int xDiff = Mathf.Abs(nextX - (end.WorldPosition.x - Origin.x));
+                        int yDiff = Mathf.Abs(nextY - (end.WorldPosition.y - Origin.y));
+                        float hScore = xDiff < yDiff ? yDiff + xDiff * (RAD2 - 1) : xDiff + yDiff * (RAD2 - 1);
 
-                    immediatePredecessor[nextX, nextY] = current;
+                        if (float.IsPositiveInfinity(prev))
+                            gScore[nextX, nextY] = (newScore, nodeQueue.Push(node, newScore + hScore));
+                        else
+                        {
+                            nodeQueue.ChangePriority(queueNode, newScore + hScore);
+                            gScore[nextX, nextY].score = newScore;
+                        }
+
+                        immediatePredecessor[nextX, nextY] = current;
+                    }
+                }
+                catch (System.NullReferenceException)
+                {
+                    Debug.Log("Null Reference in AddNode");
                 }
             }
-            catch (System.NullReferenceException)
+
+        }
+
+        /// <summary>
+        /// Registers the <see cref="Room"/> to be updated by the <see cref="GameManager"/> once all changes to the <see cref="Map"/> have completed.
+        /// </summary>
+        public void RegisterForUpdate()
+        {
+            if (!_updating)
             {
-                Debug.Log("Null Reference in AddNode");
-                return;
+                GameManager.MapChangingFirst += UpdatePaths;
+                _updating = true;
             }
         }
 
-    }
-
-    /// <summary>
-    /// Registers the <see cref="Room"/> to be updated by the <see cref="GameManager"/> once all changes to the <see cref="Map"/> have completed.
-    /// </summary>
-    public void RegisterForUpdate()
-    {
-        if (!_updating)
+        /// <summary>
+        /// Removes a <see cref="ConnectingNode"/> from the list of connections and disconnects it from all adjoining connections.
+        /// </summary>
+        /// <param name="connection">The <see cref="ConnectingNode"/> being removed.</param>
+        /// <param name="removeFromList">Determines whether <c>connection</c> should be actually removed from the list. This is only false when <see cref="Connections"/> is being iterated over, 
+        /// and thus cannot be modified. It is expected that <c>connection</c> will be removed from the list afterwards.</param>
+        public void RemoveConnection(ConnectingNode connection, bool removeFromList = true)
         {
-            GameManager.MapChangingFirst += UpdatePaths;
-            _updating = true;
+            foreach (ConnectingNode door in _connections)
+            {
+                door.RemoveAdjoiningConnection(connection);
+                connection.RemoveAdjoiningConnection(door);
+            }
+            if (removeFromList)
+                _connections.Remove(connection);
         }
-    }
 
-    /// <summary>
-    /// Removes a <see cref="ConnectingNode"/> from the list of connections and disconnects it from all adjoining connections.
-    /// </summary>
-    /// <param name="connection">The <see cref="ConnectingNode"/> being removed.</param>
-    /// <param name="removeFromList">Determines whether <c>connection</c> should be actually removed from the list. This is only false when <see cref="Connections"/> is being iterated over, 
-    /// and thus cannot be modified. It is expected that <c>connection</c> will be removed from the list afterwards.</param>
-    public void RemoveConnection(ConnectingNode connection, bool removeFromList = true)
-    {
-        foreach (ConnectingNode door in _connections)
+        /// <summary>
+        /// Replaces a <see cref="RoomNode"/> with another <see cref="RoomNode"/> in the same position. This is primarily for when a <see cref="RoomNode"/> is changed into a derived class.
+        /// </summary>
+        /// <param name="x">The x position of the <see cref="RoomNode"/> relative to <see cref="Origin"/>.</param>
+        /// <param name="y">The y position of the <see cref="RoomNode"/> relative to <see cref="Origin"/>.</param>
+        /// <param name="node">The <see cref="RoomNode"/> replacing the <see cref="RoomNode"/> that was previously at this position.</param>
+        public void ReplaceNode(int x, int y, RoomNode node)
         {
-            door.RemoveAdjoiningConnection(connection);
-            connection.RemoveAdjoiningConnection(door);
+            _nodes[x, y] = node;
         }
-        if (removeFromList)
-            _connections.Remove(connection);
-    }
 
-    /// <summary>
-    /// Replaces a <see cref="RoomNode"/> with another <see cref="RoomNode"/> in the same position. This is primarily for when a <see cref="RoomNode"/> is changed into a derived class.
-    /// </summary>
-    /// <param name="x">The x position of the <see cref="RoomNode"/> relative to <see cref="Origin"/>.</param>
-    /// <param name="y">The y position of the <see cref="RoomNode"/> relative to <see cref="Origin"/>.</param>
-    /// <param name="node">The <see cref="RoomNode"/> replacing the <see cref="RoomNode"/> that was previously at this position.</param>
-    public void ReplaceNode(int x, int y, RoomNode node)
-    {
-        _nodes[x, y] = node;
-    }
+        /// <summary>
+        /// Creates a second <see cref="Room"/> from out of this <see cref="Room"/>. Used for when the <see cref="Room"/> is split by <see cref="IDividerNode"/>s.
+        /// </summary>
+        /// <param name="roomDesignation">An array of int that flag which <see cref="RoomNode"/>s should be kept as part of this <see cref="Room"/> and which should be split off into another <see cref="Room"/>.</param>
+        /// <param name="flag">The int value representing the <see cref="RoomNode"/>s being split off into another <see cref="Room"/>.</param>
+        /// <param name="originX">The minimum x value of the new <see cref="Room"/> relative to <see cref="Origin"/>.</param>
+        /// <param name="originY">The minimum y value of the new <see cref="Room"/> relative to <see cref="Origin"/>.</param>
+        /// <param name="endX">The maximum x value of the new <see cref="Room"/> relative to <see cref="Origin"/>.</param>
+        /// <param name="endY">The maximum y value of the new <see cref="Room"/> relative to <see cref="Origin"/>.</param>
+        /// <returns>Returns the new <see cref="Room"/> created from this <see cref="Room"/>.</returns>
+        protected virtual Room CutRoom(int[,] roomDesignation, int flag, int originX, int originY, int endX, int endY)
+        {
+            RoomNode[,] nodes = new RoomNode[endX - originX, endY - originY];
 
-    /// <summary>
-    /// Creates a second <see cref="Room"/> from out of this <see cref="Room"/>. Used for when the <see cref="Room"/> is split by <see cref="IDividerNode"/>s.
-    /// </summary>
-    /// <param name="roomDesignation">An array of ints that flag which <see cref="RoomNode"/>s should be kept as part of this <see cref="Room"/> and which should be split off into another <see cref="Room"/>.</param>
-    /// <param name="flag">The int value representing the <see cref="RoomNode"/>s being split off into another <see cref="Room"/>.</param>
-    /// <param name="originX">The minimum x value of the new <see cref="Room"/> relative to <see cref="Origin"/>.</param>
-    /// <param name="originY">The minimum y value of the new <see cref="Room"/> relative to <see cref="Origin"/>.</param>
-    /// <param name="endX">The maximum x value of the new <see cref="Room"/> relative to <see cref="Origin"/>.</param>
-    /// <param name="endY">The maximum y value of the new <see cref="Room"/> relative to <see cref="Origin"/>.</param>
-    /// <returns>Returns the new <see cref="Room"/> created from this <see cref="Room"/>.</returns>
-    protected virtual Room CutRoom(int[,] roomDesignation, int flag, int originX, int originY, int endX, int endY)
-    {
-        RoomNode[,] nodes = new RoomNode[endX - originX, endY - originY];
+            Room newRoom = new(nodes, Origin + new Vector3Int(originX, originY));
 
-        Room newRoom = new(nodes, Origin + new Vector3Int(originX, originY));
-
-        for (int i = originX; i < endX; i++)
+            for (int i = originX; i < endX; i++)
             for (int j = originY; j < endY; j++)
             {
                 if (roomDesignation[i, j] == flag)
@@ -493,195 +487,190 @@ public class Room
                 }
             }
 
-        return newRoom;
-    }
+            return newRoom;
+        }
 
-    /// <summary>
-    /// Splits the <see cref="Room"/> into two different <see cref="Room"/>s based two <see cref="RoomNode"/>s that are in different <see cref="Room"/>s.
-    /// </summary>
-    /// <param name="a">The first <see cref="RoomNode"/>.</param>
-    /// <param name="b">The second <see cref="RoomNode"/>.</param>
-    /// <returns>Returns the new <see cref="Room"/> created from this <see cref="Room"/>.</returns>
-    protected virtual Room SplitOffRooms(RoomNode a, RoomNode b)
-    {
-        int[,] roomDesignation = new int[Width, Length];
-
-        void DoNext(Queue<RoomNode> queue, int flag)
+        /// <summary>
+        /// Splits the <see cref="Room"/> into two different <see cref="Room"/>s based two <see cref="RoomNode"/>s that are in different <see cref="Room"/>s.
+        /// </summary>
+        /// <param name="a">The first <see cref="RoomNode"/>.</param>
+        /// <param name="b">The second <see cref="RoomNode"/>.</param>
+        /// <returns>Returns the new <see cref="Room"/> created from this <see cref="Room"/>.</returns>
+        protected virtual Room SplitOffRooms(RoomNode a, RoomNode b)
         {
-            RoomNode current = queue.Dequeue();
+            int[,] roomDesignation = new int[Width, Length];
 
-            foreach (INode node in current.AdjacentNodes)
+            void DoNext(Queue<RoomNode> queue, int flag)
             {
-                if (node != null && node is RoomNode next)
+                RoomNode current = queue.Dequeue();
+
+                foreach (INode node in current.AdjacentNodes)
                 {
-                    (int x, int y) = next.Coords;
-                    if (roomDesignation[x, y] == 0)
+                    if (node is RoomNode next)
                     {
-                        roomDesignation[x, y] = flag;
-                        queue.Enqueue(next);
-                    }
-                    else if (roomDesignation[x, y] != flag)
-                    {
-                        int newFlag = roomDesignation[x, y];
-                        for (int i = 0; i < Width; i++)
+                        (int nextX, int nextY) = next.Coords;
+                        if (roomDesignation[nextX, nextY] == 0)
+                        {
+                            roomDesignation[nextX, nextY] = flag;
+                            queue.Enqueue(next);
+                        }
+                        else if (roomDesignation[nextX, nextY] != flag)
+                        {
+                            int newFlag = roomDesignation[nextX, nextY];
+                            for (int i = 0; i < Width; i++)
                             for (int j = 0; j < Length; j++)
                             {
                                 if (roomDesignation[i, j] == flag)
                                     roomDesignation[i, j] = newFlag;
                             }
-                        (x, y) = current.Coords;
-                        roomDesignation[x, y] = newFlag;
-                        while (queue.Count > 0)
-                        {
-                            current = queue.Dequeue();
-                            (x, y) = current.Coords;
-                            roomDesignation[x, y] = newFlag;
+                            (nextX, nextY) = current.Coords;
+                            roomDesignation[nextX, nextY] = newFlag;
+                            while (queue.Count > 0)
+                            {
+                                current = queue.Dequeue();
+                                (nextX, nextY) = current.Coords;
+                                roomDesignation[nextX, nextY] = newFlag;
+                            }
+                            return;
                         }
-                        return;
                     }
                 }
             }
-        }
 
-        int flag1 = 1, flag2 = 2;
-        int size1 = 0, size2 = 0;
+            int flag1 = 1, flag2 = 2;
+            int size1 = 0, size2 = 0;
 
-        Queue<RoomNode> queue1 = new(), queue2 = new();
+            Queue<RoomNode> queue1 = new(), queue2 = new();
 
-        queue1.Enqueue(a);
-        (int x, int y) = a.Coords;
-        roomDesignation[x, y] = flag1;
+            queue1.Enqueue(a);
+            (int x, int y) = a.Coords;
+            roomDesignation[x, y] = flag1;
 
-        queue2.Enqueue(b);
-        (x, y) = b.Coords;
-        roomDesignation[x, y] = flag2;
+            queue2.Enqueue(b);
+            (x, y) = b.Coords;
+            roomDesignation[x, y] = flag2;
 
-        while (queue1.Count > 0 && queue2.Count > 0)
-        {
-            if (size1 <= size2)
+            while (queue1.Count > 0 && queue2.Count > 0)
             {
-                size1++;
-                DoNext(queue1, flag1);
-            }
-
-            if (size2 <= size1)
-            {
-                size2++;
-                DoNext(queue2, flag2);
-            }
-
-        }
-
-        int newRoomFlag;
-
-        if (queue1.Count == 0)
-            newRoomFlag = flag1;
-        else
-            newRoomFlag = flag2;
-
-        (int x1, int y1, int x2, int y2) coordinates = default;
-
-        for (int i = 0; i < Width; i++)
-        {
-            for (int j = 0; j < Length; j++)
-            {
-                if (roomDesignation[i, j] == newRoomFlag)
+                if (size1 <= size2)
                 {
-                    if (coordinates == default)
+                    size1++;
+                    DoNext(queue1, flag1);
+                }
+
+                if (size2 <= size1)
+                {
+                    size2++;
+                    DoNext(queue2, flag2);
+                }
+
+            }
+
+            int newRoomFlag = queue1.Count == 0 ? flag1 : flag2;
+
+            (int x1, int y1, int x2, int y2) coordinates = default;
+
+            for (int i = 0; i < Width; i++)
+            {
+                for (int j = 0; j < Length; j++)
+                {
+                    if (roomDesignation[i, j] == newRoomFlag)
                     {
-                        coordinates = (i, j, i, j);
-                    }
-                    else
-                    {
-                        coordinates = (Mathf.Min(i, coordinates.x1), Mathf.Min(j, coordinates.y1), Mathf.Max(i, coordinates.x2), Mathf.Max(j, coordinates.y2));
+                        coordinates = coordinates == default
+                            ? (i, j, i, j)
+                            : (Mathf.Min(i,
+                                coordinates.x1), Mathf.Min(j,
+                                coordinates.y1), Mathf.Max(i,
+                                coordinates.x2), Mathf.Max(j,
+                                coordinates.y2));
                     }
                 }
             }
+
+            Room newRoom = CutRoom(roomDesignation, newRoomFlag, coordinates.x1, coordinates.y1, coordinates.x2 + 1, coordinates.y2 + 1);
+
+            RegisterForUpdate();
+
+            return newRoom;
         }
 
-        Room newRoom = CutRoom(roomDesignation, newRoomFlag, coordinates.x1, coordinates.y1, coordinates.x2 + 1, coordinates.y2 + 1);
 
-        RegisterForUpdate();
-
-        return newRoom;
-    }
-
-
-    /// <summary>
-    /// Creates the paths between two <see cref="ConnectingNode"/>s. Because the pathways are made to be natural to the way people walk
-    /// reversing them looks odd, so the reverse path is evaluated separately.
-    /// </summary>
-    /// <param name="connection1">The first <see cref="ConnectingNode"/></param>
-    /// <param name="connection2">The second <see cref="ConnectingNode"/></param>
-    private void ConstructPaths(ConnectingNode connection1, ConnectingNode connection2)
-    {
-        List<RoomNode> path = new();
-        IEnumerator navigationIter = Navigate(connection1, connection2);
-        navigationIter.MoveNext();
-        float distance = (float)navigationIter.Current;
-        if (distance < float.PositiveInfinity)
+        /// <summary>
+        /// Creates the paths between two <see cref="ConnectingNode"/>s. Because the pathways are made to be natural to the way people walk
+        /// reversing them looks odd, so the reverse path is evaluated separately.
+        /// </summary>
+        /// <param name="connection1">The first <see cref="ConnectingNode"/></param>
+        /// <param name="connection2">The second <see cref="ConnectingNode"/></param>
+        private void ConstructPaths(ConnectingNode connection1, ConnectingNode connection2)
         {
-            while (navigationIter.MoveNext())
-            {
-                var roomNode = (RoomNode)navigationIter.Current;
-                path.Add(roomNode);
-                roomNode.Reserved = true;
-            }
-
-            connection1.AddAdjoiningConnection(connection2, distance, path);
-
-            path = new List<RoomNode>();
-            navigationIter = Navigate(connection2, connection1);
+            List<RoomNode> path = new();
+            IEnumerator navigationIter = Navigate(connection1, connection2);
             navigationIter.MoveNext();
-            distance = (float)navigationIter.Current;
-            while (navigationIter.MoveNext())
+            float distance = (float)navigationIter.Current!;
+            if (distance < float.PositiveInfinity)
             {
-                var roomNode = (RoomNode)navigationIter.Current;
-                path.Add(roomNode);
-                roomNode.Reserved = true;
+                while (navigationIter.MoveNext())
+                {
+                    var roomNode = (RoomNode)navigationIter.Current;
+                    path.Add(roomNode);
+                    roomNode.Reserved = true;
+                }
+
+                connection1.AddAdjoiningConnection(connection2, distance, path);
+
+                path = new List<RoomNode>();
+                navigationIter = Navigate(connection2, connection1);
+                navigationIter.MoveNext();
+                distance = (float)navigationIter.Current!;
+                while (navigationIter.MoveNext())
+                {
+                    var roomNode = (RoomNode)navigationIter.Current;
+                    path.Add(roomNode);
+                    roomNode.Reserved = true;
+                }
+                connection2.AddAdjoiningConnection(connection1, distance, path);
             }
-            connection2.AddAdjoiningConnection(connection1, distance, path);
-        }
-        else
-        {
-            connection1.RemoveAdjoiningConnection(connection2);
-            connection2.RemoveAdjoiningConnection(connection1);
-        }
-    }
-
-    /// <summary>
-    /// Update's the pathways between the <see cref="ConnectingNode"/>s that border this <see cref="Room"/>.
-    /// </summary>
-    private void UpdatePaths()
-    {
-        foreach(RoomNode node in Nodes)
-        {
-            node.Reserved = false;
-        }
-
-        _connections.RemoveAll(x =>
-        {
-            if (!x.AdjacentToRoom(this))
+            else
             {
-                RemoveConnection(x, false);
-                x.RegisterRooms();
-                return true;
-            }
-            return false;
-        });
-
-        List<ConnectingNode> doorsToBeEvaluated = new(_connections);
-
-        foreach (ConnectingNode door in _connections)
-        {
-            doorsToBeEvaluated.Remove(door);
-            foreach (ConnectingNode door2 in doorsToBeEvaluated)
-            {
-                ConstructPaths(door, door2);
+                connection1.RemoveAdjoiningConnection(connection2);
+                connection2.RemoveAdjoiningConnection(connection1);
             }
         }
 
-        _updating = false;
-        GameManager.MapChangingFirst -= UpdatePaths;
+        /// <summary>
+        /// Update's the pathways between the <see cref="ConnectingNode"/>s that border this <see cref="Room"/>.
+        /// </summary>
+        private void UpdatePaths()
+        {
+            foreach(RoomNode node in Nodes)
+            {
+                node.Reserved = false;
+            }
+
+            _connections.RemoveAll(x =>
+            {
+                if (!x.AdjacentToRoom(this))
+                {
+                    RemoveConnection(x, false);
+                    x.RegisterRooms();
+                    return true;
+                }
+                return false;
+            });
+
+            List<ConnectingNode> doorsToBeEvaluated = new(_connections);
+
+            foreach (ConnectingNode door in _connections)
+            {
+                doorsToBeEvaluated.Remove(door);
+                foreach (ConnectingNode door2 in doorsToBeEvaluated)
+                {
+                    ConstructPaths(door, door2);
+                }
+            }
+
+            _updating = false;
+            GameManager.MapChangingFirst -= UpdatePaths;
+        }
     }
 }

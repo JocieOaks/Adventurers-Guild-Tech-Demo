@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace JsonSubTypes
+namespace Assets.Scripts.JsonSubtypes
 {
     internal class TypeWithPropertyMatchingAttributes
     {

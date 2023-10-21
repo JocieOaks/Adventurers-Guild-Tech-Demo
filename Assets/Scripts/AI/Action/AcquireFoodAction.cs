@@ -1,46 +1,51 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.AI.Step;
+using Assets.Scripts.Map.Sprite_Object;
+using UnityEngine;
 
-/// <summary>
-/// The <see cref="AcquireFoodAction"/> class is a <see cref="TaskAction"/> for a <see cref="AdventurerPawn"/> to obtain food. Will be replaced when the inventory system is more fleshed out.
-/// </summary>
-public class AcquireFoodAction : ActorAction
+namespace Assets.Scripts.AI.Action
 {
-    readonly IInteractable _interactable;
-
-    float tick = 0;
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="AcquireFoodAction"/> class.
+    /// The <see cref="AcquireFoodAction"/> class is a <see cref="TaskAction"/> for a <see cref="AdventurerPawn"/> to obtain food. Will be replaced when the inventory system is more fleshed out.
     /// </summary>
-    /// <param name="actor">The <see cref="Actor"/> that is getting food.</param>
-    /// <param name="interactable">The <see cref="IInteractable"/> from which <c>actor</c> is getting food.</param>
-    public AcquireFoodAction(Actor actor, IInteractable interactable) : base(actor)
+    public class AcquireFoodAction : ActorAction
     {
-        _interactable = interactable;
-    }
+        private readonly IInteractable _interactable;
 
-    /// <inheritdoc/>
-    public override bool CanListen => true;
+        private float _tick;
 
-    /// <inheritdoc/>
-    public override bool CanSpeak => true;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AcquireFoodAction"/> class.
+        /// </summary>
+        /// <param name="actor">The <see cref="Actor"/> that is getting food.</param>
+        /// <param name="interactable">The <see cref="IInteractable"/> from which <c>actor</c> is getting food.</param>
+        public AcquireFoodAction(Actor actor, IInteractable interactable) : base(actor)
+        {
+            _interactable = interactable;
+        }
 
-    /// <inheritdoc/>
-    public override int Complete()
-    {
-        return tick > 2 ? 1 : 0;
-    }
+        /// <inheritdoc/>
+        public override bool CanListen => true;
 
-    /// <inheritdoc/>
-    public override void Initialize()
-    {
-        _actor.HasFood = true;
-        _actor.Pawn.CurrentStep = new WaitStep(_actor.Pawn, Utility.VectorToDirection(_interactable.WorldPosition - _actor.Pawn.WorldPosition), true);
-    }
+        /// <inheritdoc/>
+        public override bool CanSpeak => true;
 
-    /// <inheritdoc/>
-    public override void Perform() 
-    {
-        tick += Time.deltaTime;
+        /// <inheritdoc/>
+        public override int Complete()
+        {
+            return _tick > 2 ? 1 : 0;
+        }
+
+        /// <inheritdoc/>
+        public override void Initialize()
+        {
+            Actor.HasFood = true;
+            Actor.Pawn.CurrentStep = new WaitStep(Actor.Pawn, Utility.Utility.VectorToDirection(_interactable.WorldPosition - Actor.Pawn.WorldPosition), true);
+        }
+
+        /// <inheritdoc/>
+        public override void Perform() 
+        {
+            _tick += Time.deltaTime;
+        }
     }
 }

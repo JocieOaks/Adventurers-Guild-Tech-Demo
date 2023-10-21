@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Reflection;
 
-namespace JsonSubTypes
+namespace Assets.Scripts.JsonSubtypes
 {
     //  MIT License
     //  

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace JsonSubTypes
+namespace Assets.Scripts.JsonSubtypes
 {
     internal class JsonSubtypesByPropertyPresenceConverter : JsonSubtypesConverter
     {

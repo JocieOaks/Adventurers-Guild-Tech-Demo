@@ -1,74 +1,79 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.AI.Step;
+using Assets.Scripts.Map.Node;
+using UnityEngine;
 
-/// <summary>
-/// The <see cref="WaitAction"/> class is a <see cref="TaskAction"/> for when a <see cref="AdventurerPawn"/> is waiting.
-/// </summary>
-public class WaitAction : TaskAction
+namespace Assets.Scripts.AI.Action
 {
-    float _period = 0;
-    readonly float _time;
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="WaitAction"/> class.
+    /// The <see cref="WaitAction"/> class is a <see cref="TaskAction"/> for when a <see cref="AdventurerPawn"/> is waiting.
     /// </summary>
-    /// <param name="time">The length of time in seconds for the <see cref="Actor"/> to be waiting.</param>
-    /// <param name="pawn">The <see cref="Pawn"/> performing the <see cref="WaitAction"/>.</param>
-    public WaitAction(float time, Pawn pawn) : base(pawn)
+    public class WaitAction : TaskAction
     {
-        _time = time;
-    }
+        private float _period;
+        private readonly float _time;
 
-    /// <inheritdoc/>
-    public override bool CanListen => true;
-
-    /// <inheritdoc/>
-    public override bool CanSpeak => true;
-
-    /// <inheritdoc/>
-    public override int Complete()
-    {
-        return _period > _time ? 1 : 0;
-    }
-
-    /// <inheritdoc/>
-    public override void Initialize()
-    {
-        TaskStep step = _pawn.CurrentStep;
-        if (step is not SitStep && step is not LayStep)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WaitAction"/> class.
+        /// </summary>
+        /// <param name="time">The length of time in seconds for the <see cref="Actor"/> to be waiting.</param>
+        /// <param name="pawn">The <see cref="Pawn"/> performing the <see cref="WaitAction"/>.</param>
+        public WaitAction(float time, Pawn pawn) : base(pawn)
         {
-            if (_pawn.CurrentNode.Reserved)
+            _time = time;
+        }
+
+        /// <inheritdoc/>
+        public override bool CanListen => true;
+
+        /// <inheritdoc/>
+        public override bool CanSpeak => true;
+
+        /// <inheritdoc/>
+        public override int Complete()
+        {
+            return _period > _time ? 1 : 0;
+        }
+
+        /// <inheritdoc/>
+        public override void Initialize()
+        {
+            TaskStep step = Pawn.CurrentStep;
+            if (step is not SitStep && step is not LayStep)
             {
-                if (_pawn is AdventurerPawn)
+                if (Pawn.CurrentNode.Reserved)
                 {
-                    foreach ((RoomNode node, float) node in _pawn.CurrentNode.NextNodes)
+                    if (Pawn is AdventurerPawn)
                     {
-                        if (!node.node.Reserved)
+                        foreach ((RoomNode node, float) node in Pawn.CurrentNode.NextNodes)
                         {
-                            _pawn.CurrentStep = new WalkStep(node.node.WorldPosition, _pawn, step);
-                            return;
+                            if (!node.node.Reserved)
+                            {
+                                Pawn.CurrentStep = new WalkStep(node.node.WorldPosition, Pawn, step);
+                                return;
+                            }
                         }
+                        Debug.Log("No Unreserved Location");
                     }
-                    Debug.Log("No Unreserved Location");
+                    else if(step is not WaitStep)
+                        Pawn.CurrentStep = new WaitStep(Pawn, Pawn.CurrentStep, false);
+
                 }
-                else if(step is not WaitStep)
-                _pawn.CurrentStep = new WaitStep(_pawn, _pawn.CurrentStep, false);
-
+                else if (step is not WaitStep)
+                    Pawn.CurrentStep = new WaitStep(Pawn, Pawn.CurrentStep, true);
             }
-            else if (step is not WaitStep)
-                _pawn.CurrentStep = new WaitStep(_pawn, _pawn.CurrentStep, true);
         }
-    }
 
-    /// <inheritdoc/>
-    public override void Perform()
-    {
-        if(_pawn.CurrentStep is WalkStep)
+        /// <inheritdoc/>
+        public override void Perform()
         {
-            if(_pawn.CurrentStep.IsComplete())
+            if(Pawn.CurrentStep is WalkStep)
             {
-                _pawn.CurrentStep = new WaitStep(_pawn, _pawn.CurrentStep, true);
+                if(Pawn.CurrentStep.IsComplete())
+                {
+                    Pawn.CurrentStep = new WaitStep(Pawn, Pawn.CurrentStep, true);
+                }
             }
+            _period += Time.deltaTime;
         }
-        _period += Time.deltaTime;
     }
 }

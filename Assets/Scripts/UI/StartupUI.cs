@@ -1,48 +1,56 @@
-using System.Collections;
-using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// The <see cref="StartupUI"/> class controls the UI elements for the starting portion of the game.
-/// </summary>
-public class StartupUI : MonoBehaviour
+namespace Assets.Scripts.UI
 {
-     [SerializeField] GameObject _welcome, _class, _party, _name;
-
     /// <summary>
-    /// Called when the welcome message is clicked.
+    /// The <see cref="StartupUI"/> class controls the UI elements for the starting portion of the game.
     /// </summary>
-    public void WelcomeClicked()
+    public class StartupUI : MonoBehaviour
     {
-        _welcome.SetActive(false);
-        _class.SetActive(true);
-    }
+#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
+        [SerializeField] private GameObject _welcome, _class, _party, _name;
+#pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
 
-    /// <summary>
-    /// Called once a class has been selected.
-    /// </summary>
-    public void ClassSelected()
-    {
-        _class.SetActive(false);
-        _party.SetActive(true);
-    }
+        /// <summary>
+        /// Called when the welcome message is clicked.
+        /// </summary>
+        [UsedImplicitly]
+        public void WelcomeClicked()
+        {
+            _welcome.SetActive(false);
+            _class.SetActive(true);
+        }
 
-    /// <summary>
-    /// Called once a party member has been selected.
-    /// </summary>
-    public void PartyChosen()
-    {
-        _party.SetActive(false);
-        _name.SetActive(true);
-    }
+        /// <summary>
+        /// Called once a class has been selected.
+        /// </summary>
+        [UsedImplicitly]
+        public void ClassSelected()
+        {
+            _class.SetActive(false);
+            _party.SetActive(true);
+        }
 
-    /// <summary>
-    /// Called once the player's character has been named.
-    /// </summary>
-    public void Named()
-    {
-        SceneManager.LoadScene("Map");
-        SceneManager.LoadScene("UI", LoadSceneMode.Additive);
+        /// <summary>
+        /// Called once a party member has been selected.
+        /// </summary>
+        [UsedImplicitly]
+        public void PartyChosen()
+        {
+            _party.SetActive(false);
+            _name.SetActive(true);
+        }
+
+        /// <summary>
+        /// Called once the player's character has been named.
+        /// </summary>
+        [UsedImplicitly]
+        public void Named()
+        {
+            SceneManager.LoadScene("Map");
+            SceneManager.LoadScene("UI", LoadSceneMode.Additive);
+        }
     }
 }

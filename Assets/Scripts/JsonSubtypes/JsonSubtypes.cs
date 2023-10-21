@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
@@ -10,11 +11,8 @@ using TypeInfo = System.Type;
 #else
 using System.Reflection;
 #endif
-#if !NET35
-using System.Collections.Concurrent;
-#endif
 
-namespace JsonSubTypes
+namespace Assets.Scripts.JsonSubtypes
 {
     //  MIT License
     //
@@ -415,7 +413,7 @@ namespace JsonSubTypes
             return null;
         }
 
-        static bool IsSubclassOfRawGeneric(TypeInfo generic, TypeInfo toCheck)
+        private static bool IsSubclassOfRawGeneric(TypeInfo generic, TypeInfo toCheck)
         {
             TypeInfo cur = toCheck;
             TypeInfo objectTypeInfo = ToTypeInfo(typeof(object));

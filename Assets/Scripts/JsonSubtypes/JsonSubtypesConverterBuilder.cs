@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 
-namespace JsonSubTypes
+namespace Assets.Scripts.JsonSubtypes
 {
     //  MIT License
     //  

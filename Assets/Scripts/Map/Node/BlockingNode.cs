@@ -1,72 +1,70 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-
-/// <summary>
-/// Class <see cref="BlockingNode"/> is an <see cref="IDividerNode"/> that separates two <see cref="RoomNode"/>s.
-/// </summary>
-public abstract class BlockingNode : IDividerNode
+namespace Assets.Scripts.Map.Node
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="BlockingNode"/> class.
+    /// Class <see cref="BlockingNode"/> is an <see cref="IDividerNode"/> that separates two <see cref="RoomNode"/>s.
     /// </summary>
-    /// <param name="worldPosition">The <see cref="IWorldPosition.WorldPosition"/> of the <see cref="BlockingNode"/>.</param>
-    /// <param name="alignment"></param>
-    public BlockingNode(Vector3Int worldPosition, MapAlignment alignment)
+    public abstract class BlockingNode : IDividerNode
     {
-        WorldPosition = worldPosition;
-        Alignment = alignment;
-
-        FirstNode = Map.Instance[worldPosition];
-        if (alignment == MapAlignment.XEdge)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BlockingNode"/> class.
+        /// </summary>
+        /// <param name="worldPosition">The <see cref="IWorldPosition.WorldPosition"/> of the <see cref="BlockingNode"/>.</param>
+        /// <param name="alignment"></param>
+        protected BlockingNode(Vector3Int worldPosition, MapAlignment alignment)
         {
-            SecondNode = Map.Instance[worldPosition + Vector3Int.down];
+            WorldPosition = worldPosition;
+            Alignment = alignment;
+
+            FirstNode = Map.Instance[worldPosition];
+            SecondNode = alignment == MapAlignment.XEdge
+                ? Map.Instance[worldPosition + Vector3Int.down]
+                : Map.Instance[worldPosition + Vector3Int.left];
         }
-        else
+
+        /// <inheritdoc/>
+        public IEnumerable<INode> AdjacentNodes
         {
-            SecondNode = Map.Instance[worldPosition + Vector3Int.left];
+            get
+            {
+                yield return FirstNode;
+                yield return SecondNode;
+            }
         }
-    }
 
-    /// <inheritdoc/>
-    public IEnumerable<INode> AdjacentNodes
-    {
-        get
+        /// <inheritdoc/>
+        public MapAlignment Alignment { get; }
+
+        /// <inheritdoc/>
+        public abstract Vector3Int Dimensions { get; }
+
+        /// <inheritdoc/>
+        public RoomNode FirstNode { get; }
+
+        /// <inheritdoc/>
+        public Vector3Int NearestCornerPosition => WorldPosition;
+
+        /// <inheritdoc/>
+        public INode Node => this;
+
+        /// <inheritdoc/>
+        public bool Obstructed => true;
+
+        /// <inheritdoc/>
+        public Room Room => null;
+
+        /// <inheritdoc/>
+        public RoomNode SecondNode { get; }
+
+        /// <inheritdoc/>
+        public Vector3Int WorldPosition { get; }
+
+        /// <inheritdoc/>
+        public bool HasNavigatedTo(RoomNode node)
         {
-            yield return FirstNode;
-            yield return SecondNode;
+            return Map.Instance[WorldPosition] == node || Map.Instance[WorldPosition + (Alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left)] == node;
         }
-    }
-
-    /// <inheritdoc/>
-    public MapAlignment Alignment { get; }
-
-    /// <inheritdoc/>
-    public abstract Vector3Int Dimensions { get; }
-
-    /// <inheritdoc/>
-    public RoomNode FirstNode { get; }
-
-    /// <inheritdoc/>
-    public Vector3Int NearestCornerPosition => WorldPosition;
-
-    /// <inheritdoc/>
-    public INode Node => this;
-
-    /// <inheritdoc/>
-    public bool Obstructed => true;
-
-    /// <inheritdoc/>
-    public Room Room => null;
-
-    /// <inheritdoc/>
-    public RoomNode SecondNode { get; }
-
-    /// <inheritdoc/>
-    public Vector3Int WorldPosition { get; private set; }
-    /// <inheritdoc/>
-    public bool HasNavigatedTo(RoomNode node)
-    {
-        return Map.Instance[WorldPosition] == node || Map.Instance[WorldPosition + (Alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left)] == node;
     }
 }

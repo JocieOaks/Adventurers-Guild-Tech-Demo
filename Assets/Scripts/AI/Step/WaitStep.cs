@@ -1,104 +1,101 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.Map;
+using Assets.Scripts.Map.Node;
+using UnityEngine;
 
-/// <summary>
-/// The <see cref="WaitStep"/> class is a <see cref="TaskStep"/> for when a <see cref="Pawn"/> is waiting.
-/// </summary>
-public class WaitStep : TaskStep, IDirected
+namespace Assets.Scripts.AI.Step
 {
-    int animationIndex = 30;
-    readonly RoomNode _roomNode;
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="WaitStep"/> class. Checks the direction of the previous <see cref="TaskStep"/> if it is <see cref="IDirected"/> 
-    /// to determine the <see cref="global::Direction"/> for the <see cref="Pawn"/> to face.
+    /// The <see cref="WaitStep"/> class is a <see cref="TaskStep"/> for when a <see cref="Pawn"/> is waiting.
     /// </summary>
-    /// <param name="pawn">The <see cref="Pawn"/> that is waiting.</param>
-    /// <param name="step">The previous <see cref="TaskStep"/> the <see cref="Pawn"/> was performing.</param>
-    /// <param name="blocking">Determines if the <see cref="Pawn"/> blocks the <see cref="RoomNode"/> from being traversed by other <see cref="Pawn"/>s.</param>
-    public WaitStep(Pawn pawn, TaskStep step, bool blocking) : this(pawn, step is IDirected directed ? directed.Direction : Direction.South, blocking) { }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="WaitStep"/> class.
-    /// </summary>
-    /// <param name="pawn">The <see cref="Pawn"/> that is waiting.</param>
-    /// <param name="direction">The <see cref="global::Direction"/> the <see cref="Pawn"/> should be facing.</param>
-    /// <param name="blocking">Determines if the <see cref="Pawn"/> blocks the <see cref="RoomNode"/> from being traversed by other <see cref="Pawn"/>s.</param>
-    public WaitStep(Pawn pawn, Direction direction, bool blocking) : base(pawn)
+    public class WaitStep : TaskStep, IDirected
     {
-        _roomNode = pawn.CurrentNode;
-        if (blocking)
-            _roomNode.Occupant = pawn;
-        SetDirection(direction);
-    }
+        private int _animationIndex = 30;
+        private readonly RoomNode _roomNode;
 
-    /// <inheritdoc/>
-    public Direction Direction { get; private set; } = Direction.South;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WaitStep"/> class. Checks the direction of the previous <see cref="TaskStep"/> if it is <see cref="IDirected"/> 
+        /// to determine the <see cref="Scripts.Map.Direction"/> for the <see cref="Pawn"/> to face.
+        /// </summary>
+        /// <param name="pawn">The <see cref="Pawn"/> that is waiting.</param>
+        /// <param name="step">The previous <see cref="TaskStep"/> the <see cref="Pawn"/> was performing.</param>
+        /// <param name="blocking">Determines if the <see cref="Pawn"/> blocks the <see cref="RoomNode"/> from being traversed by other <see cref="Pawn"/>s.</param>
+        public WaitStep(Pawn pawn, TaskStep step, bool blocking) : this(pawn, step is IDirected directed ? directed.Direction : Direction.South, blocking) { }
 
-    /// <inheritdoc/>
-    protected override bool _isComplete => true;
-
-    /// <inheritdoc/>
-    public override void Perform()
-    {
-        _period += Time.deltaTime;
-
-        try
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WaitStep"/> class.
+        /// </summary>
+        /// <param name="pawn">The <see cref="Pawn"/> that is waiting.</param>
+        /// <param name="direction">The <see cref="Scripts.Map.Direction"/> the <see cref="Pawn"/> should be facing.</param>
+        /// <param name="blocking">Determines if the <see cref="Pawn"/> blocks the <see cref="RoomNode"/> from being traversed by other <see cref="Pawn"/>s.</param>
+        public WaitStep(Pawn pawn, Direction direction, bool blocking) : base(pawn)
         {
+            _roomNode = pawn.CurrentNode;
+            if (blocking)
+                _roomNode.Occupant = pawn;
+            SetDirection(direction);
+        }
+
+        /// <inheritdoc/>
+        public Direction Direction { get; private set; } = Direction.South;
+
+        /// <inheritdoc/>
+        protected override bool Complete => true;
+
+        /// <inheritdoc/>
+        public override void Perform()
+        {
+            Period += Time.deltaTime;
+
             if (Direction == Direction.West || Direction == Direction.South)
             {
-                if (_period >= _frame * BREATHTIME)
+                if (Period >= Frame * BREATH_TIME)
                 {
-                    _pawn.SetSprite(animationIndex);// + _idleFrames[_frame]);
-                    _frame++;
-                    if (_frame >= 22)
+                    Pawn.SetSprite(_animationIndex);// + _idleFrames[_frame]);
+                    Frame++;
+                    if (Frame >= 22)
                     {
-                        _period -= 2.75f;
-                        _frame = 0;
+                        Period -= 2.75f;
+                        Frame = 0;
                     }
                 }
             }
             else
             {
-                if (_period >= _frame * BREATHTIME)
+                if (Period >= Frame * BREATH_TIME)
                 {
-                    _pawn.SetSprite(animationIndex);
-                    _frame += 100;
+                    Pawn.SetSprite(_animationIndex);
+                    Frame += 100;
                 }
             }
         }
-        catch (System.IndexOutOfRangeException e)
-        {
 
-            throw e;
+        /// <summary>
+        /// Set the <see cref="Scripts.Map.Direction"/> for the <see cref="Pawn"/> to face while waiting.
+        /// </summary>
+        /// <param name="direction">The <see cref="Scripts.Map.Direction"/> for the <see cref="Pawn"/> to face.</param>
+        public void SetDirection(Direction direction)
+        {
+            Direction = direction;
+
+            _animationIndex = direction switch
+            {
+                Direction.North => 24,
+                Direction.NorthEast => 19,
+                Direction.East => 14,
+                Direction.SouthEast => 9,
+                Direction.South => 4,
+                Direction.SouthWest => 39,
+                Direction.West => 34,
+                _ => 29
+            };
+            Period = Mathf.Clamp(Period, 0, 2.75f);
         }
-    }
 
-    /// <summary>
-    /// Set the <see cref="global::Direction"/> for the <see cref="Pawn"/> to face while waiting.
-    /// </summary>
-    /// <param name="direction">The <see cref="global::Direction"/> for the <see cref="Pawn"/> to face.</param>
-    public void SetDirection(Direction direction)
-    {
-        Direction = direction;
-
-        animationIndex = direction switch
+        /// <inheritdoc/>
+        protected override void Finish()
         {
-            Direction.North => 24,
-            Direction.NorthEast => 19,
-            Direction.East => 14,
-            Direction.SouthEast => 9,
-            Direction.South => 4,
-            Direction.SouthWest => 39,
-            Direction.West => 34,
-            _ => 29
-        };
-        _period = Mathf.Clamp(_period, 0, 2.75f);
-    }
-
-    /// <inheritdoc/>
-    protected override void Finish()
-    {
-        if(Equals(_roomNode.Occupant, _pawn))
-            _roomNode.Occupant = null;
+            if(Equals(_roomNode.Occupant, Pawn))
+                _roomNode.Occupant = null;
+        }
     }
 }
