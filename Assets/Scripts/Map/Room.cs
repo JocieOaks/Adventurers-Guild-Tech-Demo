@@ -120,7 +120,7 @@ namespace Assets.Scripts.Map
     /// <returns>Returns true if the two <see cref="RoomNode"/>s should be part of the same <see cref="Room"/>.</returns>
     public void CheckContiguous(RoomNode node1, RoomNode node2)
     {
-        PriorityQueue<RoomNode, float> nodeQueue = new(new PriorityQueue<RoomNode, float>.MinComparer());
+        PriorityQueue<RoomNode, float> nodeQueue = new(PriorityQueue<RoomNode, float>.MinComparer.Instance);
         RegisterForUpdate();
 
             RoomNode[,] immediatePredecessor = new RoomNode[Width, Length];
@@ -290,7 +290,7 @@ namespace Assets.Scripts.Map
     /// The initial distance may be <see cref="float.PositiveInfinity"/> if no path exists between the two <see cref="IWorldPosition"/>.</returns>
     public IEnumerator Navigate(IWorldPosition start, IWorldPosition end)
     {
-        PriorityQueue<RoomNode, float> nodeQueue = new(new PriorityQueue<RoomNode, float>.MinComparer());
+        PriorityQueue<RoomNode, float> nodeQueue = new(PriorityQueue<RoomNode, float>.MinComparer.Instance);
         RoomNode[,] immediatePredecessor = new RoomNode[Width, Length];
         (float score, IReference queueNode)[,] gScore = new (float score, IReference queueNode)[Width, Length];
 

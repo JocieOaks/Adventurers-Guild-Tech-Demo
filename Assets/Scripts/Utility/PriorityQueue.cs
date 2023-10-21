@@ -75,6 +75,8 @@ namespace Assets.Scripts.Utility
         /// </summary>
         public class MaxComparer : IComparer
         {
+            public static MaxComparer Instance { get; } = new();
+
             /// <inheritdoc/>
             public int Compare(object x, object y)
             {
@@ -87,6 +89,8 @@ namespace Assets.Scripts.Utility
         /// </summary>
         public class MinComparer : IComparer
         {
+            public static MinComparer Instance { get; } = new();
+
             /// <inheritdoc/>
             public int Compare(object x, object y)
             {

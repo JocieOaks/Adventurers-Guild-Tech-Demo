@@ -8,6 +8,7 @@ namespace Assets.Scripts.Utility
     /// </summary>
     public static class Utility
     {
+        public const float TOLERANCE = 1e-6f;
         public static readonly float Rad2Over2 = Mathf.Sqrt(2) / 2;
         public static readonly float Rad3Over2 = Mathf.Sqrt(3) / 2;
         public static readonly float Rad5Over4 = Mathf.Sqrt(5) / 4;

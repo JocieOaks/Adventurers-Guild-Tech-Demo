@@ -300,7 +300,7 @@ namespace Assets.Scripts.Map
 
         Dictionary<INode, (float score, IReference queueNode)> gScore = new();
 
-        PriorityQueue<INode, float> nodeQueue = new(new PriorityQueue<INode, float>.MinComparer());
+        PriorityQueue<INode, float> nodeQueue = new(PriorityQueue<INode, float>.MinComparer.Instance);
 
             if (startingRoom == endingRoom)
             {
@@ -637,7 +637,7 @@ namespace Assets.Scripts.Map
         Dictionary<IWorldPosition, IWorldPosition> immediatePredecessor = new();
         Dictionary<(IWorldPosition, IWorldPosition), IEnumerator> paths = new();
 
-        PriorityQueue<(IWorldPosition, IWorldPosition), float> nodeQueue = new(new PriorityQueue<INode, float>.MinComparer());
+        PriorityQueue<(IWorldPosition, IWorldPosition), float> nodeQueue = new(PriorityQueue<INode, float>.MinComparer.Instance);
 
             Vector3Int endPosition = end.WorldPosition;
 

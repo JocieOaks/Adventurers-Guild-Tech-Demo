@@ -15,7 +15,7 @@ namespace Assets.Scripts.AI
         private (PlanNode node, float utility) _best;
 
         private readonly PriorityQueue<PlanNode, float> _priorityQueue =
-            new(new PriorityQueue<PlanNode, float>.MaxComparer());
+            new(PriorityQueue<PlanNode, float>.MaxComparer.Instance);
 
         private bool _reset;
         private readonly Actor _actor;
