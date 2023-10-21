@@ -12,10 +12,10 @@ namespace Assets.Scripts.AI
     public class DLite
     {
         private Room _room;
-        IGoal _goal;
-        RoomNode _start;
+        private IGoal _goal;
+        private RoomNode _start;
 
-        private PriorityQueue<RoomNode, (float,float)> _nodeQueue;
+        private PriorityQueue<RoomNode, (float, float)> _nodeQueue;
 
         private (float gScore, float rhs, IReference reference)[,] _nodes;
         private float _priorityAdjustment;
@@ -54,15 +54,16 @@ namespace Assets.Scripts.AI
         {
             RoomNode next = null;
             float min = float.PositiveInfinity;
-            foreach((RoomNode node, float distance) successor in node.NextNodes)
+            foreach ((RoomNode node, float distance) successor in node.NextNodes)
             {
                 float value = successor.distance + this[successor.node].gScore;
-                if(value < min)
+                if (value < min)
                 {
                     min = value;
                     next = successor.node;
                 }
             }
+
             return next;
         }
 
@@ -100,7 +101,7 @@ namespace Assets.Scripts.AI
         }
 
 
-    
+
         /// <summary>
         /// Calculates the priority of <see cref="RoomNode"/>s used by <see cref="PriorityQueue{T1, T2}"/>.
         /// </summary>
@@ -127,9 +128,9 @@ namespace Assets.Scripts.AI
                 (float x1, float x2) = ((float, float))x!;
                 (float y1, float y2) = ((float, float))y!;
 
-                if(Math.Abs(x1 - x2) < Utility.Utility.TOLERANCE)
+                if (Math.Abs(x1 - x2) < Utility.Utility.TOLERANCE)
                 {
-                    if(Math.Abs(y1 - y2) < Utility.Utility.TOLERANCE)
+                    if (Math.Abs(y1 - y2) < Utility.Utility.TOLERANCE)
                         return 0;
                     return y1 < y2 ? 1 : -1;
                 }
@@ -178,6 +179,7 @@ namespace Assets.Scripts.AI
                 {
                     min = MathF.Min(min, this[successor.node].gScore + successor.distance);
                 }
+
                 SetRHS(node, min);
             }
 
@@ -194,11 +196,11 @@ namespace Assets.Scripts.AI
 
         // ReSharper disable once UnusedMember.Local
         /*private void UpdateGoal(RoomNode newNode)
-        {
-            SetRHS(newNode, 0);
-            UpdateVertex(newNode);
-            UpdateVertex(_goal);
-            _goal = newNode;
+    {
+        SetRHS(newNode, 0);
+        UpdateVertex(newNode);
+        UpdateVertex(_goal);
+        _goal = newNode;
         }*/
 
         // ReSharper disable once UnusedMember.Local
@@ -220,7 +222,8 @@ namespace Assets.Scripts.AI
         private void EstablishPathing()
         {
             (float gScore, float rhs, IReference _) = this[_start];
-            while (PriorityComparer.Instance.Compare(_nodeQueue.TopPriority, CalculatePriority(_start)) == 1 || Math.Abs(gScore - rhs) > Utility.Utility.TOLERANCE)
+            while (PriorityComparer.Instance.Compare(_nodeQueue.TopPriority, CalculatePriority(_start)) == 1 ||
+                   Math.Abs(gScore - rhs) > Utility.Utility.TOLERANCE)
             {
                 (float, float) oldPriority = _nodeQueue.TopPriority;
                 RoomNode node = _nodeQueue.Pop();
