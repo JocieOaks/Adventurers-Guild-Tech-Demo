@@ -5,6 +5,7 @@ using Assets.Scripts.Map.Node;
 using Assets.Scripts.Map.Sprite_Object;
 using Unity.Collections;
 using Unity.Jobs;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace Assets.Scripts.AI.Action
@@ -15,8 +16,10 @@ namespace Assets.Scripts.AI.Action
     public class TravelAction : TaskAction
     {
         private bool _ready;
-        private PathLink _root;
         private RoomNode _nextNode;
+
+        private readonly IGoal _goal;
+        private readonly DLite _dLite;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TravelAction"/> class
@@ -26,6 +29,9 @@ namespace Assets.Scripts.AI.Action
         public TravelAction(Vector3Int destination, Pawn pawn) : base(pawn)
         {
             Destination = destination;
+            _goal = new DestinationGoal(Map.Map.Instance[destination]);
+
+            _dLite = (Pawn as AdventurerPawn)?.DLite;
         }
 
         /// <summary>
@@ -50,36 +56,19 @@ namespace Assets.Scripts.AI.Action
         /// <inheritdoc/>
         public override int Complete()
         {
-            PathLink pathLink = _root;
-            while(pathLink != null)
-            {
-                INode node = pathLink.Node;
-                if (!node.Traversable)
-                {
-                    GameManager.MapChanged -= OnMapEdited;
-                    return -1;
-                }
-                pathLink = pathLink.Next;
-            }
-
-            if (!_ready || _root != null || !Pawn.CurrentStep.IsComplete())
+            if (!_ready || !Pawn.CurrentStep.IsComplete())
                 return 0;
-            else if (Pawn.WorldPosition == Destination)
+
+
+            if (_dLite.IsGoalReachable(Pawn.CurrentNode))
+                return _goal.IsComplete(Pawn.CurrentNode);
+            
+            if (Pawn.WorldPosition == Destination)
             {
                 GameManager.MapChanged -= OnMapEdited;
                 return 1;
             }
-            else if(Map.Map.Instance[Destination].Occupant is IInteractable interactable)
-            {
-                foreach(RoomNode node in interactable.InteractionPoints)
-                {
-                    if (Pawn.WorldPosition == node.WorldPosition)
-                    {
-                        GameManager.MapChanged -= OnMapEdited;
-                        return 1;
-                    }
-                }
-            }
+
             GameManager.MapChanged -= OnMapEdited;
             return -1;
         }
@@ -88,13 +77,17 @@ namespace Assets.Scripts.AI.Action
         public override void Initialize()
         {
             GameManager.MapChanged += OnMapEdited;
-            if(Pawn.Stance != Stance.Stand)
+            
+            if (Pawn.Stance != Stance.Stand)
             {
                 Pawn.Stance = Stance.Stand;
             }
             if(Pawn.CurrentStep.IsComplete())
                 Pawn.CurrentStep = new WaitStep(Pawn, Pawn.CurrentStep, false);
-            Pawn.StartCoroutine(PathFind());
+            _dLite?.SetGoal(_goal);
+            _dLite?.EstablishPathing();
+            _nextNode = Pawn.CurrentNode;
+            _ready = true;
         }
 
         /// <inheritdoc/>
@@ -120,20 +113,16 @@ namespace Assets.Scripts.AI.Action
         /// </summary>
         private void NextStep()
         {
-            if (_root != null)
+            INode node = _dLite.GetNext(_nextNode);
+            if (node is RoomNode roomNode)
             {
-                INode node = _root.Node;
-                _root = _root.Next;
-                if (node is RoomNode roomNode)
-                {
-                    _nextNode = roomNode;
-                    Pawn.CurrentStep = new WalkStep(roomNode.SurfacePosition, Pawn, Pawn.CurrentStep);
-                }
-                else if (node is ConnectingNode connection)
-                {
-                    _nextNode = connection.GetOppositeRoomNode(Pawn.CurrentNode);
-                    Pawn.CurrentStep = new TraverseStep(Pawn.CurrentNode, connection, Pawn, Pawn.CurrentStep);
-                }
+                _nextNode = roomNode;
+                Pawn.CurrentStep = new WalkStep(roomNode.SurfacePosition, Pawn, Pawn.CurrentStep);
+            }
+            else if (node is ConnectingNode connection)
+            {
+                _nextNode = connection.GetOppositeRoomNode(Pawn.CurrentNode);
+                Pawn.CurrentStep = new TraverseStep(Pawn.CurrentNode, connection, Pawn, Pawn.CurrentStep);
             }
         }
 
@@ -143,11 +132,10 @@ namespace Assets.Scripts.AI.Action
         private void OnMapEdited()
         {
             _ready = false;
-            _root = null;
-            Pawn.StartCoroutine(PathFind());
+            _dLite.SetGoal(_goal);
         }
 
-        /// <summary>
+        /*/// <summary>
         /// Construct the path for the <see cref="AdventurerPawn"/> to follow.
         /// </summary>
         /// <returns>Returns <see cref="WaitUntil"/> objects for the <c>StartCoroutine</c> function until the <see cref="NavigateJob"/> has completed.</returns>
@@ -178,6 +166,6 @@ namespace Assets.Scripts.AI.Action
             NextStep();
 
             _ready = true;
-        }
+        }*/
     }
 }

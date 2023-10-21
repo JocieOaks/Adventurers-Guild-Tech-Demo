@@ -44,6 +44,11 @@ namespace Assets.Scripts.AI
             }
         }
 
+        public bool IsGoalReachable(RoomNode node)
+        {
+            return !float.IsPositiveInfinity(this[node].gScore);
+        }
+
         /// <summary>
         /// Finds the optimal <see cref="RoomNode"/> to traverse to reach the goal destination.
         /// </summary>
@@ -128,14 +133,14 @@ namespace Assets.Scripts.AI
                 (float x1, float x2) = ((float, float))x!;
                 (float y1, float y2) = ((float, float))y!;
 
-                if (Math.Abs(x1 - x2) < Utility.Utility.TOLERANCE)
+                if (Math.Abs(x1 - y1) < Utility.Utility.TOLERANCE)
                 {
-                    if (Math.Abs(y1 - y2) < Utility.Utility.TOLERANCE)
+                    if (Math.Abs(x2 - y2) < Utility.Utility.TOLERANCE)
                         return 0;
-                    return y1 < y2 ? 1 : -1;
+                    return x2 < y2 ? 1 : -1;
                 }
 
-                return x1 < x2 ? -1 : 1;
+                return x1 < y1 ? 1 : -1;
             }
         }
 
@@ -168,6 +173,8 @@ namespace Assets.Scripts.AI
 
                 SetElement(node, _nodeQueue.Push(node, CalculatePriority(node)));
             }
+
+            _start = Pawn.CurrentNode;
         }
 
         private void UpdateVertex(RoomNode node)
@@ -183,7 +190,9 @@ namespace Assets.Scripts.AI
                 SetRHS(node, min);
             }
 
-            IReference reference = this[node].reference;
+
+            (float gScore, float rhs, IReference reference) = this[node];
+            if(Math.Abs(gScore - rhs) < Utility.Utility.TOLERANCE) return;
             if (reference != null)
             {
                 _nodeQueue.ChangePriority(reference, CalculatePriority(node));
@@ -219,11 +228,12 @@ namespace Assets.Scripts.AI
         }
 
         [UsedImplicitly]
-        private void EstablishPathing()
+        public void EstablishPathing()
         {
             (float gScore, float rhs, IReference _) = this[_start];
-            while (PriorityComparer.Instance.Compare(_nodeQueue.TopPriority, CalculatePriority(_start)) == 1 ||
-                   Math.Abs(gScore - rhs) > Utility.Utility.TOLERANCE)
+            while (_nodeQueue.Count > 0 &&
+                   (PriorityComparer.Instance.Compare(_nodeQueue.TopPriority, CalculatePriority(_start)) == 1 ||
+                    Math.Abs(gScore - rhs) > Utility.Utility.TOLERANCE))
             {
                 (float, float) oldPriority = _nodeQueue.TopPriority;
                 RoomNode node = _nodeQueue.Pop();
@@ -251,6 +261,8 @@ namespace Assets.Scripts.AI
                         UpdateVertex(predecessor.node);
                     }
                 }
+
+                (gScore, rhs, _) = this[_start];
             }
         }
 

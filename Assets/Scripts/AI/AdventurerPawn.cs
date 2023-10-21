@@ -28,6 +28,8 @@ namespace Assets.Scripts.AI
             set => _actor ??= value;
         }
 
+        public DLite DLite { get; private set; }
+
         /// <value>The <see cref="Task"/> the <see cref="AdventurerPawn"/> is currently performing.</value>
         public Task.Task CurrentTask { get; private set; }
 
@@ -156,6 +158,8 @@ namespace Assets.Scripts.AI
             CurrentNode = Map.Map.Instance[Utility.Utility.SceneCoordinatesToMapCoordinates(transform.position, 0)];
 
             WorldPositionNonDiscrete = WorldPosition;
+
+            DLite = new(this);
 
             InitializeGameObject();
 

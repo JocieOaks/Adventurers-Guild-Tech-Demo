@@ -134,7 +134,7 @@ namespace Assets.Scripts.Utility
         {
             if (node1 == node2)
                 return node1;
-            if (_comparer.Compare(node1, node2) > 0)
+            if (_comparer.Compare(node1.Priority, node2.Priority) > 0)
             {
                 node1.Children.Add(node2);
                 node2.Parent = node1;
