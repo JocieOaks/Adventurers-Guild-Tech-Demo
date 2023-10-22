@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Assets.Scripts.AI.Task;
 using Assets.Scripts.Utility;
@@ -32,6 +31,7 @@ namespace Assets.Scripts.AI
             _startState = startTask.ChangeWorldState(new WorldState(actor));
             _startState.PreviousTask = startTask;
             _actor = actor;
+            _reset = true;
         }
 
         /// <summary>
@@ -39,9 +39,9 @@ namespace Assets.Scripts.AI
         /// Based on the principles behind the A* navigation algorithm.
         /// </summary>
         /// <returns>Returns <see cref="WaitForFixedUpdate"/> objects for the <c>StartCoroutine</c> function.</returns>
-        public IEnumerator AStar()
+        public void AStar()
         {
-            while (true)
+            if (_reset)
             {
                 _reset = false;
                 _best = (null, float.NegativeInfinity);
@@ -61,30 +61,27 @@ namespace Assets.Scripts.AI
 
                     _priorityQueue.Push(planNode, priority);
                 }
+            }
+            else
+            {
+                if (_priorityQueue.Count <= 0) return;
+                PlanNode current = _priorityQueue.Pop();
 
-                while (!_reset)
+                if (current.Depth >= 4) return;
+                foreach (Task.Task task in GetTasks())
                 {
-                    yield return new WaitForFixedUpdate();
+                    if (!task.ConditionsMet(current.WorldState)) continue;
 
-                    if (_priorityQueue.Count <= 0) continue;
-                    PlanNode current = _priorityQueue.Pop();
+                    PlanNode planNode = new(current, task, current.WorldState);
 
-                    if (current.Depth >= 4) continue;
-                    foreach (Task.Task task in GetTasks())
+                    float priority = planNode.GetAverageUtility();
+
+                    if (_best.utility < priority)
                     {
-                        if (!task.ConditionsMet(current.WorldState)) continue;
-
-                        PlanNode planNode = new(current, task, current.WorldState);
-
-                        float priority = planNode.GetAverageUtility();
-
-                        if (_best.utility < priority)
-                        {
-                            _best = (planNode, priority);
-                        }
-
-                        _priorityQueue.Push(planNode, priority);
+                        _best = (planNode, priority);
                     }
+
+                    _priorityQueue.Push(planNode, priority);
                 }
             }
         }
@@ -126,13 +123,13 @@ namespace Assets.Scripts.AI
         {
             yield return new SleepTask();
             yield return new EatTask();
-            yield return new WanderTask();
+            //yield return new WanderTask();
             yield return new StanceLay();
             yield return new StanceSit();
             yield return new StanceStand();
             yield return new AcquireFoodTask();
             yield return new WaitTask(5);
-            yield return new LeaveConversationTask();
+            //yield return new LeaveConversationTask();
         }
 
         /// <summary>

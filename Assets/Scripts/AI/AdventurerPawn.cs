@@ -40,6 +40,17 @@ namespace Assets.Scripts.AI
         /// <value> Returns true if the <see cref="AdventurerPawn"/> is currently speaking.</value>
         public bool IsSpeaking => _speechBubble.gameObject.activeSelf;
 
+        public override RoomNode CurrentNode
+        {
+            get => CurrentNodeField;
+            protected set
+            {
+                CurrentNodeField = value;
+                SpriteRenderer.enabled = GameManager.Instance.IsOnLevel(CurrentLevel) <= 0;
+                DLite?.UpdateStart(CurrentNodeField);
+            }
+        }
+
         /// <inheritdoc/>
         public override string Name => Actor.Name;
 
@@ -185,7 +196,6 @@ namespace Assets.Scripts.AI
             CurrentTask = new WaitTask(0.5f);
 
             _planner = new Planner(Actor, CurrentTask);
-            Map.Map.Instance.StartCoroutine(_planner.AStar());
 
             foreach (TaskAction action in CurrentTask.GetActions(Actor))
                 TaskActions.Enqueue(action);
@@ -201,9 +211,12 @@ namespace Assets.Scripts.AI
         private void Update()
         {
             if (GameManager.Instance.Paused || !Ready) return;
+
+            _planner.AStar();
             ManageTask();
 
             Actor.Update();
+
             try
             {
                 CurrentAction?.Perform();

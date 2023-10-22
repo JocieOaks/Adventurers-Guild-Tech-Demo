@@ -17,8 +17,8 @@ namespace Assets.Scripts.Map
         /// <value>Determines where the lower corner of <see cref="Dimensions"/> is. For most objects it is at <see cref="WorldPosition"/>.</value>
         Vector3Int NearestCornerPosition { get; }
 
-        /// <value>Gives the <see cref="INode"/> the object currently occupies. <see cref="INode"/> objects return themselves. Everything else returns <see cref="RoomNode"/>.</value>
-        INode Node { get; }
+        /// <value>Gives the <see cref="RoomNode"/> the object currently occupies. <see cref="INode"/> objects return the nearest <see cref="RoomNode"/>.</value>
+        RoomNode Node { get; }
 
         /// <value>Gives the <see cref="Scripts.Map.Room"/> the object currently occupies. Can be <c>null</c> for objects that border two rooms, i.e. <see cref="WallBlocker"/> and <see cref="ConnectingNode"/>.</value>
         Room Room { get; }

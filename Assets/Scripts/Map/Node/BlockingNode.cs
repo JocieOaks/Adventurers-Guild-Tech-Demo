@@ -47,7 +47,7 @@ namespace Assets.Scripts.Map.Node
         public Vector3Int NearestCornerPosition => WorldPosition;
 
         /// <inheritdoc/>
-        public INode Node => this;
+        public RoomNode Node => FirstNode;
 
         /// <inheritdoc/>
         public bool Obstructed => true;

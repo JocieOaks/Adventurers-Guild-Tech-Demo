@@ -20,8 +20,11 @@ namespace Assets.Scripts.AI.Task
         /// <inheritdoc/>
         public override WorldState ChangeWorldState(WorldState worldState)
         {
+            IInteractable foodSource = GetFoodSource(worldState.PrimaryActor);
+            if (foodSource == null) return worldState;
+
             worldState.PrimaryActor.HasFood = true;
-            worldState.PrimaryActor.Position = GetFoodSource(worldState.PrimaryActor).WorldPosition;
+            worldState.PrimaryActor.Position = foodSource.WorldPosition;
             return worldState;
         }
 
@@ -43,7 +46,7 @@ namespace Assets.Scripts.AI.Task
             IInteractable foodSource = GetFoodSource(actor.Stats);
             if (foodSource == null)
                 yield break;
-            yield return new TravelAction(foodSource.WorldPosition, actor.Pawn);
+            yield return new TravelAction(foodSource, actor.Pawn);
             yield return new AcquireFoodAction(actor, foodSource);
         }
 
@@ -53,7 +56,7 @@ namespace Assets.Scripts.AI.Task
             IInteractable foodSource = GetFoodSource(actor.Stats);
             if (foodSource == null)
                 yield break;
-            yield return new TravelAction(foodSource.WorldPosition, actor.Pawn);
+            yield return new TravelAction(foodSource, actor.Pawn);
             yield return new AcquireFoodAction(actor, foodSource);
         }
 
@@ -74,7 +77,7 @@ namespace Assets.Scripts.AI.Task
         /// </summary>
         /// <param name="profile">The <see cref="ActorProfile"/> representing the <see cref="AdventurerPawn"/>.</param>
         /// <returns>Returns the nearest food source.</returns>
-        private IInteractable GetFoodSource(ActorProfile profile)
+        private static IInteractable GetFoodSource(ActorProfile profile)
         {
             float closestDistance = float.PositiveInfinity;
             IInteractable best = null;

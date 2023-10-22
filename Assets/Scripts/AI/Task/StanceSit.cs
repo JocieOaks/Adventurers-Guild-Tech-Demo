@@ -51,9 +51,7 @@ namespace Assets.Scripts.AI.Task
         public override IEnumerable<TaskAction> GetActions(Actor actor)
         {
             _seat = GetSeat(actor.Stats);
-            if (_seat == null)
-                return Enumerable.Empty<TaskAction>();
-            return GetActions(actor.Pawn);
+            return _seat == null ? Enumerable.Empty<TaskAction>() : GetActions(actor.Pawn);
         }
 
         /// <inheritdoc/>
@@ -91,11 +89,11 @@ namespace Assets.Scripts.AI.Task
         /// </summary>
         /// <param name="profile">The <see cref="ActorProfile"/> representing the <see cref="AdventurerPawn"/>.</param>
         /// <returns>Returns the nearest seat.</returns>
-        private IOccupied GetSeat(ActorProfile profile)
+        private static IOccupied GetSeat(ActorProfile profile)
         {
             float closestDistance = float.PositiveInfinity;
             IOccupied best = null;
-            foreach (var interactable in SittingObjects)
+            foreach (IInteractable interactable in SittingObjects)
             {
                 var chair = (IOccupied)interactable;
                 if (!chair.Occupied)

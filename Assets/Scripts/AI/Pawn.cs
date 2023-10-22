@@ -58,15 +58,7 @@ namespace Assets.Scripts.AI
         public int CurrentLevel => CurrentNode.SurfacePosition.z;
 
         /// <value> The nearest <see cref="RoomNode"/> to the <see cref="AdventurerPawn"/>'s current position. When set, CurrentNode evaluates whether the <see cref="AdventurerPawn"/> should be visible on screen.</value>
-        public virtual RoomNode CurrentNode
-        {
-            get => CurrentNodeField;
-            protected set
-            {
-                CurrentNodeField = value;
-                SpriteRenderer.enabled = GameManager.Instance.IsOnLevel(CurrentLevel) <= 0;
-            }
-        }
+        public abstract RoomNode CurrentNode { get; protected set; }
 
         /// <value> The current <see cref="TaskStep"/> the <see cref="Pawn"/> is performing.</value>
         public TaskStep CurrentStep { get; set; }
@@ -94,7 +86,7 @@ namespace Assets.Scripts.AI
         public abstract string Name { get; }
 
         /// <inheritdoc/>
-        public INode Node => CurrentNode;
+        public RoomNode Node => CurrentNode;
 
         public IOccupied Occupying { get; set; }
         /// <inheritdoc/>

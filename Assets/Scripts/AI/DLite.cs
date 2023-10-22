@@ -147,6 +147,7 @@ namespace Assets.Scripts.AI
         public void SetGoal(IGoal goal)
         {
             _goal = goal;
+            _room = Pawn.Room;
             Initialize();
         }
 
@@ -213,18 +214,11 @@ namespace Assets.Scripts.AI
         }*/
 
         // ReSharper disable once UnusedMember.Local
-        private void UpdateStart(RoomNode newNode)
+        public void UpdateStart(RoomNode newNode)
         {
             _start = newNode;
-            if (newNode.Room == _room)
-            {
-                _priorityAdjustment += Map.Map.EstimateDistance(_start, newNode);
-            }
-            else
-            {
-                _room = newNode.Room;
-                Initialize();
-            }
+            _priorityAdjustment += Map.Map.EstimateDistance(_start, newNode);
+
         }
 
         [UsedImplicitly]

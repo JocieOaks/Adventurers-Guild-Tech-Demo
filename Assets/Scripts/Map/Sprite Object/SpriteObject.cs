@@ -97,7 +97,7 @@ namespace Assets.Scripts.Map.Sprite_Object
 
         /// <inheritdoc/>
         [JsonIgnore]
-        public INode Node { get; private set; }
+        public RoomNode Node { get; private set; }
 
         [JsonIgnore]
         public virtual Vector3 OffsetVector => Vector3.zero;

@@ -321,7 +321,7 @@ namespace Assets.Scripts.Map
 
                 current = nodeQueue.Pop();
             }
-            else if (start.Node is ConnectingNode startConnection)
+            else if (start is ConnectingNode startConnection)
             {
                 if (startConnection.IsWithinSingleRoom)
                 {
@@ -347,14 +347,12 @@ namespace Assets.Scripts.Map
                         yield return float.PositiveInfinity;
                 }
             }
-            else if (start.Node is RoomNode roomNode)
+            else
             {
-                current = roomNode;
-                (int nodeX, int nodeY) = roomNode.Coords;
+                current = start.Node;
+                (int nodeX, int nodeY) = start.Node.Coords;
                 gScore[nodeX, nodeY] = (0, null);
             }
-            else
-                throw new System.ArgumentException();
 
             (int x, int y) = current.Coords;
             gScore[x, y] = (0, null);

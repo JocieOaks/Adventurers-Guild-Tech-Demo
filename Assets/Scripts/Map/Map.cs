@@ -345,9 +345,7 @@ namespace Assets.Scripts.Map
                         gScore[end] = (nextScore, nodeQueue.Push(end, nextScore));
                 }
 
-                List<ConnectingNode> nextNodes = current.ConnectionNodes;
-
-                foreach (ConnectingNode next in nextNodes)
+                foreach (ConnectingNode next in current.ConnectionNodes)
                 {
                     float nextScore = current.GetDistance(next) + currentScore;
                     if (gScore.TryGetValue(next, out var score))

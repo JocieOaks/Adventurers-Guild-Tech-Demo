@@ -24,7 +24,7 @@ namespace Assets.Scripts.AI.Task
         /// <inheritdoc/>
         public override IEnumerable<TaskAction> GetActions(Actor actor)
         {
-            yield return new TravelAction(Vector3Int.one, actor.Pawn);
+            yield return new TravelAction(Map.Map.Instance[Vector3Int.one], actor.Pawn);
             yield return new QuestingAction(actor);
         }
 

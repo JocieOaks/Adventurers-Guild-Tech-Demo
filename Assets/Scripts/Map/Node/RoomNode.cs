@@ -194,7 +194,7 @@ namespace Assets.Scripts.Map.Node
         }
 
         /// <inheritdoc/>
-        public INode Node => this;
+        public RoomNode Node => this;
 
         /// <value>Returns the <see cref="RoomNode"/> that is north east of this <see cref="RoomNode"/> or null if such a node does not exist or is inaccessible.</value>
         public RoomNode NorthEast => GetNodeAs<RoomNode>(Direction.North)?.GetNodeAs<RoomNode>(Direction.East) ?? GetNodeAs<RoomNode>(Direction.East)?.GetNodeAs<RoomNode>(Direction.North);

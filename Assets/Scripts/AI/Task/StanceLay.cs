@@ -34,11 +34,10 @@ namespace Assets.Scripts.AI.Task
         public override WorldState ChangeWorldState(WorldState worldState)
         {
             _bed = GetBed(worldState.PrimaryActor);
-            if (_bed != null)
-            {
-                worldState.PrimaryActor.Position = _bed.WorldPosition;
-                worldState.PrimaryActor.Stance = Stance.Lay;
-            }
+            if (_bed == null) return worldState;
+
+            worldState.PrimaryActor.Position = _bed.WorldPosition;
+            worldState.PrimaryActor.Stance = Stance.Lay;
             return worldState;
         }
 
@@ -52,9 +51,7 @@ namespace Assets.Scripts.AI.Task
         public override IEnumerable<TaskAction> GetActions(Actor actor)
         { 
             _bed = GetBed(actor.Stats);
-            if (_bed == null)
-                return Enumerable.Empty<TaskAction>();
-            return GetActions(actor.Pawn);
+            return _bed == null ? Enumerable.Empty<TaskAction>() : GetActions(actor.Pawn);
         }
 
         /// <inheritdoc/>
@@ -92,11 +89,11 @@ namespace Assets.Scripts.AI.Task
         /// </summary>
         /// <param name="profile">The <see cref="ActorProfile"/> representing the <see cref="AdventurerPawn"/>.</param>
         /// <returns>Returns the nearest bed.</returns>
-        private BedSprite GetBed(ActorProfile profile)
+        private static BedSprite GetBed(ActorProfile profile)
         {
             float closestDistance = float.PositiveInfinity;
             BedSprite best = null;
-            foreach (var interactable in LayingObjects)
+            foreach (IInteractable interactable in LayingObjects)
             {
                 var bed = (BedSprite)interactable;
                 if (!bed.Occupied)
