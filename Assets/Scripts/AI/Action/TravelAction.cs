@@ -1,11 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using Assets.Scripts.AI.Step;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
-using Assets.Scripts.Map.Sprite_Object;
 using Unity.Collections;
 using Unity.Jobs;
-using UnityEditorInternal;
 using UnityEngine;
 
 namespace Assets.Scripts.AI.Action
@@ -17,9 +16,20 @@ namespace Assets.Scripts.AI.Action
     {
         private bool _ready;
         private RoomNode _nextNode;
+        private ConnectingNode _nextConnectingNode;
 
-        private readonly IGoal _goal;
-        private readonly DLite _dLite;
+        private IGoal _goal;
+
+        private DLite DLite
+        {
+            get
+            {
+                if(Pawn is AdventurerPawn pawn)
+                    return pawn.DLite;
+                throw new AccessViolationException("Player Pawn cannot use Travel Action");
+            }
+        }
+        private PathLink _root;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TravelAction"/> class
@@ -29,9 +39,6 @@ namespace Assets.Scripts.AI.Action
         public TravelAction(Vector3Int destination, Pawn pawn) : base(pawn)
         {
             Destination = destination;
-            _goal = new DestinationGoal(Map.Map.Instance[destination]);
-
-            _dLite = (Pawn as AdventurerPawn)?.DLite;
         }
 
         /// <summary>
@@ -51,16 +58,16 @@ namespace Assets.Scripts.AI.Action
         public override bool CanSpeak => true;
 
         /// <value>The <see cref="Map"/> coordinates of the <see cref="Actor"/>'s destination.</value>
-        public Vector3Int Destination { get; private set; }
+        public Vector3Int Destination { get; }
 
         /// <inheritdoc/>
         public override int Complete()
         {
-            if (!_ready || !Pawn.CurrentStep.IsComplete())
+            if (!_ready || _root != null|| !(Pawn.CurrentStep?.IsComplete() ?? false) || !(_goal is DestinationGoal goal && goal.Destination.WorldPosition == Destination))
                 return 0;
 
 
-            if (_dLite.IsGoalReachable(Pawn.CurrentNode))
+            if (DLite.IsGoalReachable(Pawn.CurrentNode))
                 return _goal.IsComplete(Pawn.CurrentNode);
             
             if (Pawn.WorldPosition == Destination)
@@ -82,18 +89,16 @@ namespace Assets.Scripts.AI.Action
             {
                 Pawn.Stance = Stance.Stand;
             }
-            if(Pawn.CurrentStep.IsComplete())
+            if(Pawn.CurrentStep?.IsComplete() ?? true)
                 Pawn.CurrentStep = new WaitStep(Pawn, Pawn.CurrentStep, false);
-            _dLite?.SetGoal(_goal);
-            _dLite?.EstablishPathing();
+            Pawn.StartCoroutine(PathFind());
             _nextNode = Pawn.CurrentNode;
-            _ready = true;
         }
 
         /// <inheritdoc/>
         public override void Perform()
         {
-            if (_ready && Pawn.CurrentStep.IsComplete())
+            if (_ready && (Pawn.CurrentStep?.IsComplete() ?? true))
             {
                 if (Pawn.CurrentNode != _nextNode)
                 {
@@ -113,18 +118,44 @@ namespace Assets.Scripts.AI.Action
         /// </summary>
         private void NextStep()
         {
-            INode node = _dLite.GetNext(_nextNode);
+            if ((_goal?.IsComplete(Pawn.CurrentNode) ?? 1) == 1 || Pawn.CurrentStep is TraverseStep)
+            {
+                if (_nextConnectingNode != null && Pawn.CurrentStep is not TraverseStep)
+                {
+                    _nextNode = _nextConnectingNode.GetOppositeRoomNode(Pawn.CurrentNode);
+                    Pawn.CurrentStep = new TraverseStep(Pawn.CurrentNode, _nextConnectingNode, Pawn, Pawn.CurrentStep);
+                    return;
+                }
+
+                Pawn.CurrentStep = null;
+                if (_root != null)
+                {
+                    _goal = new DestinationGoal(_root.Node!.GetRoomNode(_nextNode.Room));
+                    DLite?.SetGoal(_goal);
+                    DLite?.EstablishPathing();
+                    _nextConnectingNode = _root.Node;
+                    _root = _root.Next;
+                }
+                else
+                {
+                    _goal = new DestinationGoal(Map.Map.Instance[Destination]);
+                    DLite?.SetGoal(_goal);
+                    DLite?.EstablishPathing();
+                }
+            }
+
+            INode node = DLite?.GetNext(_nextNode);
             if (node is RoomNode roomNode)
             {
                 _nextNode = roomNode;
                 Pawn.CurrentStep = new WalkStep(roomNode.SurfacePosition, Pawn, Pawn.CurrentStep);
             }
-            else if (node is ConnectingNode connection)
+            else
             {
-                _nextNode = connection.GetOppositeRoomNode(Pawn.CurrentNode);
-                Pawn.CurrentStep = new TraverseStep(Pawn.CurrentNode, connection, Pawn, Pawn.CurrentStep);
+                throw new ArgumentException("There is no path.");
             }
         }
+        
 
         /// <summary>
         /// Called whenever the <see cref="Map"/> has been updated.
@@ -132,40 +163,43 @@ namespace Assets.Scripts.AI.Action
         private void OnMapEdited()
         {
             _ready = false;
-            _dLite.SetGoal(_goal);
+            DLite.SetGoal(_goal);
         }
 
-        /*/// <summary>
+        /// <summary>
         /// Construct the path for the <see cref="AdventurerPawn"/> to follow.
         /// </summary>
         /// <returns>Returns <see cref="WaitUntil"/> objects for the <c>StartCoroutine</c> function until the <see cref="NavigateJob"/> has completed.</returns>
         private IEnumerator PathFind()
         {
-            NativeArray<(bool isDoor, Vector3Int position)> walkingPath = new(100, Allocator.Persistent);
-            NavigateJob navigate = new(Pawn.WorldPosition, Destination, walkingPath);
-            JobHandle navigateJobHandle = navigate.Schedule();
-            yield return new WaitUntil(() => navigateJobHandle.IsCompleted);
-            navigateJobHandle.Complete();
-
-            _root = new PathLink(Map.Map.Instance[walkingPath[0].position], Pawn);
-            PathLink current = _root;
-
-            for (int i = 1; i < walkingPath.Length; i++)
+            try
             {
-                if (walkingPath[i] == default)
+                NativeArray<(bool isDoor, Vector3Int position)> walkingPath = new(100, Allocator.Persistent);
+                NavigateJob navigate = new(Pawn.WorldPosition, Destination, walkingPath);
+                JobHandle navigateJobHandle = navigate.Schedule();
+                yield return new WaitUntil(() => navigateJobHandle.IsCompleted);
+                navigateJobHandle.Complete();
+                PathLink current = null;
+                for (int i = 0; i < walkingPath.Length; i++)
                 {
-                    if(i != 0)
-                        Destination = walkingPath[i - 1].position;
-                    break;
+                    if (walkingPath[i] == default)
+                    {
+                        break;
+                    }
+
+                    current = i == 0
+                        ? _root = new PathLink(Map.Map.Instance.GetConnectionNode(walkingPath[i].position), Pawn)
+                        : new PathLink(Map.Map.Instance.GetConnectionNode(walkingPath[i].position), current);
                 }
-                current = new PathLink(walkingPath[i].isDoor ? Map.Map.Instance.GetConnectionNode(walkingPath[i].position) : Map.Map.Instance[walkingPath[i].position], current);
+
+                walkingPath.Dispose();
+
+                NextStep();
             }
-
-            walkingPath.Dispose();
-
-            NextStep();
-
-            _ready = true;
-        }*/
+            finally
+            {
+                _ready = true;
+            }
+        }
     }
 }

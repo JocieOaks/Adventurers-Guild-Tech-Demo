@@ -20,14 +20,14 @@ namespace Assets.Scripts.AI
         public int Step { get; }
 
         /// <value>The <see cref="INode"/> being traversed during this step of the path.</value>
-        public INode Node { get; }
+        public ConnectingNode Node { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PathLink"/> class.
         /// </summary>
         /// <param name="node">The <see cref="INode"/> being traversed.</param>
         /// <param name="previous">The previous <see cref="PathLink"/> in the path.</param>
-        public PathLink(INode node, PathLink previous)
+        public PathLink(ConnectingNode node, PathLink previous)
         {
             Node = node;
             Pawn = previous.Pawn;
@@ -40,7 +40,7 @@ namespace Assets.Scripts.AI
         /// </summary>
         /// <param name="node">The <see cref="INode"/> in which the path is starting.</param>
         /// <param name="pawn">The <see cref="AI.Pawn"/> traversing the path.</param>
-        public PathLink(INode node, Pawn pawn)
+        public PathLink(ConnectingNode node, Pawn pawn)
         {
             Node = node;
             Pawn = pawn;

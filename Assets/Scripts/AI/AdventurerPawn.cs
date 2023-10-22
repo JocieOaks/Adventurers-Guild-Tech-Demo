@@ -5,6 +5,7 @@ using Assets.Scripts.AI.Task;
 using Assets.Scripts.Map.Node;
 using JetBrains.Annotations;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Assets.Scripts.AI
 {
@@ -203,9 +204,16 @@ namespace Assets.Scripts.AI
             ManageTask();
 
             Actor.Update();
-
-            CurrentAction?.Perform();
-            CurrentStep?.Perform();
+            try
+            {
+                CurrentAction?.Perform();
+                CurrentStep?.Perform();
+            }
+            catch
+            {
+                OnTaskFail();
+                throw;
+            }
         }
     }
 }

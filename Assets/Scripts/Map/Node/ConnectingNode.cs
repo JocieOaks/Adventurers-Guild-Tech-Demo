@@ -193,14 +193,13 @@ namespace Assets.Scripts.Map.Node
         /// <exception cref="System.ArgumentException">Throws exception if the <see cref="ConnectingNode"/> is not adjacent to the given <see cref="Room"/>.</exception>
         public RoomNode GetRoomNode(Room room)
         {
-            if (FirstNode.Room == room)
-            {
+            if (FirstNode.Room == room) 
                 return FirstNode;
-            }
-            else if (SecondNode.Room == room)
+            
+            if (SecondNode.Room == room)
                 return SecondNode;
-            else
-                throw new System.ArgumentException();
+            
+            throw new System.ArgumentException();
         }
 
         /// <inheritdoc/>

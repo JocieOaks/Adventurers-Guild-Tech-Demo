@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 
 namespace Assets.Scripts.Utility
 {
@@ -24,7 +25,7 @@ namespace Assets.Scripts.Utility
         public int Count { get; private set; }
 
         /// <value>Returns true if the <see cref="PriorityQueue{T1, T2}"/> has no elements.</value>
-        public bool Empty => _heap.RootElement() == null;
+        public bool Empty => EqualityComparer<T1>.Default.Equals(_heap.RootElement(), default);
 
         /// <summary>
         /// Change the priority of a particular heap node.

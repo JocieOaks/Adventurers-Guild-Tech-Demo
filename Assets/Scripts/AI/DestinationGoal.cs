@@ -5,29 +5,29 @@ namespace Assets.Scripts.AI
 {
     public class DestinationGoal :IGoal
     {
-        private readonly RoomNode _destination;
+        public RoomNode Destination { get; }
 
         public DestinationGoal(RoomNode destination)
         {
-            _destination = destination;
+            Destination = destination;
         }
 
         public IEnumerable<RoomNode> Endpoints
         {
             get
             {
-                yield return _destination;
+                yield return Destination;
             }
         }
 
         public float Heuristic(RoomNode start)
         {
-            return Map.Map.EstimateDistance(start, _destination);
+            return Map.Map.EstimateDistance(start, Destination);
         }
 
         public int IsComplete(RoomNode position)
         {
-            return position == _destination ? 1 : position.Room != _destination.Room ? -1 : 0;
+            return position == Destination ? 1 : position.Room != Destination.Room ? -1 : 0;
         }
     }
 }

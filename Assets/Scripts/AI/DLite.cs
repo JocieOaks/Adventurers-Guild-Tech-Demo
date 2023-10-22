@@ -46,7 +46,7 @@ namespace Assets.Scripts.AI
 
         public bool IsGoalReachable(RoomNode node)
         {
-            return !float.IsPositiveInfinity(this[node].gScore);
+            return !float.IsPositiveInfinity(this[node].gScore) && node.Room == _room;
         }
 
         /// <summary>

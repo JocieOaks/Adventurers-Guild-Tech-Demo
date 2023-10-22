@@ -633,11 +633,10 @@ namespace Assets.Scripts.Map
             Room startingRoom = start.Room;
             Room endingRoom = end.Room;
 
-        Dictionary<IWorldPosition, (float score, IReference queueNode)> gScore = new();
-        Dictionary<IWorldPosition, IWorldPosition> immediatePredecessor = new();
-        Dictionary<(IWorldPosition, IWorldPosition), IEnumerator> paths = new();
+            Dictionary<IWorldPosition, (float score, IReference queueNode)> gScore = new();
+            Dictionary<IWorldPosition, IWorldPosition> immediatePredecessor = new();
 
-        PriorityQueue<(IWorldPosition, IWorldPosition), float> nodeQueue = new(PriorityQueue<INode, float>.MinComparer.Instance);
+            PriorityQueue<(IWorldPosition, IWorldPosition), float> nodeQueue = new(PriorityQueue<INode, float>.MinComparer.Instance);
 
             Vector3Int endPosition = end.WorldPosition;
 
@@ -661,11 +660,6 @@ namespace Assets.Scripts.Map
                     if (immediatePredecessor.TryGetValue(end, out IWorldPosition preceding) && preceding == prevNode)
                     {
                         yield return gScore[end].score;
-                        if (end is RoomNode)
-                            yield return end;
-                        IEnumerator path = paths[(preceding, end)];
-                        while (path.MoveNext())
-                            yield return path.Current;
 
                         if (preceding != start)
                         {
@@ -674,30 +668,20 @@ namespace Assets.Scripts.Map
                             preceding = immediatePredecessor[receding];
                             while (preceding != start)
                             {
-                                foreach (RoomNode node in (preceding as ConnectingNode).GetPath(receding as ConnectingNode))
-                                    yield return node;
-
                                 receding = preceding;
                                 yield return receding;
                                 preceding = immediatePredecessor[receding];
                             }
-                            path = paths[(preceding, receding)];
-
-                            while (path.MoveNext())
-                                yield return path.Current;
                         }
                         yield break;
                     }
-                    else
+
+                    if (GetPath(prevNode, end, endingRoom, out float score))
                     {
-
-                        if (GetPath(prevNode, end, endingRoom, out float score))
-                        {
-                            nodeQueue.Push((prevNode, end), score);
-                        }
-
-                        continue;
+                        nodeQueue.Push((prevNode, end), score);
                     }
+
+                    continue;
                 }
 
                 if (current is not ConnectingNode currentNode || currentNode.Obstructed)
@@ -752,7 +736,6 @@ namespace Assets.Scripts.Map
                 pathIter.MoveNext();
                 if (!gScore.TryGetValue(pathEnd, out (float score, IReference queueNode) prev) || prev.score > (float)pathIter.Current! + gScore[pathStart].score)
                 {
-                    paths[(pathStart, pathEnd)] = pathIter;
                     score = (float)pathIter.Current! + gScore[pathStart].score;
                     gScore[pathEnd] = (score, null);
                     immediatePredecessor[pathEnd] = pathStart;
