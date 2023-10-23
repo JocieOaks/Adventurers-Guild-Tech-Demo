@@ -1,8 +1,9 @@
-﻿using Assets.Scripts.AI.Task;
+﻿using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Task;
 using Assets.Scripts.Map.Node;
 using UnityEngine;
 
-namespace Assets.Scripts.AI
+namespace Assets.Scripts.AI.Planning
 {
     /// <summary>
     /// A short-lived reflection of an <see cref="Actor"/> used to test hypothetical scenarios with a <see cref="Planner"/>.
@@ -16,7 +17,7 @@ namespace Assets.Scripts.AI
         /// Initialize a new <see cref="ActorProfile"/> based off of an <see cref="Actor"/>.
         /// </summary>
         /// <param name="actor"></param>
-        public ActorProfile(Actor actor)
+        public ActorProfile(Actor.Actor actor)
         {
             Position = actor.Pawn?.CurrentNode.WorldPosition ?? Vector3Int.zero;
             Name = actor.Name;

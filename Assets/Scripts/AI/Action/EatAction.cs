@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.AI.Actor;
+using UnityEngine;
 
 namespace Assets.Scripts.AI.Action
 {
@@ -11,7 +12,7 @@ namespace Assets.Scripts.AI.Action
         /// Initializes a new instance of the <see cref="EatAction"/> class.
         /// </summary>
         /// <param name="actor">The <see cref="Actor"/> that is eating.</param>
-        public EatAction(Actor actor) : base(actor) {}
+        public EatAction(Actor.Actor actor) : base(actor) {}
 
         /// <inheritdoc/>
         public override bool CanListen => true;

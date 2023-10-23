@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections;
+using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Navigation;
+using Assets.Scripts.AI.Navigation.Goal;
 using Assets.Scripts.AI.Step;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
@@ -134,7 +137,6 @@ namespace Assets.Scripts.AI.Action
                 {
                     _currentGoal = new DestinationGoal(_root.Node!.GetRoomNode(_nextNode.Room));
                     DLite?.SetGoal(_currentGoal);
-                    DLite?.EstablishPathing();
                     _nextConnectingNode = _root.Node;
                     _root = _root.Next;
                 }
@@ -142,7 +144,6 @@ namespace Assets.Scripts.AI.Action
                 {
                     _currentGoal = _primaryGoal;
                     DLite?.SetGoal(_currentGoal);
-                    DLite?.EstablishPathing();
                 }
             }
 

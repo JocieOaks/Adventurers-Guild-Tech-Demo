@@ -10,7 +10,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 
-namespace Assets.Scripts.AI
+namespace Assets.Scripts.AI.Actor
 {
     public class PlayerPawn : Pawn
     {
@@ -188,7 +188,7 @@ namespace Assets.Scripts.AI
 
             if (distance < 3 && 
                 distance < nearestDistance &&
-                Vector3.Dot(relativePosition / distance, Utility.Utility.DirectionToVectorNormalized(Direction)) > Utility.Utility.Rad3Over2) //Determines if the interactable is within a 60 degree FOV.
+                Vector3.Dot(relativePosition / distance, Utility.Utility.DirectionToVectorNormalized(Direction)) > Utility.Utility.RAD3_2) //Determines if the interactable is within a 60 degree FOV.
             {
                 _nearestInteractable = worldPosition;
                 nearestDistance = distance;

@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using Assets.Scripts.AI.Action;
+using Assets.Scripts.AI.Planning;
+using Assets.Scripts.AI.Social;
 using UnityEngine;
 
 namespace Assets.Scripts.AI.Task
@@ -22,7 +24,7 @@ namespace Assets.Scripts.AI.Task
         }
 
         /// <inheritdoc/>
-        public override IEnumerable<TaskAction> GetActions(Actor actor)
+        public override IEnumerable<TaskAction> GetActions(Actor.Actor actor)
         {
             Debug.Log(actor.Stats.Name + " Leaving Conversation");
             yield return new LeaveConversationAction(actor);

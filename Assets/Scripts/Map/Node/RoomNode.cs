@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.AI;
+using Assets.Scripts.AI.Actor;
 using Assets.Scripts.AI.Step;
 using Assets.Scripts.Map.Sprite_Object;
 using UnityEngine;
@@ -131,60 +132,60 @@ namespace Assets.Scripts.Map.Node
 
                         if (isTraversableNorthEast)
                         {
-                            _nextNodes.Add((NorthEast, Utility.Utility.Rad2Over2 * (SpeedInverse + NorthEast.SpeedInverse)));
+                            _nextNodes.Add((NorthEast, Utility.Utility.RAD2_2 * (SpeedInverse + NorthEast.SpeedInverse)));
                         }
                         if (isTraversableNorthWest)
                         {
-                            _nextNodes.Add((NorthWest, Utility.Utility.Rad2Over2 * (SpeedInverse + NorthWest.SpeedInverse)));
+                            _nextNodes.Add((NorthWest, Utility.Utility.RAD2_2 * (SpeedInverse + NorthWest.SpeedInverse)));
                         }
                         if (isTraversableSouthEast)
                         {
-                            _nextNodes.Add((SouthEast, Utility.Utility.Rad2Over2 * (SpeedInverse + SouthEast.SpeedInverse)));
+                            _nextNodes.Add((SouthEast, Utility.Utility.RAD2_2 * (SpeedInverse + SouthEast.SpeedInverse)));
                         }
                         if (isTraversableSouthWest)
                         {
-                            _nextNodes.Add((SouthWest, Utility.Utility.Rad2Over2 * (SpeedInverse + SouthWest.SpeedInverse)));
+                            _nextNodes.Add((SouthWest, Utility.Utility.RAD2_2 * (SpeedInverse + SouthWest.SpeedInverse)));
                         }
 
                         if (isTraversableNorth && isTraversableNorthEast)
                         {
                             if (NorthEast.TryGetNodeAs(Direction.North, out RoomNode northNorthEast) && northNorthEast.Traversable)
-                                _nextNodes.Add((northNorthEast, Utility.Utility.Rad5Over4 * (SpeedInverse + north.SpeedInverse + NorthEast.SpeedInverse + northNorthEast.SpeedInverse)));
+                                _nextNodes.Add((northNorthEast, Utility.Utility.RAD5_4 * (SpeedInverse + north.SpeedInverse + NorthEast.SpeedInverse + northNorthEast.SpeedInverse)));
                         }
                         if (isTraversableNorth && isTraversableNorthWest)
                         {
                             if (NorthWest.TryGetNodeAs(Direction.North, out RoomNode northNorthWest) && northNorthWest.Traversable)
-                                _nextNodes.Add((northNorthWest, Utility.Utility.Rad5Over4 * (SpeedInverse + north.SpeedInverse + NorthWest.SpeedInverse + northNorthWest.SpeedInverse)));
+                                _nextNodes.Add((northNorthWest, Utility.Utility.RAD5_4 * (SpeedInverse + north.SpeedInverse + NorthWest.SpeedInverse + northNorthWest.SpeedInverse)));
                         }
                         if (isTraversableSouth && isTraversableSouthEast)
                         {
                             if (SouthEast.TryGetNodeAs(Direction.South, out RoomNode southSouthEast) && southSouthEast.Traversable)
-                                _nextNodes.Add((southSouthEast, Utility.Utility.Rad5Over4 * (SpeedInverse + south.SpeedInverse + SouthEast.SpeedInverse + southSouthEast.SpeedInverse)));
+                                _nextNodes.Add((southSouthEast, Utility.Utility.RAD5_4 * (SpeedInverse + south.SpeedInverse + SouthEast.SpeedInverse + southSouthEast.SpeedInverse)));
                         }
                         if (isTraversableSouth && isTraversableSouthWest)
                         {
                             if (SouthWest.TryGetNodeAs(Direction.South, out RoomNode southSouthWest) && southSouthWest.Traversable)
-                                _nextNodes.Add((southSouthWest, Utility.Utility.Rad5Over4 * (SpeedInverse + south.SpeedInverse + SouthWest.SpeedInverse + southSouthWest.SpeedInverse)));
+                                _nextNodes.Add((southSouthWest, Utility.Utility.RAD5_4 * (SpeedInverse + south.SpeedInverse + SouthWest.SpeedInverse + southSouthWest.SpeedInverse)));
                         }
                         if (isTraversableEast && isTraversableNorthEast)
                         {
                             if (NorthEast.TryGetNodeAs(Direction.East, out RoomNode eastNorthEast) && eastNorthEast.Traversable)
-                                _nextNodes.Add((eastNorthEast, Utility.Utility.Rad5Over4 * (SpeedInverse + east.SpeedInverse + NorthEast.SpeedInverse + eastNorthEast.SpeedInverse)));
+                                _nextNodes.Add((eastNorthEast, Utility.Utility.RAD5_4 * (SpeedInverse + east.SpeedInverse + NorthEast.SpeedInverse + eastNorthEast.SpeedInverse)));
                         }
                         if (isTraversableWest && isTraversableNorthWest)
                         {
                             if (NorthWest.TryGetNodeAs(Direction.West, out RoomNode westNorthWest) && westNorthWest.Traversable)
-                                _nextNodes.Add((westNorthWest, Utility.Utility.Rad5Over4 * (SpeedInverse + west.SpeedInverse + NorthWest.SpeedInverse + westNorthWest.SpeedInverse)));
+                                _nextNodes.Add((westNorthWest, Utility.Utility.RAD5_4 * (SpeedInverse + west.SpeedInverse + NorthWest.SpeedInverse + westNorthWest.SpeedInverse)));
                         }
                         if (isTraversableEast && isTraversableSouthEast)
                         {
                             if (SouthEast.TryGetNodeAs(Direction.East, out RoomNode eastSouthEast) && eastSouthEast.Traversable)
-                                _nextNodes.Add((eastSouthEast, Utility.Utility.Rad5Over4 * (SpeedInverse + east.SpeedInverse + SouthEast.SpeedInverse + eastSouthEast.SpeedInverse)));
+                                _nextNodes.Add((eastSouthEast, Utility.Utility.RAD5_4 * (SpeedInverse + east.SpeedInverse + SouthEast.SpeedInverse + eastSouthEast.SpeedInverse)));
                         }
                         if (isTraversableWest && isTraversableSouthWest)
                         {
                             if (SouthWest.TryGetNodeAs(Direction.West, out RoomNode westSouthWest) && westSouthWest.Traversable)
-                                _nextNodes.Add((westSouthWest, Utility.Utility.Rad5Over4 * (SpeedInverse + west.SpeedInverse + SouthWest.SpeedInverse + westSouthWest.SpeedInverse)));
+                                _nextNodes.Add((westSouthWest, Utility.Utility.RAD5_4 * (SpeedInverse + west.SpeedInverse + SouthWest.SpeedInverse + westSouthWest.SpeedInverse)));
                         }
                     }
                 }

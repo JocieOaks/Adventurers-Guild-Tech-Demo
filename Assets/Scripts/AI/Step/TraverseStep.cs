@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Scripts.AI.Actor;
+using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
 
 namespace Assets.Scripts.AI.Step

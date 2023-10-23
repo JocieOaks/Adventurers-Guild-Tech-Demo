@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Assets.Scripts.AI
+namespace Assets.Scripts.AI.Actor
 {
     /// <summary>
     /// The <see cref="NPC"/> class is a child of the <see cref="AdventurerPawn"/> class where character data is all predetermined in the inspector panel.

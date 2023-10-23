@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.AI.Action;
+using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Planning;
 using Assets.Scripts.Map.Sprite_Object;
 
 namespace Assets.Scripts.AI.Task
@@ -48,7 +50,7 @@ namespace Assets.Scripts.AI.Task
         }
 
         /// <inheritdoc/>
-        public override IEnumerable<TaskAction> GetActions(Actor actor)
+        public override IEnumerable<TaskAction> GetActions(Actor.Actor actor)
         {
             _seat = GetSeat(actor.Stats);
             return _seat == null ? Enumerable.Empty<TaskAction>() : GetActions(actor.Pawn);
@@ -62,7 +64,7 @@ namespace Assets.Scripts.AI.Task
         }
 
         /// <inheritdoc/>
-        public IEnumerable<TaskAction> Recover(Actor actor, TaskAction action)
+        public IEnumerable<TaskAction> Recover(Actor.Actor actor, TaskAction action)
         {   
             if(action is SitDownAction)
                 _seat = GetSeat(actor.Stats);

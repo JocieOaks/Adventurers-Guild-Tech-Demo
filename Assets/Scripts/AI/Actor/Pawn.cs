@@ -10,7 +10,7 @@ using Assets.Scripts.Map.Sprite_Object;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Assets.Scripts.AI
+namespace Assets.Scripts.AI.Actor
 {
     /// <summary>
     /// The current body position a <see cref="Pawn"/> is in.

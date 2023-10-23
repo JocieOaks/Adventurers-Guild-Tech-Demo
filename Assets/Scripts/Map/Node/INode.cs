@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Assets.Scripts.AI;
+using Assets.Scripts.AI.Actor;
 
 namespace Assets.Scripts.Map.Node
 {

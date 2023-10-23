@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Assets.Scripts.AI;
+using Assets.Scripts.AI.Actor;
 using Assets.Scripts.Data;
 using Assets.Scripts.Data.Serializable;
 using Assets.Scripts.Map.Node;
@@ -47,12 +48,12 @@ namespace Assets.Scripts.Map
     /// </summary>
     public class Map : MonoBehaviour, IDataPersistence
     {
-        private static Map s_instance;
+        
         private Layer[] _layers;
         private List<Sector> _sectors = new();
 
         /// <value>Accessor for the <see cref="Map"/> singleton instance.</value>
-        public static Map Instance => s_instance;
+        public static Map Instance { get; private set; }
 
         /// <value>True if the <see cref="Map"/> has completed it's initial setup.</value>
         public static bool Ready { get; private set; }
@@ -225,9 +226,28 @@ namespace Assets.Scripts.Map
                 }
             }
         }
-    
-        //Rooms are no longer tracked by the map, as that was never really used. Currently just sets up the RoomNodes that can be above the Room, which should be changed later.
 
+        /// <summary>
+        /// Estimates the distance between two <see cref="RoomNode"/>s using an admissible heuristic.
+        /// The heuristic is based on the Manhattan distance, but allows for diagonal movement at 3 different angles.
+        /// </summary>
+        /// <param name="start">The starting <see cref="RoomNode"/>.</param>
+        /// <param name="end">The ending <see cref="RoomNode"/>.</param>
+        /// <returns>Returns the estimated path length from <paramref name="start"/> to <paramref name="end"/>.</returns>
+        public static float EstimateDistance(IWorldPosition start, IWorldPosition end)
+        {
+            int xDiff = Mathf.Abs(start.WorldPosition.x - end.WorldPosition.x);
+            int yDiff = Mathf.Abs(start.WorldPosition.y - end.WorldPosition.y);
+            return (xDiff, yDiff) switch
+            {
+                _ when xDiff > 2 * yDiff => xDiff + yDiff * (Utility.Utility.RAD5 - 1),                                                                         //Equal to yDiff * RAD5 + (xDiff - yDiff);
+                _ when xDiff > yDiff => xDiff * (Utility.Utility.RAD5 - Utility.Utility.RAD2) + yDiff * (2 * Utility.Utility.RAD2 - Utility.Utility.RAD5),
+                _ when 2 * xDiff > yDiff => xDiff * (2 * Utility.Utility.RAD2 - Utility.Utility.RAD5) + yDiff * (Utility.Utility.RAD5 - Utility.Utility.RAD2),
+                _ => xDiff * (Utility.Utility.RAD5 - 1) + yDiff,
+            };
+        }
+
+        //Rooms are no longer tracked by the map, as that was never really used. Currently just sets up the RoomNodes that can be above the Room, which should be changed later.
         /// <summary>
         /// Adds a new <see cref="Room"/> to the list of <see cref="Room"/>s on the <see cref="Map"/>.
         /// </summary>
@@ -348,7 +368,7 @@ namespace Assets.Scripts.Map
                 foreach (ConnectingNode next in current.ConnectionNodes)
                 {
                     float nextScore = current.GetDistance(next) + currentScore;
-                    if (gScore.TryGetValue(next, out var score))
+                    if (gScore.TryGetValue(next, out (float score, IReference queueNode) score))
                     {
                         if (score.score < nextScore) continue;
 
@@ -601,20 +621,6 @@ namespace Assets.Scripts.Map
 
             Ready = true;
         }
-
-    private const float RAD2 = 1.41421356237f;
-    /// <summary>
-    /// Estimates the distance between two <see cref="RoomNode"/>s using an admissible heuristic.
-    /// </summary>
-    /// <param name="start">The starting <see cref="RoomNode"/>.</param>
-    /// <param name="end">The ending <see cref="RoomNode"/>.</param>
-    /// <returns>Returns the estimated path length from <paramref name="start"/> to <paramref name="end"/>.</returns>
-    public static float EstimateDistance(IWorldPosition start, IWorldPosition end)
-    {
-        int xDiff = Mathf.Abs(start.WorldPosition.x - end.WorldPosition.x);
-        int yDiff = Mathf.Abs(start.WorldPosition.y - end.WorldPosition.y);
-        return xDiff < yDiff ? yDiff + xDiff * (RAD2 - 1) : xDiff + yDiff * (RAD2 - 1);
-    }
         /// <summary>
         /// Finds the shortest path for an <see cref="AdventurerPawn"/> to take to travel from one <see cref="IWorldPosition"/> to another.
         /// </summary>
@@ -883,9 +889,9 @@ namespace Assets.Scripts.Map
         [UsedImplicitly]
         private void Awake()
         {
-            if (s_instance == null)
+            if (Instance == null)
             {
-                s_instance = this;
+                Instance = this;
             }
             else
                 Destroy(this);

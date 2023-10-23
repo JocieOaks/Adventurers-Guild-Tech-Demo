@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Assets.Scripts.AI.Actor;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
 using Unity.Collections;

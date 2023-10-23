@@ -1,12 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Planning;
 using Assets.Scripts.AI.Step;
 using Assets.Scripts.AI.Task;
 using Assets.Scripts.Map;
 using UnityEngine;
 
-namespace Assets.Scripts.AI
+namespace Assets.Scripts.AI.Social
 {
     /// <summary>
     /// The <see cref="Conversation"/> class maintains data for an extended social interaction between two <see cref="AdventurerPawn"/>s.

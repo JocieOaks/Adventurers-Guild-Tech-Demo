@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using Assets.Scripts.AI.Action;
+using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Planning;
 
 namespace Assets.Scripts.AI.Task
 {
@@ -28,7 +30,7 @@ namespace Assets.Scripts.AI.Task
         /// </summary>
         /// <param name="actor">The <see cref="Actor"/> performing the <see cref="Task"/>.</param>
         /// <returns>Enumerates over the <see cref="TaskAction"/>s to perform the <see cref="Task"/></returns>
-        IEnumerable<TaskAction> GetActions(Actor actor);
+        IEnumerable<TaskAction> GetActions(Actor.Actor actor);
 
         /// <summary>
         /// Gives the estimated time for the <see cref="Task"/> to be completed.

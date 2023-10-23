@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.AI.Step;
+﻿using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Step;
 using Assets.Scripts.Map.Sprite_Object;
 using UnityEngine;
 
@@ -18,7 +19,7 @@ namespace Assets.Scripts.AI.Action
         /// </summary>
         /// <param name="actor">The <see cref="Actor"/> that is getting food.</param>
         /// <param name="interactable">The <see cref="IInteractable"/> from which <c>actor</c> is getting food.</param>
-        public AcquireFoodAction(Actor actor, IInteractable interactable) : base(actor)
+        public AcquireFoodAction(Actor.Actor actor, IInteractable interactable) : base(actor)
         {
             _interactable = interactable;
         }

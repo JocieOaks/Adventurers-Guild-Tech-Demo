@@ -1,4 +1,5 @@
 using System;
+using Assets.Scripts.AI.Planning;
 using Assets.Scripts.Map.Sprite_Object.Furniture;
 using Unity.Collections;
 using Unity.Jobs;
@@ -8,7 +9,7 @@ using Random = UnityEngine.Random;
 
 // ReSharper disable UnusedMember.Global
 
-namespace Assets.Scripts.AI
+namespace Assets.Scripts.AI.Actor
 {
     /// <summary>
     /// The character classes an <see cref="Actor"/> can have.

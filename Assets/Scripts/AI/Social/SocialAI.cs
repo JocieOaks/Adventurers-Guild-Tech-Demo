@@ -1,11 +1,13 @@
 using System.Collections;
 using System.Collections.Specialized;
 using Assets.Scripts.AI.Action;
+using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Planning;
 using Assets.Scripts.AI.Task;
 using Assets.Scripts.Map;
 using UnityEngine;
 
-namespace Assets.Scripts.AI
+namespace Assets.Scripts.AI.Social
 {
     /// <summary>
     /// The kinds of speech for when a <see cref="Pawn"/> is conversing with another <see cref="Pawn"/>.

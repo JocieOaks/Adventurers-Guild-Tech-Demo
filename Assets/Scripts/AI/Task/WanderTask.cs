@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using Assets.Scripts.AI.Action;
+using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Planning;
 using Assets.Scripts.Map.Node;
 using UnityEngine;
 
@@ -32,7 +34,7 @@ namespace Assets.Scripts.AI.Task
         }
 
         /// <inheritdoc/>
-        public override IEnumerable<TaskAction> GetActions(Actor actor)
+        public override IEnumerable<TaskAction> GetActions(Actor.Actor actor)
         {
             yield return new TravelAction(_node, actor.Pawn);
         }

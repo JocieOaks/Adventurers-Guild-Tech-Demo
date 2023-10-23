@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Assets.Scripts.Map.Node;
 using Assets.Scripts.Map.Sprite_Object;
 
-namespace Assets.Scripts.AI
+namespace Assets.Scripts.AI.Navigation.Goal
 {
     public class InteractableGoal : IGoal
     {

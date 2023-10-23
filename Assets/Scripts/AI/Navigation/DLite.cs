@@ -1,13 +1,14 @@
 using System;
 using System.Collections;
 using System.Linq;
+using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Navigation.Goal;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
 using Assets.Scripts.Utility;
-using JetBrains.Annotations;
 using UnityEngine;
 
-namespace Assets.Scripts.AI
+namespace Assets.Scripts.AI.Navigation
 {
     public class DLite
     {
@@ -26,7 +27,7 @@ namespace Assets.Scripts.AI
             _room = pawn.Room;
         }
 
-        ///<value>The <see cref="Assets.Scripts.AI.Pawn"/> whose path is being evaluated by <see cref="DLite"/>.</value>
+        ///<value>The <see cref="AI.Actor.Pawn"/> whose path is being evaluated by <see cref="DLite"/>.</value>
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
         private Pawn Pawn { get; }
 
@@ -175,7 +176,7 @@ namespace Assets.Scripts.AI
                 SetElement(node, _nodeQueue.Push(node, CalculatePriority(node)));
             }
 
-            _start = Pawn.CurrentNode;
+            UpdateStart(Pawn.CurrentNode);
         }
 
         private void UpdateVertex(RoomNode node)
@@ -217,12 +218,12 @@ namespace Assets.Scripts.AI
         public void UpdateStart(RoomNode newNode)
         {
             _start = newNode;
-            _priorityAdjustment += Map.Map.EstimateDistance(_start, newNode);
-
+            if(_start != null)
+                _priorityAdjustment += Map.Map.EstimateDistance(_start, newNode);
+            EstablishPathing();
         }
 
-        [UsedImplicitly]
-        public void EstablishPathing()
+        private void EstablishPathing()
         {
             (float gScore, float rhs, IReference _) = this[_start];
             while (_nodeQueue.Count > 0 &&

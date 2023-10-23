@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Assets.Scripts.AI;
+using Assets.Scripts.AI.Actor;
 using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;

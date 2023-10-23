@@ -9,9 +9,11 @@ namespace Assets.Scripts.Utility
     public static class Utility
     {
         public const float TOLERANCE = 1e-6f;
-        public static readonly float Rad2Over2 = Mathf.Sqrt(2) / 2;
-        public static readonly float Rad3Over2 = Mathf.Sqrt(3) / 2;
-        public static readonly float Rad5Over4 = Mathf.Sqrt(5) / 4;
+        public const float RAD2_2 = 0.7071067812f;
+        public const float RAD3_2 = 0.8660254038f;
+        public const float RAD5_4 = 0.5590169944f;
+        public const float RAD2 = 1.41421356237f;
+        public const float RAD5 = 2.236067977f;
 
         /// <summary>
         /// Converts a <see cref="Direction"/> to the <see cref="MapAlignment"/> that is perpendicular to it.
@@ -20,7 +22,7 @@ namespace Assets.Scripts.Utility
         /// <returns>Returns the <see cref="MapAlignment"/> perpendicular to <c>direction</c>.</returns>
         public static MapAlignment DirectionToEdgeAlignment(Direction direction)
         {
-            return (direction == Direction.North || direction == Direction.South) ? MapAlignment.XEdge : MapAlignment.YEdge;
+            return direction is Direction.North or Direction.South ? MapAlignment.XEdge : MapAlignment.YEdge;
         }
 
         /// <summary>
@@ -57,10 +59,10 @@ namespace Assets.Scripts.Utility
                 Direction.South => Vector3.down,
                 Direction.East => Vector3.right,
                 Direction.West => Vector3.left,
-                Direction.NorthEast => new Vector3(Rad2Over2, Rad2Over2),
-                Direction.SouthEast => new Vector3(Rad2Over2, -Rad2Over2),
-                Direction.NorthWest => new Vector3(-Rad2Over2, Rad2Over2),
-                Direction.SouthWest => new Vector3(-Rad2Over2, -Rad2Over2),
+                Direction.NorthEast => new Vector3(RAD2_2, RAD2_2),
+                Direction.SouthEast => new Vector3(RAD2_2, -RAD2_2),
+                Direction.NorthWest => new Vector3(-RAD2_2, RAD2_2),
+                Direction.SouthWest => new Vector3(-RAD2_2, -RAD2_2),
                 _ => default,
             };
         }
@@ -177,12 +179,12 @@ namespace Assets.Scripts.Utility
                 var value = i switch
                 {
                     1 => Vector2.Dot(gameVector, new Vector2(1, 0)),
-                    2 => Vector2.Dot(gameVector, new Vector2(Rad2Over2, -Rad2Over2)),
+                    2 => Vector2.Dot(gameVector, new Vector2(RAD2_2, -RAD2_2)),
                     3 => Vector2.Dot(gameVector, new Vector2(0, -1)),
-                    4 => Vector2.Dot(gameVector, new Vector2(-Rad2Over2, -Rad2Over2)),
+                    4 => Vector2.Dot(gameVector, new Vector2(-RAD2_2, -RAD2_2)),
                     5 => Vector2.Dot(gameVector, new Vector2(-1, 0)),
-                    6 => Vector2.Dot(gameVector, new Vector2(-Rad2Over2, Rad2Over2)),
-                    _ => Vector2.Dot(gameVector, new Vector2(Rad2Over2, Rad2Over2)),
+                    6 => Vector2.Dot(gameVector, new Vector2(-RAD2_2, RAD2_2)),
+                    _ => Vector2.Dot(gameVector, new Vector2(RAD2_2, RAD2_2)),
                 };
                 if (value > bestProduct)
                 {

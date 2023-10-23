@@ -1,4 +1,6 @@
-﻿namespace Assets.Scripts.AI.Action
+﻿using Assets.Scripts.AI.Actor;
+
+namespace Assets.Scripts.AI.Action
 {
     /// <summary>
     /// The <see cref="QuestingAction"/> class is a <see cref="TaskAction"/> for when a <see cref="AdventurerPawn"/> is on a <see cref="Quest"/>.
@@ -9,7 +11,7 @@
         /// Initializes a new instance of the <see cref="QuestingAction"/> class.
         /// </summary>
         /// <param name="actor">The <see cref="Actor"/> going on the <see cref="Quest"/>.</param>
-        public QuestingAction(Actor actor) : base(actor) { }
+        public QuestingAction(Actor.Actor actor) : base(actor) { }
 
         /// <inheritdoc/>
         public override bool CanListen => false;

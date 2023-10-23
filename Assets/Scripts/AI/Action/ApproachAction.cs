@@ -1,4 +1,6 @@
-﻿using Assets.Scripts.AI.Step;
+﻿using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Social;
+using Assets.Scripts.AI.Step;
 using Assets.Scripts.Map.Node;
 using UnityEngine;
 
@@ -17,7 +19,7 @@ namespace Assets.Scripts.AI.Action
         /// </summary>
         /// <param name="actor">The <see cref="Actor"/> that is repositioning.</param>
         /// <param name="conversation">The <see cref="Conversation"/> that the <see cref="Actor"/> is in.</param>
-        public ApproachAction(Actor actor, Conversation conversation) : base(actor)
+        public ApproachAction(Actor.Actor actor, Conversation conversation) : base(actor)
         {
             _conversation = conversation;
         }

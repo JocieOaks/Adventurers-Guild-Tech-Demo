@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Map.Sprite_Object.Furniture;
+﻿using Assets.Scripts.AI.Actor;
+using Assets.Scripts.Map.Sprite_Object.Furniture;
 using UnityEngine;
 
 namespace Assets.Scripts.AI.Step

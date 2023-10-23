@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Scripts.AI.Actor;
+using Assets.Scripts.Map;
 using Assets.Scripts.Map.Sprite_Object;
 using Assets.Scripts.Map.Sprite_Object.Furniture;
 using UnityEngine;

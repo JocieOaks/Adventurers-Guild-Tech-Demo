@@ -1,5 +1,8 @@
 using System.Collections;
 using Assets.Scripts.AI.Action;
+using Assets.Scripts.AI.Navigation;
+using Assets.Scripts.AI.Planning;
+using Assets.Scripts.AI.Social;
 using Assets.Scripts.AI.Step;
 using Assets.Scripts.AI.Task;
 using Assets.Scripts.Map.Node;
@@ -7,10 +10,10 @@ using JetBrains.Annotations;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace Assets.Scripts.AI
+namespace Assets.Scripts.AI.Actor
 {
     /// <summary>
-    /// The <see cref="AdventurerPawn"/> class is the counterpart to the <see cref="AI.Actor"/> class that controls the active functional aspect of an NPC, including the in game sprite representation and overseeing the AI behaviors.
+    /// The <see cref="AdventurerPawn"/> class is the counterpart to the <see cref="AI.Actor.Actor"/> class that controls the active functional aspect of an NPC, including the in game sprite representation and overseeing the AI behaviors.
     /// </summary>
     public class AdventurerPawn : Pawn
     {
@@ -22,7 +25,7 @@ namespace Assets.Scripts.AI
         [SerializeField] private SpriteRenderer _speechBubble;
 #pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
 
-        /// <value>The <see cref="AdventurerPawn"/>'s corresponding <see cref="AI.Actor"/>.</value>
+        /// <value>The <see cref="AdventurerPawn"/>'s corresponding <see cref="AI.Actor.Actor"/>.</value>
         public Actor Actor
         {
             get => _actor;

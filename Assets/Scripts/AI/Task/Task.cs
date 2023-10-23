@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.AI.Action;
+using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Planning;
+using Assets.Scripts.AI.Social;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
 using Assets.Scripts.Map.Sprite_Object;
@@ -50,7 +53,7 @@ namespace Assets.Scripts.AI.Task
         }
 
         /// <inheritdoc/>
-        public abstract IEnumerable<TaskAction> GetActions(Actor actor);
+        public abstract IEnumerable<TaskAction> GetActions(Actor.Actor actor);
 
         /// <inheritdoc/>
         public abstract float Time(WorldState worldState);

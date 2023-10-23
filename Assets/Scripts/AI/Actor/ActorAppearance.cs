@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Assets.Scripts.AI
+namespace Assets.Scripts.AI.Actor
 {
     /// <summary>
     /// The <see cref="ActorAppearance"/> struct contains the appearance data for an <see cref="Actor"/> defining how their sprite should appear.

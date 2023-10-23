@@ -1,4 +1,6 @@
-﻿using Assets.Scripts.AI.Step;
+﻿using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Social;
+using Assets.Scripts.AI.Step;
 using UnityEngine;
 
 namespace Assets.Scripts.AI.Action
@@ -15,7 +17,7 @@ namespace Assets.Scripts.AI.Action
         /// Initializes a new instance of the <see cref="LeaveConversationAction"/> class.
         /// </summary>
         /// <param name="actor">The <see cref="Actor"/> leaving the <see cref="Conversation"/>.</param>
-        public LeaveConversationAction(Actor actor) : base(actor) { }
+        public LeaveConversationAction(Actor.Actor actor) : base(actor) { }
 
         /// <inheritdoc/>
         public override bool CanListen => true;

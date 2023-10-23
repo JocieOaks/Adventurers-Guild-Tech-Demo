@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Assets.Scripts.AI;
+using Assets.Scripts.AI.Actor;
 using Assets.Scripts.Data;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Sprite_Object;

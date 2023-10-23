@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Assets.Scripts.AI.Action;
+using Assets.Scripts.AI.Actor;
 
 namespace Assets.Scripts.AI.Task
 {
@@ -14,6 +15,6 @@ namespace Assets.Scripts.AI.Task
         /// <param name="actor">The <see cref="Actor"/> performing the <see cref="Task"/>.</param>
         /// <param name="action">The <see cref="TaskAction"/> that had previously failed.</param>
         /// <returns>Enumerates over a new list of <see cref="TaskAction"/>s for the <c>actor</c> to perform. If the <see cref="Task"/> fails to recover the enumeration immediately halts.</returns>
-        public IEnumerable<TaskAction> Recover(Actor actor, TaskAction action);
+        public IEnumerable<TaskAction> Recover(Actor.Actor actor, TaskAction action);
     }
 }

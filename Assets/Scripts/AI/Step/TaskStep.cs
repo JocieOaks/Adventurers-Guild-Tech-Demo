@@ -1,8 +1,10 @@
+using Assets.Scripts.AI.Actor;
+
 namespace Assets.Scripts.AI.Step
 {
     /// <summary>
-    /// The <see cref="TaskStep"/> class is the base class for small single steps for a <see cref="AI.Pawn"/> to take.
-    /// <see cref="TaskStep"/> is also responsible for controlling <see cref="AI.Pawn"/> animations.
+    /// The <see cref="TaskStep"/> class is the base class for small single steps for a <see cref="AI.Actor.Pawn"/> to take.
+    /// <see cref="TaskStep"/> is also responsible for controlling <see cref="AI.Actor.Pawn"/> animations.
     /// </summary>
     public abstract class TaskStep
     {
@@ -17,7 +19,7 @@ namespace Assets.Scripts.AI.Step
         /// <summary>
         /// Initializes a new instance of <see cref="TaskStep"/>.
         /// </summary>
-        /// <param name="pawn">The <see cref="AI.Pawn"/> performing the <see cref="TaskStep"/>.</param>
+        /// <param name="pawn">The <see cref="AI.Actor.Pawn"/> performing the <see cref="TaskStep"/>.</param>
         protected TaskStep(Pawn pawn)
         {
             Pawn = pawn;

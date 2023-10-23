@@ -1,4 +1,6 @@
-﻿namespace Assets.Scripts.AI.Task
+﻿using Assets.Scripts.AI.Planning;
+
+namespace Assets.Scripts.AI.Task
 {
     /// <summary>
     /// The <see cref="IRiskyTask"/> interface is for <see cref="Task"/>s the have a potential failure condition, such that utility score predictions have to account for both success and failure.

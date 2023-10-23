@@ -1,7 +1,9 @@
-﻿using Assets.Scripts.AI.Task;
+﻿using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Social;
+using Assets.Scripts.AI.Task;
 using UnityEngine;
 
-namespace Assets.Scripts.AI
+namespace Assets.Scripts.AI.Planning
 {
     /// <summary>
     /// The <see cref="WorldState"/> struct is a reflection of the current state of the game for use by <see cref="Planner"/>, or a prediction of a future state of the game.
@@ -18,7 +20,7 @@ namespace Assets.Scripts.AI
         /// Initializes a new instance of <see cref="WorldState"/>.
         /// </summary>
         /// <param name="actor">The primary <see cref="Actor"/> whose <see cref="Task"/>s the <see cref="WorldState"/> is intended to reflect.</param>
-        public WorldState(Actor actor)
+        public WorldState(Actor.Actor actor)
         {
             PrimaryActor = actor.Stats;
             Conversation = actor.Pawn.Social.Conversation;
@@ -26,7 +28,7 @@ namespace Assets.Scripts.AI
             PreviousTask = null;
         }
 
-        /// <value>Gives the distance of the <see cref="Actor"/> from the <see cref="Conversation.Nexus"/> if it is in a <see cref="AI.Conversation"/>.</value>
+        /// <value>Gives the distance of the <see cref="Actor"/> from the <see cref="Conversation.Nexus"/> if it is in a <see cref="AI.Social.Conversation"/>.</value>
         public float ConversationDistance
         {
             set => _distance = value;

@@ -1,4 +1,6 @@
-﻿namespace Assets.Scripts.AI.Task
+﻿using Assets.Scripts.AI.Planning;
+
+namespace Assets.Scripts.AI.Task
 {
     public delegate Task GetPayoffDelegate(WorldState worldState);
 

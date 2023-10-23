@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.AI;
+using Assets.Scripts.AI.Actor;
 using Assets.Scripts.Map.Node;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -32,7 +33,7 @@ namespace Assets.Scripts.Map.Sprite_Object
         }
 
         /// <value>The <see cref="MapAlignment"/> of the <see cref="LinearSpriteObject"/>.</value>
-        [JsonProperty]
+        [JsonIgnore]
         public sealed override MapAlignment Alignment { get; }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.AI.Actor;
+using UnityEngine;
 
 namespace Assets.Scripts.AI.Action
 {
@@ -11,7 +12,7 @@ namespace Assets.Scripts.AI.Action
         /// Initializes a new instance of the <see cref="SleepAction"/> class.
         /// </summary>
         /// <param name="actor">The <see cref="Actor"/> that is sleeping.</param>
-        public SleepAction(Actor actor) : base(actor)
+        public SleepAction(Actor.Actor actor) : base(actor)
         {
         }
 

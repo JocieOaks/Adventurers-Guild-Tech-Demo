@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using Assets.Scripts.AI.Actor;
 using Assets.Scripts.AI.Task;
 using Assets.Scripts.Utility;
 using UnityEngine;
 
-namespace Assets.Scripts.AI
+namespace Assets.Scripts.AI.Planning
 {
     /// <summary>
     /// The <see cref="Planner"/> class is used to decide what <see cref="Task"/>s a <see cref="AdventurerPawn"/> should perform.
@@ -17,7 +18,7 @@ namespace Assets.Scripts.AI
             new(PriorityQueue<PlanNode, float>.MaxComparer.Instance);
 
         private bool _reset;
-        private readonly Actor _actor;
+        private readonly Actor.Actor _actor;
 
         private WorldState _startState;
 
@@ -26,7 +27,7 @@ namespace Assets.Scripts.AI
         /// </summary>
         /// <param name="actor">The <see cref="Actor"/> for whom the <see cref="Planner"/> is determining their actions.</param>
         /// <param name="startTask">The first task the <see cref="Actor"/> is performing, to set the initial <see cref="WorldState"/>.</param>
-        public Planner(Actor actor, Task.Task startTask)
+        public Planner(Actor.Actor actor, Task.Task startTask)
         {
             _startState = startTask.ChangeWorldState(new WorldState(actor));
             _startState.PreviousTask = startTask;
@@ -147,7 +148,7 @@ namespace Assets.Scripts.AI
             /// </summary>
             /// <param name="previous">The previous <see cref="Task"/> in the chain of <see cref="Task"/>s.</param>
             /// <param name="task">The <see cref="Task"/> to be performed.</param>
-            /// <param name="startState">The <see cref="AI.WorldState"/> before the <see cref="Task"/> is performed.</param>
+            /// <param name="startState">The <see cref="Planning.WorldState"/> before the <see cref="Task"/> is performed.</param>
             public PlanNode(PlanNode previous, Task.Task task, WorldState startState) : this(task, startState)
             {
                 Depth = previous.Depth + 1;
@@ -177,7 +178,7 @@ namespace Assets.Scripts.AI
             /// Initializes a new instance of the <see cref="PlanNode"/> class, starting a new chain of <see cref="Task"/>s.
             /// </summary>
             /// <param name="task">The <see cref="Task"/> to be performed.</param>
-            /// <param name="startState">The <see cref="AI.WorldState"/> before the <see cref="Task"/> is performed.</param>
+            /// <param name="startState">The <see cref="Planning.WorldState"/> before the <see cref="Task"/> is performed.</param>
             public PlanNode(Task.Task task, WorldState startState)
             {
                 Depth = 1;
@@ -217,16 +218,16 @@ namespace Assets.Scripts.AI
             /// <value>The first <see cref="PlanNode"/> in the chain.</value>
             private PlanNode Root { get; }
 
-            /// <value>The predicted <see cref="AI.WorldState"/> after the <see cref="Task"/> is performed.</value>
+            /// <value>The predicted <see cref="Planning.WorldState"/> after the <see cref="Task"/> is performed.</value>
             public WorldState WorldState { get; }
 
             /// <summary>
-            /// Creates a new <see cref="AI.WorldState"/> based on a given <see cref="Task"/> and the passage of time.
+            /// Creates a new <see cref="Planning.WorldState"/> based on a given <see cref="Task"/> and the passage of time.
             /// </summary>
-            /// <param name="startState">The <see cref="AI.WorldState"/> before the <see cref="Task"/> is performed.</param>
+            /// <param name="startState">The <see cref="Planning.WorldState"/> before the <see cref="Task"/> is performed.</param>
             /// <param name="time">The amount of time for the <see cref="Task"/> to be performed.</param>
-            /// <param name="task">The <see cref="Task"/> modifying the <see cref="AI.WorldState"/>.</param>
-            /// <returns>Returns the predicted <see cref="AI.WorldState"/>.</returns>
+            /// <param name="task">The <see cref="Task"/> modifying the <see cref="Planning.WorldState"/>.</param>
+            /// <returns>Returns the predicted <see cref="Planning.WorldState"/>.</returns>
             public static WorldState WorldStateDelta(WorldState startState, float time, Task.Task task)
             {
                 startState.PrimaryActor.Hunger -= time / 10;
@@ -299,10 +300,10 @@ namespace Assets.Scripts.AI
             }
 
             /// <summary>
-            /// Calculates the baseline change in utility between two <see cref="AI.WorldState"/>s, based on the change in the <see cref="Actor"/>'s needs.
+            /// Calculates the baseline change in utility between two <see cref="Planning.WorldState"/>s, based on the change in the <see cref="Actor"/>'s needs.
             /// </summary>
-            /// <param name="start">The initial <see cref="AI.WorldState"/>.</param>
-            /// <param name="end">The ending <see cref="AI.WorldState"/>.</param>
+            /// <param name="start">The initial <see cref="Planning.WorldState"/>.</param>
+            /// <param name="end">The ending <see cref="Planning.WorldState"/>.</param>
             /// <returns></returns>
             private static float UtilityDelta(WorldState start, WorldState end)
             {

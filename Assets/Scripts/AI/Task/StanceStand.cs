@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using Assets.Scripts.AI.Action;
+using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Planning;
 
 namespace Assets.Scripts.AI.Task
 {
@@ -27,7 +29,7 @@ namespace Assets.Scripts.AI.Task
         }
 
         /// <inheritdoc/>
-        public override IEnumerable<TaskAction> GetActions(Actor actor)
+        public override IEnumerable<TaskAction> GetActions(Actor.Actor actor)
         {
             yield break;
         }
