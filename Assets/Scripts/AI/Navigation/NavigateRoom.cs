@@ -4,6 +4,7 @@ using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
 using Assets.Scripts.Utility;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Assets.Scripts.AI.Navigation
@@ -76,9 +77,9 @@ namespace Assets.Scripts.AI.Navigation
             }
         }
 
-        protected override IEnumerable<RoomNode> Endpoints(IGoal goal)
+        protected override IEnumerable<RoomNode> Endpoints()
         {
-            return Goal.Endpoints;
+            return Goal.Endpoints.Where(node => node.Room == _room);
         }
 
         public override void UpdateStart()

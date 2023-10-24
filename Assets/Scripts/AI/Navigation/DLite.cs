@@ -126,7 +126,7 @@ namespace Assets.Scripts.AI.Navigation
 
         protected abstract void InitializeGraph();
 
-        protected abstract IEnumerable<T> Endpoints(IGoal goal);
+        protected abstract IEnumerable<T> Endpoints();
 
         /// <summary>
         /// Initializes <see cref="DLite{T}"/> for the current <see cref="IGoal"/>.
@@ -138,7 +138,7 @@ namespace Assets.Scripts.AI.Navigation
 
             InitializeGraph();
 
-            foreach (T node in Endpoints(Goal))
+            foreach (T node in Endpoints())
             {
                 SetRHS(node, 0);
 
@@ -150,7 +150,7 @@ namespace Assets.Scripts.AI.Navigation
 
         private void UpdateVertex(T node)
         {
-            if (Endpoints(Goal).All(x => !x.Equals(node)))
+            if (Endpoints().All(x => !x.Equals(node)))
             {
                 float min = float.PositiveInfinity;
                 foreach ((T node, float distance) successor in Successors(node))

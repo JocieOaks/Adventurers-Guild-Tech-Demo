@@ -19,7 +19,7 @@ namespace Assets.Scripts.AI.Navigation.Goal
         public static IEnumerable<IInteractable> FoodSources => s_foodSources;
 
         /// <inheritdoc/>
-        public IEnumerable<RoomNode> Endpoints => s_endpoints;
+        public IEnumerable<RoomNode> Endpoints => s_endpoints.Where(node => node.Traversable);
 
         /// <summary>
         /// Adds a new food source to the list of potential food sources.
