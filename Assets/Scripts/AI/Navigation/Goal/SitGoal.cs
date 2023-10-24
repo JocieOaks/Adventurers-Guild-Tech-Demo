@@ -27,7 +27,16 @@ namespace Assets.Scripts.AI.Navigation.Goal
         public static void AddSittingObject(IInteractable source)
         {
             s_sittingObjects.Add(source);
-            s_endpoints.AddRange(source.InteractionPoints.Except(s_endpoints));
+            if(Map.Map.Ready)
+                s_endpoints.AddRange(source.InteractionPoints.Except(s_endpoints));
+        }
+
+        public static void OnMapReady()
+        {
+            foreach (IInteractable source in SittingObjects)
+            {
+                s_endpoints.AddRange(source.InteractionPoints.Except(s_endpoints));
+            }
         }
 
         /// <summary>

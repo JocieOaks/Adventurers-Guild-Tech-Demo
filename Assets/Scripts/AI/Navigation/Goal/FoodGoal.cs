@@ -3,6 +3,7 @@ using System.Linq;
 using Assets.Scripts.AI.Actor;
 using Assets.Scripts.Map.Node;
 using Assets.Scripts.Map.Sprite_Object;
+using static Unity.VisualScripting.Member;
 
 namespace Assets.Scripts.AI.Navigation.Goal
 {
@@ -27,7 +28,16 @@ namespace Assets.Scripts.AI.Navigation.Goal
         public static void AddFoodSource(IInteractable source)
         {
             s_foodSources.Add(source);
-            s_endpoints.AddRange(source.InteractionPoints.Except(s_endpoints));
+            if(Map.Map.Ready)
+                s_endpoints.AddRange(source.InteractionPoints.Except(s_endpoints));
+        }
+
+        public static void OnMapReady()
+        {
+            foreach (IInteractable source in FoodSources)
+            {
+                s_endpoints.AddRange(source.InteractionPoints.Except(s_endpoints));
+            }
         }
 
         /// <summary>

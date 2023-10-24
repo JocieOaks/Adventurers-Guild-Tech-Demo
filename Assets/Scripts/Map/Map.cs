@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Navigation.Goal;
 using Assets.Scripts.Data;
 using Assets.Scripts.Data.Serializable;
 using Assets.Scripts.Map.Node;
@@ -627,6 +628,10 @@ namespace Assets.Scripts.Map
             Graphics.Instance.SetLevel();
             BuildFunctions.Confirm();
             GameManager.MapChangingSecond += BuildSectors;
+
+            SitGoal.OnMapReady();
+            LayGoal.OnMapReady();
+            FoodGoal.OnMapReady();
 
             Ready = true;
         }

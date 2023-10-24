@@ -25,12 +25,12 @@ namespace Assets.Scripts.AI.Action
         private IGoal _currentGoal;
         private readonly IGoal _primaryGoal;
 
-        private DLite DLite
+        private NavigateRoom NavigateRoom
         {
             get
             {
                 if (Pawn is AdventurerPawn pawn)
-                    return pawn.DLite;
+                    return pawn.NavigateRoom;
                 throw new AccessViolationException("Player Pawn cannot use Travel Action");
             }
         }
@@ -73,7 +73,7 @@ namespace Assets.Scripts.AI.Action
             if(!_ready)
                 return 0;
 
-            if (!DLite.IsGoalReachable(Pawn.CurrentNode))
+            if (!NavigateRoom.IsGoalReachable(Pawn.CurrentNode))
                 return -1;
 
             if (!(Pawn.CurrentStep?.IsComplete() ?? false) || _currentGoal != _primaryGoal)
@@ -131,18 +131,18 @@ namespace Assets.Scripts.AI.Action
                 if (_root != null)
                 {
                     _currentGoal = new DestinationGoal(_root.Node!.GetRoomNode(_nextNode.Room));
-                    DLite?.SetGoal(_currentGoal);
+                    NavigateRoom?.SetGoal(_currentGoal);
                     _nextConnectingNode = _root.Node;
                     _root = _root.Next;
                 }
                 else
                 {
                     _currentGoal = _primaryGoal;
-                    DLite?.SetGoal(_currentGoal);
+                    NavigateRoom?.SetGoal(_currentGoal);
                 }
             }
 
-            INode node = DLite?.GetNext(_nextNode);
+            INode node = NavigateRoom?.GetNext(_nextNode);
             if (node is RoomNode roomNode)
             {
                 _nextNode = roomNode;
@@ -157,7 +157,7 @@ namespace Assets.Scripts.AI.Action
         private void OnMapEdited()
         {
             _ready = false;
-            DLite.SetGoal(_currentGoal);
+            NavigateRoom.SetGoal(_currentGoal);
         }
 
         /// <summary>

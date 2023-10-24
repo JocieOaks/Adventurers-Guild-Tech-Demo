@@ -1,68 +1,53 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.AI.Actor;
 using Assets.Scripts.AI.Navigation.Goal;
-using Assets.Scripts.Map;
-using Assets.Scripts.Map.Node;
 using Assets.Scripts.Utility;
 using UnityEngine;
 
 namespace Assets.Scripts.AI.Navigation
 {
-    public class DLite
+    public abstract class DLite<T>
     {
-        private Room _room;
-        private IGoal _goal;
-        private RoomNode _start;
+        protected IGoal Goal;
+        protected T Start;
 
-        private PriorityQueue<RoomNode, (float, float)> _nodeQueue;
+        private PriorityQueue<T, (float, float)> _nodeQueue;
 
-        private (float gScore, float rhs, IReference reference)[,] _nodes;
-        private float _priorityAdjustment;
+       
+        protected float PriorityAdjustment;
 
-        public DLite(Pawn pawn)
+        protected DLite(Pawn pawn)
         {
             Pawn = pawn;
-            _room = pawn.Room;
         }
 
-        ///<value>The <see cref="AI.Actor.Pawn"/> whose path is being evaluated by <see cref="DLite"/>.</value>
-        // ReSharper disable once UnusedAutoPropertyAccessor.Local
-        private Pawn Pawn { get; }
+        protected abstract (float gScore, float rhs, IReference reference) NodeValues(T node);
 
-        /// <summary>
-        /// Indexer that returns the gScore, rhs and reference associated with a particular <see cref="RoomNode"/>.
-        /// </summary>
-        /// <param name="node">The <see cref="RoomNode"/> being indexed.</param>
-        /// <returns>Returns the <see cref="RoomNode"/>'s gScore, rhs and reference.</returns>
-        private (float gScore, float rhs, IReference reference) this[RoomNode node]
-        {
-            get
-            {
-                Vector3Int position = node.RoomPosition;
-                return _nodes[position.x, position.y];
-            }
-        }
+        protected abstract IEnumerable<(T, float)> Successors(T node);
 
-        public bool IsGoalReachable(RoomNode node)
+        protected Pawn Pawn;
+
+        public virtual bool IsGoalReachable(T node)
         {
-            return !float.IsPositiveInfinity(this[node].gScore) && node.Room == _room;
+            return !float.IsPositiveInfinity(NodeValues(node).gScore);
         }
 
         /// <summary>
-        /// Finds the optimal <see cref="RoomNode"/> to traverse to reach the goal destination.
+        /// Finds the optimal <see cref="T"/> to traverse to reach the goal destination.
         /// </summary>
-        /// <param name="node">The starting <see cref="RoomNode"/> for the path.</param>
-        /// <returns>Returns the next <see cref="RoomNode"/> on the path.</returns>
+        /// <param name="node">The starting <see cref="T"/> for the path.</param>
+        /// <returns>Returns the next <see cref="T"/> on the path.</returns>
         // ReSharper disable once UnusedMember.Global
-        public RoomNode GetNext(RoomNode node)
+        public T GetNext(T node)
         {
-            RoomNode next = null;
+            T next = default;
             float min = float.PositiveInfinity;
-            foreach ((RoomNode node, float distance) successor in node.NextNodes)
+            foreach ((T node, float distance) successor in Successors(node))
             {
-                float value = successor.distance + this[successor.node].gScore;
+                float value = successor.distance + NodeValues(successor.node).gScore;
                 if (value < min)
                 {
                     min = value;
@@ -74,55 +59,43 @@ namespace Assets.Scripts.AI.Navigation
         }
 
         /// <summary>
-        /// Sets the rhs value for a particular <see cref="RoomNode"/>.
+        /// Sets the rhs value for a particular <see cref="T"/>.
         /// </summary>
-        /// <param name="node">The <see cref="RoomNode"/> whose value is being set.</param>
+        /// <param name="node">The <see cref="T"/> whose value is being set.</param>
         /// <param name="value">The value the rhs is being set to.</param>
-        private void SetRHS(RoomNode node, float value)
-        {
-            Vector3Int position = node.RoomPosition;
-            _nodes[position.x, position.y].rhs = value;
-        }
+        protected abstract void SetRHS(T node, float value);
 
         /// <summary>
-        /// Sets the gScore for a particular <see cref="RoomNode"/>.
+        /// Sets the gScore for a particular <see cref="T"/>.
         /// </summary>
-        /// <param name="node">The <see cref="RoomNode"/> whose value is being set.</param>
+        /// <param name="node">The <see cref="T"/> whose value is being set.</param>
         /// <param name="value">The value the gScore is being set to.</param>
-        private void SetGScore(RoomNode node, float value)
-        {
-            Vector3Int position = node.RoomPosition;
-            _nodes[position.x, position.y].gScore = value;
-        }
+        protected abstract void SetGScore(T node, float value);
 
         /// <summary>
-        /// Sets the reference for a particular <see cref="RoomNode"/>.
+        /// Sets the reference for a particular <see cref="T"/>.
         /// </summary>
-        /// <param name="node">The <see cref="RoomNode"/> whose value is being set.</param>
+        /// <param name="node">The <see cref="T"/> whose value is being set.</param>
         /// <param name="value">The reference associated with <paramref name="node"/>.</param>
-        private void SetElement(RoomNode node, IReference value)
-        {
-            Vector3Int position = node.RoomPosition;
-            _nodes[position.x, position.y].reference = value;
-        }
+        protected abstract void SetElement(T node, IReference value);
 
-
+        protected abstract float Heuristic(T node);
 
         /// <summary>
-        /// Calculates the priority of <see cref="RoomNode"/>s used by <see cref="PriorityQueue{T1, T2}"/>.
+        /// Calculates the priority of <see cref="T"/>s used by <see cref="PriorityQueue{T1, T2}"/>.
         /// </summary>
-        /// <param name="node">The <see cref="RoomNode"/>.</param>
+        /// <param name="node">The <see cref="T"/>.</param>
         /// <returns>Returns the priority of <paramref name="node"/>.</returns>
-        private (float, float) CalculatePriority(RoomNode node)
+        private (float, float) CalculatePriority(T node)
         {
-            (float gScore, float rhs, IReference _) = this[node];
+            (float gScore, float rhs, IReference _) = NodeValues(node);
 
             float min = Mathf.Min(gScore, rhs);
-            return (min + _goal.Heuristic(node) + _priorityAdjustment, min);
+            return (min + Heuristic(node) + PriorityAdjustment, min);
         }
 
         /// <summary>
-        /// The <see cref="PriorityComparer"/> class is an <see cref="IComparer"/> that selects priority based on two float keys, used by the <see cref="DLite"/> class.
+        /// The <see cref="PriorityComparer"/> class is an <see cref="IComparer"/> that selects priority based on two float keys, used by the <see cref="DLite{T}"/> class.
         /// </summary>
         private class PriorityComparer : IComparer
         {
@@ -145,55 +118,51 @@ namespace Assets.Scripts.AI.Navigation
             }
         }
 
-        public void SetGoal(IGoal goal)
+        public virtual void SetGoal(IGoal goal)
         {
-            _goal = goal;
-            _room = Pawn.Room;
+            Goal = goal;
             Initialize();
         }
 
+        protected abstract void InitializeGraph();
+
+        protected abstract IEnumerable<T> Endpoints(IGoal goal);
+
         /// <summary>
-        /// Initializes <see cref="DLite"/> for the current <see cref="IGoal"/>.
+        /// Initializes <see cref="DLite{T}"/> for the current <see cref="IGoal"/>.
         /// </summary>
         private void Initialize()
         {
             _nodeQueue = new(PriorityComparer.Instance);
-            _priorityAdjustment = 0;
-            _nodes = new (float, float, IReference)[_room.Width, _room.Length];
+            PriorityAdjustment = 0;
 
-            for (int i = 0; i < _room.Width; i++)
-            {
-                for (int j = 0; j < _room.Length; j++)
-                {
-                    _nodes[i, j] = (float.PositiveInfinity, float.PositiveInfinity, null);
-                }
-            }
+            InitializeGraph();
 
-            foreach (RoomNode node in _goal.Endpoints)
+            foreach (T node in Endpoints(Goal))
             {
                 SetRHS(node, 0);
 
                 SetElement(node, _nodeQueue.Push(node, CalculatePriority(node)));
             }
 
-            UpdateStart(Pawn.CurrentNode);
+            UpdateStart();
         }
 
-        private void UpdateVertex(RoomNode node)
+        private void UpdateVertex(T node)
         {
-            if (_goal.Endpoints.All(x => x != node))
+            if (Endpoints(Goal).All(x => !x.Equals(node)))
             {
                 float min = float.PositiveInfinity;
-                foreach ((RoomNode node, float distance) successor in node.NextNodes)
+                foreach ((T node, float distance) successor in Successors(node))
                 {
-                    min = MathF.Min(min, this[successor.node].gScore + successor.distance);
+                    min = MathF.Min(min, NodeValues(successor.node).gScore + successor.distance);
                 }
 
                 SetRHS(node, min);
             }
 
 
-            (float gScore, float rhs, IReference reference) = this[node];
+            (float gScore, float rhs, IReference reference) = NodeValues(node);
             if(Math.Abs(gScore - rhs) < Utility.Utility.TOLERANCE) return;
             if (reference != null)
             {
@@ -206,8 +175,8 @@ namespace Assets.Scripts.AI.Navigation
         }
 
         // ReSharper disable once UnusedMember.Local
-        /*private void UpdateGoal(RoomNode newNode)
-    {
+        /*private void UpdateGoal(T newNode)
+        {
         SetRHS(newNode, 0);
         UpdateVertex(newNode);
         UpdateVertex(_goal);
@@ -215,25 +184,19 @@ namespace Assets.Scripts.AI.Navigation
         }*/
 
         // ReSharper disable once UnusedMember.Local
-        public void UpdateStart(RoomNode newNode)
-        {
-            _start = newNode;
-            if(_start != null)
-                _priorityAdjustment += Map.Map.EstimateDistance(_start, newNode);
-            EstablishPathing();
-        }
+        public abstract void UpdateStart();
 
-        private void EstablishPathing()
+        protected void EstablishPathing()
         {
-            (float gScore, float rhs, IReference _) = this[_start];
+            (float gScore, float rhs, IReference _) = NodeValues(Start);
             while (_nodeQueue.Count > 0 &&
-                   (PriorityComparer.Instance.Compare(_nodeQueue.TopPriority, CalculatePriority(_start)) == 1 ||
+                   (PriorityComparer.Instance.Compare(_nodeQueue.TopPriority, CalculatePriority(Start)) == 1 ||
                     Math.Abs(gScore - rhs) > Utility.Utility.TOLERANCE))
             {
                 (float, float) oldPriority = _nodeQueue.TopPriority;
-                RoomNode node = _nodeQueue.Pop();
+                T node = _nodeQueue.Pop();
                 (float, float) newPriority = CalculatePriority(node);
-                (gScore, rhs, _) = this[node];
+                (gScore, rhs, _) = NodeValues(node);
                 if (PriorityComparer.Instance.Compare(oldPriority, newPriority) == 1)
                 {
                     SetElement(node, _nodeQueue.Push(node, newPriority));
@@ -251,18 +214,18 @@ namespace Assets.Scripts.AI.Navigation
                         UpdateVertex(node);
                     }
 
-                    foreach ((RoomNode node, float distance) predecessor in node.NextNodes)
+                    foreach ((T node, float distance) predecessor in Successors(node))
                     {
                         UpdateVertex(predecessor.node);
                     }
                 }
 
-                (gScore, rhs, _) = this[_start];
+                (gScore, rhs, _) = NodeValues(Start);
             }
         }
 
         // ReSharper disable once UnusedMember.Global
-        public static void ConstructPrototype(RoomNode goal, out float[,] gScore)
+        public static void ConstructPrototype(T goal, out float[,] gScore)
         {
             gScore = null;
         }

@@ -32,7 +32,7 @@ namespace Assets.Scripts.AI.Actor
             set => _actor ??= value;
         }
 
-        public DLite DLite { get; private set; }
+        public NavigateRoom NavigateRoom { get; private set; }
 
         /// <value>The <see cref="Task"/> the <see cref="AdventurerPawn"/> is currently performing.</value>
         public Task.Task CurrentTask { get; private set; }
@@ -50,7 +50,7 @@ namespace Assets.Scripts.AI.Actor
             {
                 CurrentNodeField = value;
                 SpriteRenderer.enabled = GameManager.Instance.IsOnLevel(CurrentLevel) <= 0;
-                DLite?.UpdateStart(CurrentNodeField);
+                NavigateRoom?.UpdateStart();
             }
         }
 
@@ -128,7 +128,7 @@ namespace Assets.Scripts.AI.Actor
             TaskActions.Clear();
             if (!CurrentNode.Traversable)
             {
-                foreach (RoomNode node in CurrentNode.NextNodes)
+                foreach ((RoomNode node, float _) in CurrentNode.NextNodes)
                 {
                     if (node.Traversable)
                     {
@@ -174,7 +174,7 @@ namespace Assets.Scripts.AI.Actor
 
             WorldPositionNonDiscrete = WorldPosition;
 
-            DLite = new(this);
+            NavigateRoom = new(this);
 
             InitializeGameObject();
 

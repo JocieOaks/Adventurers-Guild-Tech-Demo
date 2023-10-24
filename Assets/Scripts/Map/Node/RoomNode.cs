@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Assets.Scripts.AI;
 using Assets.Scripts.AI.Actor;
 using Assets.Scripts.AI.Step;
 using Assets.Scripts.Map.Sprite_Object;
@@ -93,7 +92,7 @@ namespace Assets.Scripts.Map.Node
 
         /// <value>The <see cref="List{T}"/> of all <see cref="RoomNode"/>'s that are a single step away from this <see cref="RoomNode"/> in terms of <see cref="AdventurerPawn"/> navigation.
         /// If the list is not already made it will be created.</value>
-        public IEnumerable NextNodes
+        public IEnumerable<(RoomNode,float)> NextNodes
         {
             get
             {

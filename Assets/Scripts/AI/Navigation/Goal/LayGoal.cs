@@ -27,7 +27,16 @@ namespace Assets.Scripts.AI.Navigation.Goal
         public static void AddLayingObject(IInteractable source)
         {
             s_layingObjects.Add(source);
-            s_endpoints.AddRange(source.InteractionPoints.Except(s_endpoints));
+            if(Map.Map.Ready)
+                s_endpoints.AddRange(source.InteractionPoints.Except(s_endpoints));
+        }
+
+        public static void OnMapReady()
+        {
+            foreach (IInteractable source in LayingObjects)
+            {
+                s_endpoints.AddRange(source.InteractionPoints.Except(s_endpoints));
+            }
         }
 
         /// <summary>
