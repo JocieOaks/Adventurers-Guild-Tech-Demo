@@ -2,6 +2,7 @@
 using System.Linq;
 using Assets.Scripts.AI.Action;
 using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Navigation.Goal;
 using Assets.Scripts.AI.Planning;
 using Assets.Scripts.Map.Sprite_Object;
 
@@ -25,11 +26,8 @@ namespace Assets.Scripts.AI.Task
         /// <param name="seat">The <see cref="IOccupied"/> to be sat in.</param>
         public StanceSit(IOccupied seat) : base(null, true, null, null)
         {
-            this._seat = seat;
+            _seat = seat;
         }
-
-        /// <value>The list of all <see cref="IInteractable"/>s that can be sat on.</value>
-        public static List<IInteractable> SittingObjects { get; } = new();
 
         /// <inheritdoc/>
         public override WorldState ChangeWorldState(WorldState worldState)
@@ -46,7 +44,7 @@ namespace Assets.Scripts.AI.Task
         /// <inheritdoc/>
         public override bool ConditionsMet(WorldState worldState)
         {
-            return base.ConditionsMet(worldState) && InteractablesCondition(worldState, SittingObjects) && worldState.PreviousTask is not StanceStand && worldState.PreviousTask is not StanceLay;
+            return base.ConditionsMet(worldState) && InteractablesCondition(worldState, SitGoal.SittingObjects) && worldState.PreviousTask is not StanceStand && worldState.PreviousTask is not StanceLay;
         }
 
         /// <inheritdoc/>
@@ -95,7 +93,7 @@ namespace Assets.Scripts.AI.Task
         {
             float closestDistance = float.PositiveInfinity;
             IOccupied best = null;
-            foreach (IInteractable interactable in SittingObjects)
+            foreach (IInteractable interactable in SitGoal.SittingObjects)
             {
                 var chair = (IOccupied)interactable;
                 if (!chair.Occupied)

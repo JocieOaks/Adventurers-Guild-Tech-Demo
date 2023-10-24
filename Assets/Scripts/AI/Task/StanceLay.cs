@@ -2,6 +2,7 @@
 using System.Linq;
 using Assets.Scripts.AI.Action;
 using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Navigation.Goal;
 using Assets.Scripts.AI.Planning;
 using Assets.Scripts.Map.Sprite_Object;
 using Assets.Scripts.Map.Sprite_Object.Furniture;
@@ -29,9 +30,6 @@ namespace Assets.Scripts.AI.Task
             this._bed = bed;
         }
 
-        /// <value>The list of all <see cref="IInteractable"/>s that can be laid on by a <see cref="AdventurerPawn"/>.</value>
-        public static List<IInteractable> LayingObjects { get; } = new();
-
         /// <inheritdoc/>
         public override WorldState ChangeWorldState(WorldState worldState)
         {
@@ -46,7 +44,7 @@ namespace Assets.Scripts.AI.Task
         /// <inheritdoc/>
         public override bool ConditionsMet(WorldState worldState)
         {
-            return base.ConditionsMet(worldState) && InteractablesCondition(worldState, LayingObjects) && worldState.PreviousTask is not StanceSit && worldState.PreviousTask is not StanceStand;
+            return base.ConditionsMet(worldState) && InteractablesCondition(worldState, LayGoal.LayingObjects) && worldState.PreviousTask is not StanceSit && worldState.PreviousTask is not StanceStand;
         }
 
         /// <inheritdoc/>
@@ -95,7 +93,7 @@ namespace Assets.Scripts.AI.Task
         {
             float closestDistance = float.PositiveInfinity;
             BedSprite best = null;
-            foreach (IInteractable interactable in LayingObjects)
+            foreach (IInteractable interactable in LayGoal.LayingObjects)
             {
                 var bed = (BedSprite)interactable;
                 if (!bed.Occupied)

@@ -3,31 +3,41 @@ using Assets.Scripts.Map.Node;
 
 namespace Assets.Scripts.AI.Navigation.Goal
 {
+    /// <summary>
+    /// The <see cref="DestinationGoal"/> class is an <see cref="IGoal"/> for traveling to a specified <see cref="RoomNode"/>.
+    /// </summary>
     public class DestinationGoal :IGoal
     {
-        public RoomNode Destination { get; }
+        private readonly RoomNode _destination;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DestinationGoal"/> class.
+        /// </summary>
+        /// <param name="destination">The destination trying to be reached.</param>
         public DestinationGoal(RoomNode destination)
         {
-            Destination = destination;
+            _destination = destination;
         }
 
+        /// <inheritdoc/>
         public IEnumerable<RoomNode> Endpoints
         {
             get
             {
-                yield return Destination;
+                yield return _destination;
             }
         }
 
+        /// <inheritdoc/>
         public float Heuristic(RoomNode start)
         {
-            return Map.Map.EstimateDistance(start, Destination);
+            return Map.Map.EstimateDistance(start, _destination);
         }
 
-        public int IsComplete(RoomNode position)
+        /// <inheritdoc/>
+        public bool IsComplete(RoomNode position)
         {
-            return position == Destination ? 1 : position.Room != Destination.Room ? -1 : 0;
+            return position == _destination;
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Linq;
 using Assets.Scripts.AI;
 using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Navigation.Goal;
 using Assets.Scripts.AI.Task;
 using Assets.Scripts.Map.Node;
 using Newtonsoft.Json;
@@ -31,7 +32,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
         public BedSprite(Vector3Int worldPosition) :
             base(5, s_sprites, Direction.Undirected, worldPosition, "Bed", ObjectDimensions, true)
         {
-            StanceLay.LayingObjects.Add(this);
+            LayGoal.AddLayingObject(this);
             SpriteRenderers[1].sprite = Graphics.Instance.BedSprite[0];
             SpriteRenderers[1].sortingOrder = Utility.Utility.GetSortOrder(WorldPosition + Vector3Int.up);
 
@@ -140,7 +141,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
         /// <inheritdoc/>
         public override void Destroy()
         {
-            StanceLay.LayingObjects.Remove(this);
+            LayGoal.RemoveLayingObject(this);
             base.Destroy();
         }
 

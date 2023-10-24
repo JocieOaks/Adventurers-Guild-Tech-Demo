@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Assets.Scripts.AI;
 using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Navigation.Goal;
 using Assets.Scripts.AI.Step;
 using Assets.Scripts.AI.Task;
 using Assets.Scripts.Map.Node;
@@ -34,7 +34,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
             : base(1,  s_sprites, direction, worldPosition, "Chair", ObjectDimensions, true)
         {
             Direction = direction;
-            StanceSit.SittingObjects.Add(this);
+            SitGoal.AddSittingObject(this);
         }
 
         /// <value>The 3D dimensions of a <see cref="ChairSprite"/> in terms of <see cref="Map"/> coordinates.</value>
@@ -91,7 +91,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
         {
             get
             {
-                yield return Node as RoomNode;
+                yield return Node;
             }
         }
 
@@ -157,7 +157,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
         /// <inheritdoc/>
         public override void Destroy()
         {
-            StanceSit.SittingObjects.Remove(this);
+            SitGoal.RemoveSittingObject(this);
             base.Destroy();
         }
 

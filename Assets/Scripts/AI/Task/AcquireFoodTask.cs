@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Assets.Scripts.AI.Action;
 using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Navigation.Goal;
 using Assets.Scripts.AI.Planning;
 using Assets.Scripts.Map.Sprite_Object;
 
@@ -11,9 +12,6 @@ namespace Assets.Scripts.AI.Task
     /// </summary>
     public class AcquireFoodTask : Task, ISetupTask, IRecoverableTask
     {
-        /// <value>The list of all <see cref="IInteractable"/>s from which a <see cref="AdventurerPawn"/> can get food.</value>
-        public static List<IInteractable> FoodSources = new();
-
         /// <summary>
         /// Initializes a new instance of the <see cref="AcquireFoodTask"/> class.
         /// </summary>
@@ -33,7 +31,7 @@ namespace Assets.Scripts.AI.Task
         /// <inheritdoc/>
         public override bool ConditionsMet(WorldState worldState)
         {
-            return !worldState.PrimaryActor.HasFood && base.ConditionsMet(worldState) && InteractablesCondition(worldState, FoodSources);
+            return !worldState.PrimaryActor.HasFood && base.ConditionsMet(worldState) && InteractablesCondition(worldState, FoodGoal.FoodSources);
         }
 
         /// <inheritdoc/>
@@ -83,7 +81,7 @@ namespace Assets.Scripts.AI.Task
         {
             float closestDistance = float.PositiveInfinity;
             IInteractable best = null;
-            foreach (IInteractable foodSource in FoodSources)
+            foreach (IInteractable foodSource in FoodGoal.FoodSources)
             {
                 float distance = Map.Map.Instance.ApproximateDistance(profile.Position, foodSource.WorldPosition);
                 if (distance < closestDistance)

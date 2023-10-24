@@ -67,7 +67,7 @@ namespace Assets.Scripts.AI.Task
         /// <param name="worldState">The predicted <see cref="WorldState"/> for when the <see cref="Task"/> will occur.</param>
         /// <param name="interactables">A list of <see cref="IInteractable"/>s that can potentially be used to perform a <see cref="Task"/>.</param>
         /// <returns></returns>
-        protected static bool InteractablesCondition(WorldState worldState, List<IInteractable> interactables)
+        protected static bool InteractablesCondition(WorldState worldState, IEnumerable<IInteractable> interactables)
         {
             return interactables.Any(x =>
                 {

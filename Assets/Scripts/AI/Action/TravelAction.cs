@@ -73,18 +73,13 @@ namespace Assets.Scripts.AI.Action
             if(!_ready)
                 return 0;
 
-            int complete = _currentGoal?.IsComplete(Pawn.CurrentNode) ?? -1;
-            if (complete == -1)
+            if (!DLite.IsGoalReachable(Pawn.CurrentNode))
                 return -1;
+
             if (!(Pawn.CurrentStep?.IsComplete() ?? false) || _currentGoal != _primaryGoal)
                 return 0;
 
-
-            if (DLite.IsGoalReachable(Pawn.CurrentNode))
-                return complete;
-
-            GameManager.MapChanged -= OnMapEdited;
-            return -1;
+            return _currentGoal?.IsComplete(Pawn.CurrentNode) ?? false ? 1 : 0;
         }
 
         /// <inheritdoc/>
@@ -125,7 +120,7 @@ namespace Assets.Scripts.AI.Action
         /// </summary>
         private void NextStep()
         {
-            if ((_currentGoal?.IsComplete(Pawn.CurrentNode) ?? 1) == 1 || Pawn.CurrentStep is TraverseStep)
+            if ((_currentGoal?.IsComplete(Pawn.CurrentNode) ?? true) || Pawn.CurrentStep is TraverseStep)
             {
                 if (_nextConnectingNode != null && Pawn.CurrentStep is not TraverseStep)
                 {

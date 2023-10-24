@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Assets.Scripts.AI;
 using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Navigation.Goal;
 using Assets.Scripts.AI.Task;
 using Assets.Scripts.Map.Node;
 using Newtonsoft.Json;
@@ -29,11 +29,11 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
         public StoolSprite(Vector3Int worldPosition)
             : base(1, s_sprites, Direction.Undirected, worldPosition, "Stool", ObjectDimensions, true)
         {
-            StanceSit.SittingObjects.Add(this);
+            SitGoal.AddSittingObject(this);
         }
 
         /// <value>The 3D dimensions of a <see cref="StoolSprite"/> in terms of <see cref="Map"/> coordinates.</value>
-        public new static Vector3Int ObjectDimensions { get; } = new Vector3Int(1, 1, 2);
+        public new static Vector3Int ObjectDimensions { get; } = new(1, 1, 2);
 
         /// <inheritdoc/>
         [JsonIgnore]
@@ -128,7 +128,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
         /// <inheritdoc/>
         public override void Destroy()
         {
-            StanceSit.SittingObjects.Remove(this);
+            SitGoal.RemoveSittingObject(this);
             base.Destroy();
         }
 

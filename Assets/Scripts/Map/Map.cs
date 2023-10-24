@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Assets.Scripts.AI;
 using Assets.Scripts.AI.Actor;
 using Assets.Scripts.Data;
 using Assets.Scripts.Data.Serializable;
@@ -41,6 +40,16 @@ namespace Assets.Scripts.Map
         Center = 2,
         /// <summary>Is positioned in the lower corner of the tile.</summary>
         Corner = 3
+    }
+
+    /// <summary>
+    /// Enum referring to targets on the map for AI actions.
+    /// </summary>
+    public enum PointOfInterest
+    {
+        Food,
+        Sit,
+        Lay
     }
 
     /// <summary>

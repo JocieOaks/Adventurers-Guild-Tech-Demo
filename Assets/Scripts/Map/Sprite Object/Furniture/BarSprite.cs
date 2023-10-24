@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using Assets.Scripts.AI.Navigation.Goal;
 using Assets.Scripts.AI.Step;
-using Assets.Scripts.AI.Task;
 using Assets.Scripts.Map.Node;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -30,6 +30,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
         public BarSprite(Direction direction, Vector3Int worldPosition)
             : base(2, s_sprites, direction, worldPosition, "Bar", ObjectDimensions, true)
         {
+            FoodGoal.AddFoodSource(this);
             Direction = direction;
             SpriteRenderers[1].sprite = Alignment == MapAlignment.XEdge ? Graphics.Instance.BarX[1] : Graphics.Instance.BarY[1];
             SpriteRenderers[1].sortingOrder = Utility.Utility.GetSortOrder(WorldPosition + (Alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left));
@@ -182,20 +183,13 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
         /// <inheritdoc/>
         public override void Destroy()
         {
-            AcquireFoodTask.FoodSources.Remove(this);
+            FoodGoal.RemoveFoodSource(this);
             base.Destroy();
         }
 
         /// <inheritdoc/>
         public void ReserveInteractionPoints()
         { }
-
-        /// <inheritdoc/>
-        protected override void OnConfirmingObjects()
-        {
-            AcquireFoodTask.FoodSources.Add(this);
-            base.OnConfirmingObjects();
-        }
 
         /// <inheritdoc/>
         protected override void OnMapChanging()
