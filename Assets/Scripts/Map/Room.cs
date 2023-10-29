@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -427,7 +428,7 @@ namespace Assets.Scripts.Map
         {
             if (!_updating)
             {
-                GameManager.MapChangingFirst += UpdatePaths;
+                GameManager.MapChanging += WhenMapChanging;
                 _updating = true;
             }
         }
@@ -637,6 +638,11 @@ namespace Assets.Scripts.Map
             }
         }
 
+        private void WhenMapChanging(object sender, EventArgs eventArgs)
+        {
+            UpdatePaths();
+        }
+
         /// <summary>
         /// Update's the pathways between the <see cref="ConnectingNode"/>s that border this <see cref="Room"/>.
         /// </summary>
@@ -670,7 +676,7 @@ namespace Assets.Scripts.Map
             }
 
             _updating = false;
-            GameManager.MapChangingFirst -= UpdatePaths;
+            GameManager.MapChanging -= WhenMapChanging;
         }
     }
 }

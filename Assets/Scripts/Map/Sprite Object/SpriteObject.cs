@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Assets.Scripts.AI;
@@ -7,6 +8,7 @@ using Assets.Scripts.Map.Sprite_Object.Furniture;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Assets.Scripts.Map.Sprite_Object
 {
@@ -71,8 +73,8 @@ namespace Assets.Scripts.Map.Sprite_Object
 
             Map.Instance.StartCoroutine(WaitForMap());
 
-            Graphics.LevelChanged += OnLevelChanged;
-            GameManager.MapChangingSecond += OnMapChanging;
+            Graphics.LevelChanged += WhenLevelChanged;
+            GameManager.MapChangingLate += WhenMapChanging;
 
             if (this is not WallSprite && this is not StairSprite && this is not FloorSprite)
                 DataPersistenceManager.Instance.NonMonoDataPersistenceObjects.Add(this);
@@ -82,7 +84,7 @@ namespace Assets.Scripts.Map.Sprite_Object
         [UsedImplicitly]
         public static Vector3Int ObjectDimensions => throw
             //ObjectDimensions should be hidden by any child class. This is only here in case a child class doesn't set it's dimensions so that it can throw an exception.
-            new System.AccessViolationException("Should not be trying to access abstract class dimensions.");
+            new AccessViolationException("Should not be trying to access abstract class dimensions.");
 
         /// <inheritdoc/>
         [JsonIgnore]
@@ -151,9 +153,9 @@ namespace Assets.Scripts.Map.Sprite_Object
         /// <inheritdoc/>
         public virtual void Destroy()
         {
-            Graphics.LevelChanged -= OnLevelChanged;
-            Graphics.ResettingSprite -= ResetSprite;
-            GameManager.MapChangingSecond -= OnMapChanging;
+            Graphics.LevelChanged -= WhenLevelChanged;
+            Graphics.ResettingSprite -= WhenResettingSprite;
+            GameManager.MapChangingLate -= WhenMapChanging;
 
             if (_blocking)
             {
@@ -195,7 +197,7 @@ namespace Assets.Scripts.Map.Sprite_Object
             foreach (SpriteRenderer renderer in SpriteRenderers)
                 renderer.color = color;
 
-            Graphics.ResettingSprite += ResetSprite;
+            Graphics.ResettingSprite += WhenResettingSprite;
         }
 
         /// <inheritdoc/>
@@ -314,7 +316,7 @@ namespace Assets.Scripts.Map.Sprite_Object
         /// <summary>
         /// Called when the game camera changes which level it is showing.
         /// </summary>
-        protected virtual void OnLevelChanged()
+        protected virtual void WhenLevelChanged(object sender, EventArgs eventArgs)
         {
             int level = GameManager.Instance.IsOnLevel(WorldPosition.z);
             if (level > 0)
@@ -330,9 +332,14 @@ namespace Assets.Scripts.Map.Sprite_Object
         /// <summary>
         /// Called whenever the <see cref="Map"/> changes.
         /// </summary>
-        protected virtual void OnMapChanging()
+        protected virtual void WhenMapChanging(object sender, EventArgs eventArgs)
         {
 
+        }
+
+        protected void WhenResettingSprite(object sender, EventArgs eventArgs)
+        {
+            ResetSprite();
         }
 
         /// <summary>
@@ -345,7 +352,7 @@ namespace Assets.Scripts.Map.Sprite_Object
                 renderer.color = Color.white;
             }
 
-            Graphics.ResettingSprite -= ResetSprite;
+            Graphics.ResettingSprite -= WhenResettingSprite;
         }
         /// <summary>
         /// Coroutine called by the <see cref="SpriteObject"/> constructor for processes that have to wait until after the <see cref="Map"/> has completed setup at game start.

@@ -16,10 +16,8 @@ namespace Assets.Scripts.AI
         private Actor _actor;
         private Planner _planner;
 
-#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
-        [SerializeField] private SpriteRenderer _emoji;
-        [SerializeField] private SpriteRenderer _speechBubble;
-#pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
+        [SerializeField][UsedImplicitly] private SpriteRenderer _emoji;
+        [SerializeField][UsedImplicitly] private SpriteRenderer _speechBubble;
 
         /// <value>The <see cref="AdventurerPawn"/>'s corresponding <see cref="AI.Actor"/>.</value>
         public Actor Actor
@@ -163,9 +161,9 @@ namespace Assets.Scripts.AI
 
             Map.Map.Instance[0].EnterRoom(this);
 
-            Graphics.LevelChanged += OnLevelChange;
-            Graphics.UpdatedGraphics += BuildSpriteMask;
-            Graphics.LevelChangedLate += BuildSpriteMask;
+            Graphics.LevelChanged += WhenLevelChanging;
+            Graphics.UpdatedGraphics += WhenUpdatedGraphics;
+            Graphics.LevelChangedLate += WhenUpdatedGraphics;
 
             Ready = true;
         }

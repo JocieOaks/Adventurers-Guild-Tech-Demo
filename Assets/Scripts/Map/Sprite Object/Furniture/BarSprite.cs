@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Assets.Scripts.AI.Step;
 using Assets.Scripts.AI.Task;
 using Assets.Scripts.Map.Node;
@@ -190,15 +191,17 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
         public void ReserveInteractionPoints()
         { }
 
+        /// <param name="sender"></param>
+        /// <param name="eventArgs"></param>
         /// <inheritdoc/>
-        protected override void OnConfirmingObjects()
+        protected override void Confirm()
         {
             AcquireFoodTask.FoodSources.Add(this);
-            base.OnConfirmingObjects();
+            base.Confirm();
         }
 
-        /// <inheritdoc/>
-        protected override void OnMapChanging()
+        /// <inheritdoc />
+        protected override void WhenMapChanging(object sender, EventArgs eventArgs)
         {
             _interactionPoints = null;
         }

@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.AI;
+﻿using System;
+using Assets.Scripts.AI;
 using Assets.Scripts.Map.Node;
 using UnityEngine;
 
@@ -25,18 +26,23 @@ namespace Assets.Scripts.Map.Sprite_Object
         protected AreaSpriteObject(int spriteCount, Sprite[] sprites, Direction direction, Vector3Int position, string name, Vector3Int dimensions, bool blocking) : base(spriteCount, sprites, direction, position, name, dimensions, blocking)
         {
             SpriteRenderer.color = Graphics.Instance.HighlightColor;
-            BuildFunctions.ConfirmingObjects += OnConfirmingObjects;
-            BuildFunctions.CheckingAreaConstraints += OnCheckingConstraints;
+            BuildFunctions.ConfirmingObjects += WhenConfirmingObjects;
+            BuildFunctions.CheckingAreaConstraints += WhenCheckingConstraints;
         }
 
         /// <summary>
         /// Called when the created <see cref="AreaSpriteObject"/>s are confirmed.
         /// </summary>
-        protected virtual void OnConfirmingObjects()
+        protected void WhenConfirmingObjects(object sender, EventArgs eventArgs)
+        {
+            Confirm();
+        }
+
+        protected virtual void Confirm()
         {
             SpriteRenderer.color = Color.white;
-            BuildFunctions.CheckingAreaConstraints -= OnCheckingConstraints;
-            BuildFunctions.ConfirmingObjects -= OnConfirmingObjects;
+            BuildFunctions.CheckingAreaConstraints -= WhenCheckingConstraints;
+            BuildFunctions.ConfirmingObjects -= WhenConfirmingObjects;
         }
 
         /// <summary>
@@ -44,17 +50,17 @@ namespace Assets.Scripts.Map.Sprite_Object
         /// </summary>
         /// <param name="start">The position of first corner of the area.</param>
         /// <param name="end">The position of the second corner of the area.</param>
-        protected virtual void OnCheckingConstraints(Vector3Int start, Vector3Int end)
+        protected virtual void WhenCheckingConstraints(object sender, AreaEventArgs areaEventArgs)
         {
-            int minX = start.x < end.x ? start.x : end.x;
-            int maxX = start.x > end.x ? start.x : end.x;
-            int minY = start.y < end.y ? start.y : end.y;
-            int maxY = start.y > end.y ? start.y : end.y;
+            int minX = areaEventArgs.Start.x < areaEventArgs.End.x ? areaEventArgs.Start.x : areaEventArgs.End.x;
+            int maxX = areaEventArgs.Start.x > areaEventArgs.End.x ? areaEventArgs.Start.x : areaEventArgs.End.x;
+            int minY = areaEventArgs.Start.y < areaEventArgs.End.y ? areaEventArgs.Start.y : areaEventArgs.End.y;
+            int maxY = areaEventArgs.Start.y > areaEventArgs.End.y ? areaEventArgs.Start.y : areaEventArgs.End.y;
 
             if (WorldPosition.x < minX || WorldPosition.y < minY || WorldPosition.x > maxX || WorldPosition.y > maxY)
             {
-                BuildFunctions.ConfirmingObjects -= OnConfirmingObjects;
-                BuildFunctions.CheckingAreaConstraints -= OnCheckingConstraints;
+                BuildFunctions.ConfirmingObjects -= WhenConfirmingObjects;
+                BuildFunctions.CheckingAreaConstraints -= WhenCheckingConstraints;
 
                 Destroy();
             }

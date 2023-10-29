@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -119,7 +120,7 @@ namespace Assets.Scripts.AI
         /// <summary>
         /// Called each frame. Sets Pawns to face one another.
         /// </summary>
-        public void Update()
+        public void Update(object sender, EventArgs eventArgs)
         {
             foreach (AdventurerPawn pawn in _pawns)
             {
@@ -134,7 +135,7 @@ namespace Assets.Scripts.AI
         /// <summary>
         /// Called each GameManager tick to update the Duration.
         /// </summary>
-        private void OnTicked()
+        private void OnTicked(object sender, EventArgs eventArgs)
         {
             Duration++;
         }

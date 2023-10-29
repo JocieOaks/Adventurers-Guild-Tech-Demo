@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using Assets.Scripts.AI.Step;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
@@ -140,7 +141,7 @@ namespace Assets.Scripts.AI.Action
         /// <summary>
         /// Called whenever the <see cref="Map"/> has been updated.
         /// </summary>
-        private void OnMapEdited()
+        private void OnMapEdited(object sender, EventArgs eventArgs)
         {
             _ready = false;
             _root = null;

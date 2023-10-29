@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ using JetBrains.Annotations;
 using Unity.Jobs;
 using UnityEngine;
 using GUI = Assets.Scripts.UI.GUI;
+using Random = UnityEngine.Random;
 
 
 namespace Assets.Scripts
@@ -46,18 +48,29 @@ namespace Assets.Scripts
         private int _lastQuestTick;
         private WallDisplayMode _playWallMode;
         private float _time;
-        public static event System.Action MapChanged;
 
-        public static event System.Action MapChangingFirst;
+        /// <summary>
+        /// Invoked when the <see cref="Map"/> has been modified.
+        /// </summary>
+        public static event EventHandler MapChanged;
 
-        public static event System.Action MapChangingSecond;
+        public static event EventHandler MapChanging;
+
+        /// <summary>
+        /// Invoked when the <see cref="Map"/> is being modified, but after <see cref="MapChanging"/> is called.
+        /// </summary>
+
+        public static event EventHandler MapChangingLate;
 
         /// <summary>
         /// Invoked each frame. Used for classes that don't inherit from <see cref="MonoBehaviour"/>.
         /// </summary>
-        public static event System.Action NonMonoUpdate;
+        public static event EventHandler NonMonoUpdate;
 
-        public static event System.Action Ticked;
+        /// <summary>
+        /// Invoked every second while the game is not paused.
+        /// </summary>
+        public static event EventHandler Ticked;
 
         /// <value>The primary game camera.</value>
         public static Camera Camera => Camera.main;
@@ -151,9 +164,9 @@ namespace Assets.Scripts
                     Graphics.Instance.ResetSprite();
                     GUI.Instance.SwitchMode(false);
                     Graphics.Instance.Mode = _playWallMode;
-                    MapChangingFirst?.Invoke();
-                    MapChangingSecond?.Invoke();
-                    MapChanged?.Invoke();
+                    MapChanging?.Invoke(this, EventArgs.Empty);
+                    MapChangingLate?.Invoke(this, EventArgs.Empty);
+                    MapChanged?.Invoke(this, EventArgs.Empty);
 
 #if DEBUG
                     DebugHighlightRoomNodes();
@@ -372,8 +385,8 @@ namespace Assets.Scripts
         {
             yield return new WaitUntil(() => Map.Map.Ready && ObjectsReady <= 0);
 
-            MapChangingFirst?.Invoke();
-            MapChangingSecond?.Invoke();
+            MapChanging?.Invoke(this, EventArgs.Empty);
+            MapChangingLate?.Invoke(this, EventArgs.Empty);
 #if DEBUG
             DebugHighlightRoomNodes();
 #endif
@@ -479,7 +492,7 @@ namespace Assets.Scripts
                 return false;
             });
 
-            Ticked?.Invoke();
+            Ticked?.Invoke(this, EventArgs.Empty);
         }
 
         [SerializeField] private PlayerPawn _player;
@@ -500,7 +513,7 @@ namespace Assets.Scripts
                 Camera.transform.position = _player.transform.position + Vector3.back * 10;
             }
 
-            NonMonoUpdate?.Invoke();
+            NonMonoUpdate?.Invoke(this, EventArgs.Empty);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.AI;
+﻿using System;
+using Assets.Scripts.AI;
 using Assets.Scripts.Map.Node;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -38,7 +39,14 @@ namespace Assets.Scripts.Map.Sprite_Object
         /// <summary>
         /// Called when the created <see cref="LinearSpriteObject"/>s are confirmed.
         /// </summary>
-        protected virtual void OnConfirmingObjects()
+        /// <param name="sender"></param>
+        /// <param name="eventArgs"></param>
+        private void OnConfirmingObjects(object sender, EventArgs eventArgs)
+        {
+            Confirm();
+        }
+
+        protected virtual void Confirm()
         {
             BuildFunctions.CheckingLineConstraints -= OnCheckingConstraints;
             BuildFunctions.ConfirmingObjects -= OnConfirmingObjects;
@@ -47,11 +55,11 @@ namespace Assets.Scripts.Map.Sprite_Object
         /// <summary>
         /// Called when constraints are checked. Destroys the <see cref="LinearSpriteObject"/> if it isn't within the constraints.
         /// </summary>
-        /// <param name="start">The minimum value the <see cref="LinearSpriteObject"/> must be within, corresponding to the <see cref="Alignment"/>.</param>
-        /// <param name="end">The maximum value the <see cref="LinearSpriteObject"/> must be within, corresponding to the <see cref="Alignment"/>.</param>
-        private void OnCheckingConstraints(int start, int end)
+        /// <param name="sender"></param>
+        /// <param name="lineEventArgs"></param>
+        private void OnCheckingConstraints(object sender, LineEventArgs lineEventArgs)
         {
-            if (Alignment == MapAlignment.XEdge && (WorldPosition.x < start || WorldPosition.x > end) || Alignment == MapAlignment.YEdge && (WorldPosition.y < start || WorldPosition.y > end))
+            if (Alignment == MapAlignment.XEdge && (WorldPosition.x < lineEventArgs.Start || WorldPosition.x > lineEventArgs.End) || Alignment == MapAlignment.YEdge && (WorldPosition.y < lineEventArgs.Start || WorldPosition.y > lineEventArgs.End))
             {
                 BuildFunctions.ConfirmingObjects -= OnConfirmingObjects;
                 BuildFunctions.CheckingLineConstraints -= OnCheckingConstraints;

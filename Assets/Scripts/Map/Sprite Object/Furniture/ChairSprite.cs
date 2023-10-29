@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.AI;
 using Assets.Scripts.AI.Step;
@@ -228,7 +229,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
         }
 
         /// <inheritdoc/>
-        protected override void OnMapChanging()
+        protected override void WhenMapChanging(object sender, EventArgs eventArgs)
         {
             ReserveInteractionPoints();
         }

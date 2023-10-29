@@ -75,7 +75,7 @@ namespace Assets.Scripts.Map.Node
             FirstNode.Room.AddConnection(this);
             SecondNode.Room.AddConnection(this);
 
-            GameManager.MapChangingSecond -= RegisterRooms;
+            GameManager.MapChangingLate -= WhenMapChanging;
         }
     }
 }

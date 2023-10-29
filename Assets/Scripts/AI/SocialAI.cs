@@ -1,9 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Specialized;
 using Assets.Scripts.AI.Action;
 using Assets.Scripts.AI.Task;
 using Assets.Scripts.Map;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Assets.Scripts.AI
 {
@@ -167,7 +169,7 @@ namespace Assets.Scripts.AI
         /// <summary>
         /// Called each <see cref="GameManager"/> tick. Each tick, the <see cref="AdventurerPawn"/> has a random chance of speaking.
         /// </summary>
-        private void OnTicked()
+        private void OnTicked(object sender, EventArgs eventArgs)
         {
             if (_pawn.Room is Layer && CanSpeak())
             {

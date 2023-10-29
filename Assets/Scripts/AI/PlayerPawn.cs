@@ -144,9 +144,9 @@ namespace Assets.Scripts.AI
 
             InitializeGameObject();
 
-            Graphics.LevelChanged += OnLevelChange;
-            Graphics.UpdatedGraphics += BuildSpriteMask;
-            Graphics.LevelChangedLate += BuildSpriteMask;
+            Graphics.LevelChanged += WhenLevelChanging;
+            Graphics.UpdatedGraphics += WhenUpdatedGraphics;
+            Graphics.LevelChangedLate += WhenUpdatedGraphics;
 
             var race = (Race)Random.Range(0, 4);
 

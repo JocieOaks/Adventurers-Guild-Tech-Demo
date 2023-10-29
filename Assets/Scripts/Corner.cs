@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
@@ -97,7 +98,7 @@ namespace Assets.Scripts
         private void Awake()
         {
             _spriteRenderer = GetComponent<SpriteRenderer>();
-            Graphics.UpdatedGraphics += SetCornerMode;
+            Graphics.UpdatedGraphics += WhenUpdatedGraphics;
             Graphics.LevelChangedLate += OnLevelChange;
         }
 
@@ -112,7 +113,7 @@ namespace Assets.Scripts
             switch (_spriteIndex)
             {
                 case -1:
-                    Graphics.UpdatedGraphics -= SetCornerMode;
+                    Graphics.UpdatedGraphics -= WhenUpdatedGraphics;
                     Graphics.LevelChangedLate -= OnLevelChange;
 
                     West?.WallSprite.MaskCorner(0);
@@ -172,10 +173,15 @@ namespace Assets.Scripts
             }
         }
 
+        private void WhenUpdatedGraphics(object sender, EventArgs eventArgs)
+        {
+            SetCornerMode();
+        }
+
         /// <summary>
         /// Called whenever the level changes, to determine how the <see cref="Corner"/> should be rendered.
         /// </summary>
-        private void OnLevelChange()
+        private void OnLevelChange(object sender, EventArgs eventArgs)
         {
             int level = GameManager.Instance.IsOnLevel(_position.z);
             if (level > 0)

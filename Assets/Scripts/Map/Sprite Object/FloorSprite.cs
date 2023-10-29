@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Assets.Scripts.Map.Node;
 using UnityEngine;
@@ -21,10 +22,7 @@ namespace Assets.Scripts.Map.Sprite_Object
                 return;
 
             SpriteRenderer.sortingOrder = Utility.Utility.GetSortOrder(position) - 4;
-            SpriteRenderer.color = Color.white;
-
-            BuildFunctions.CheckingAreaConstraints -= OnCheckingConstraints;
-            BuildFunctions.ConfirmingObjects -= OnConfirmingObjects;
+            Confirm();
         }
 
         /// <value>The current index for any <see cref="FloorSprite"/>s placed.</value>
@@ -42,13 +40,13 @@ namespace Assets.Scripts.Map.Sprite_Object
                 if (value)
                 {
                     Sprite = Graphics.Instance.FloorSprites[_spriteIndex];
-                    Graphics.LevelChanged += OnLevelChanged;
+                    Graphics.LevelChanged += WhenLevelChanged;
 
                 }
                 else
                 {
                     Sprite = null;
-                    Graphics.LevelChanged -= OnLevelChanged;
+                    Graphics.LevelChanged -= WhenLevelChanged;
                 }
             }
         }
@@ -82,7 +80,7 @@ namespace Assets.Scripts.Map.Sprite_Object
                 if (GameManager.Instance.IsOnLevel(WorldPosition.z) > 0)
                     SpriteRenderer.enabled = false;
 
-                Graphics.LevelChanged += OnLevelChanged;
+                Graphics.LevelChanged += WhenLevelChanged;
             }
         }
 
@@ -97,7 +95,7 @@ namespace Assets.Scripts.Map.Sprite_Object
         }
 
         /// <summary>
-        /// Enables the <see cref="FloorSprite"/> at the given <see cref="Map"/> position, but does not confirm it until <see cref="OnConfirmingObjects"/> is called.
+        /// Enables the <see cref="FloorSprite"/> at the given <see cref="Map"/> position, but does not confirm it until <see cref="WhenConfirmingObjects"/> is called.
         /// </summary>
         /// <param name="position">The <see cref="Map"/> position where the <see cref="FloorSprite"/> should be enabled.</param>
         public static void CreateFloor(Vector3Int position)
@@ -105,8 +103,8 @@ namespace Assets.Scripts.Map.Sprite_Object
             FloorSprite floor = Map.Instance[position].Floor;
             floor.Sprite = Graphics.Instance.FloorSprites[FloorSpriteIndex];
             floor.SpriteRenderer.color = Graphics.Instance.HighlightColor;
-            BuildFunctions.ConfirmingObjects += floor.OnConfirmingObjects;
-            BuildFunctions.CheckingAreaConstraints += floor.OnCheckingConstraints;
+            BuildFunctions.ConfirmingObjects += floor.WhenConfirmingObjects;
+            BuildFunctions.CheckingAreaConstraints += floor.WhenCheckingConstraints;
         }
 
         /// <summary>
@@ -144,34 +142,32 @@ namespace Assets.Scripts.Map.Sprite_Object
         {
             SpriteRenderer.color = color;
             Sprite = Graphics.Instance.FloorSprites[spriteIndex];
-            Graphics.ResettingSprite += ResetSprite;
+            Graphics.ResettingSprite += WhenResettingSprite;
         }
 
         /// <inheritdoc/>
-        protected override void OnCheckingConstraints(Vector3Int start, Vector3Int end)
+        protected override void WhenCheckingConstraints(object sender, AreaEventArgs areaEventArgs)
         {
-            int minX = start.x < end.x ? start.x : end.x;
-            int maxX = start.x > end.x ? start.x : end.x;
-            int minY = start.y < end.y ? start.y : end.y;
-            int maxY = start.y > end.y ? start.y : end.y;
+            int minX = areaEventArgs.Start.x < areaEventArgs.End.x ? areaEventArgs.Start.x : areaEventArgs.End.x;
+            int maxX = areaEventArgs.Start.x > areaEventArgs.End.x ? areaEventArgs.Start.x : areaEventArgs.End.x;
+            int minY = areaEventArgs.Start.y < areaEventArgs.End.y ? areaEventArgs.Start.y : areaEventArgs.End.y;
+            int maxY = areaEventArgs.Start.y > areaEventArgs.End.y ? areaEventArgs.Start.y : areaEventArgs.End.y;
 
             if (WorldPosition.x < minX || WorldPosition.y < minY || WorldPosition.x > maxX || WorldPosition.y > maxY)
             {
-                BuildFunctions.ConfirmingObjects -= OnConfirmingObjects;
-                BuildFunctions.CheckingAreaConstraints -= OnCheckingConstraints;
+                BuildFunctions.ConfirmingObjects -= WhenConfirmingObjects;
+                BuildFunctions.CheckingAreaConstraints -= WhenCheckingConstraints;
 
                 ResetSprite();
             }
         }
 
         /// <inheritdoc/>
-        protected override void OnConfirmingObjects()
+        protected sealed override void Confirm()
         {
-            BuildFunctions.CheckingAreaConstraints -= OnCheckingConstraints;
-            BuildFunctions.ConfirmingObjects -= OnConfirmingObjects;
             SpriteIndex = FloorSpriteIndex;
-            SpriteRenderer.color = Color.white;
             Enabled = true;
+            base.Confirm();
         }
 
         /// <inheritdoc/>
@@ -181,7 +177,7 @@ namespace Assets.Scripts.Map.Sprite_Object
             SpriteRenderer.color = Color.white;
             Sprite = !Enabled ? null : Graphics.Instance.FloorSprites[SpriteIndex];
 
-            Graphics.ResettingSprite -= ResetSprite;
+            Graphics.ResettingSprite -= WhenResettingSprite;
         }
     }
 }

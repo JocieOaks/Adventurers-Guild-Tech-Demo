@@ -26,6 +26,30 @@ namespace Assets.Scripts
         Demolish
     }
 
+    public class AreaEventArgs : EventArgs
+    {
+        public Vector3Int Start { get; }
+        public Vector3Int End { get; }
+
+        public AreaEventArgs(Vector3Int start, Vector3Int end)
+        {
+            Start = start;
+            End = end;
+        }
+    }
+
+    public class LineEventArgs : EventArgs
+    {
+        public LineEventArgs(int start, int end)
+        {
+            Start = start;
+            End = end;
+        }
+
+        public int Start { get; }
+        public int End { get; }
+    }
+
     /// <summary>
     /// The <see cref="BuildFunctions"/> class is a static class containing references to methods used in building.
     /// To change what is being built, the <see cref="CheckSpriteObject"/>, <see cref="CreateSpriteObject"/>, and <see cref="HighlightSpriteObject"/> are set to reference
@@ -39,11 +63,20 @@ namespace Assets.Scripts
         private static Direction s_direction;
         private static int s_lineEnd;
         private static Vector3Int s_lineStart;
-        public static event Action<Vector3Int, Vector3Int> CheckingAreaConstraints;
+        /// <summary>
+        /// Called when checking the build constraints for doing an area build.
+        /// </summary>
+        public static event EventHandler<AreaEventArgs> CheckingAreaConstraints;
 
-        public static event Action<int, int> CheckingLineConstraints;
+        /// <summary>
+        /// Called when checking the build constraints for doing a line build.
+        /// </summary>
+        public static event EventHandler<LineEventArgs> CheckingLineConstraints;
 
-        public static event Action ConfirmingObjects;
+        /// <summary>
+        /// Called when a build action is confirmed.
+        /// </summary>
+        public static event EventHandler ConfirmingObjects;
 
         /// <value>Gives the type of object being built, so that <see cref="GameManager"/> knows how to use the player input.</value>
         public static BuildMode BuildMode { get; set; }
@@ -74,7 +107,7 @@ namespace Assets.Scripts
         /// </summary>
         public static void Confirm()
         {
-            ConfirmingObjects?.Invoke();
+            ConfirmingObjects?.Invoke(null, EventArgs.Empty);
             s_lineStart = Vector3Int.zero;
             s_lineEnd = -1;
             Graphics.Instance.UpdateGraphics();
@@ -123,7 +156,7 @@ namespace Assets.Scripts
                 }
 
                 s_areaEnd = endPosition;
-                CheckingAreaConstraints?.Invoke(s_areaStart, s_areaEnd);
+                CheckingAreaConstraints?.Invoke(null, new AreaEventArgs(s_areaStart, s_areaEnd));
             }
         }
 
@@ -207,7 +240,7 @@ namespace Assets.Scripts
                 s_lineEnd = end;
 
 
-                CheckingLineConstraints?.Invoke(start, end);
+                CheckingLineConstraints?.Invoke(null, new LineEventArgs(start, end));
             }
         }
 

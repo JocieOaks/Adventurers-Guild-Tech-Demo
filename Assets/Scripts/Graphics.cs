@@ -157,14 +157,14 @@ namespace Assets.Scripts
 
         private WallDisplayMode _mode = WallDisplayMode.Open;
 
-        public static event Action LevelChanged;
+        public static event EventHandler LevelChanged;
 
-        public static event Action LevelChangedLate;
-        public static event Action ResettingSprite;
+        public static event EventHandler LevelChangedLate;
+        public static event EventHandler ResettingSprite;
 
-        public static event Action UpdatedGraphics;
+        public static event EventHandler UpdatedGraphics;
 
-        public static event Action UpdatingGraphics;
+        public static event EventHandler UpdatingGraphics;
 
         /// <value>The <see cref="SpriteSheet"/> containing all the <see cref="Sprite"/>s for <see cref="Corner"/>s.</value>
         public static SpriteSheet CornerSprites { get; private set; }
@@ -240,7 +240,7 @@ namespace Assets.Scripts
         public void HideHighlight()
         {
             Highlight.enabled = false;
-            ResettingSprite?.Invoke();
+            ResettingSprite?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -249,7 +249,7 @@ namespace Assets.Scripts
         /// <param name="spriteObject">The <see cref="SpriteObject"/> potentially being demolished.</param>
         public void HighlightDemolish(SpriteObject spriteObject)
         {
-            ResettingSprite?.Invoke();
+            ResettingSprite?.Invoke(this, EventArgs.Empty);
 
             spriteObject.Highlight(DemolishColor);
         }
@@ -269,7 +269,7 @@ namespace Assets.Scripts
         /// </summary>
         public void ResetSprite()
         {
-            ResettingSprite?.Invoke();
+            ResettingSprite?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
@@ -277,8 +277,8 @@ namespace Assets.Scripts
         /// </summary>
         public void SetLevel()
         {
-            LevelChanged?.Invoke();
-            LevelChangedLate?.Invoke();
+            LevelChanged?.Invoke(this, EventArgs.Empty);
+            LevelChangedLate?.Invoke(this, EventArgs.Empty);
         }
 
         public Sprite[] SliceSprites(Color[] pixels)
@@ -310,9 +310,9 @@ namespace Assets.Scripts
         /// </summary>
         public void UpdateGraphics()
         {
-            UpdatingGraphics?.Invoke();
+            UpdatingGraphics?.Invoke(this, EventArgs.Empty);
             SetCorners();
-            UpdatedGraphics?.Invoke();
+            UpdatedGraphics?.Invoke(this, EventArgs.Empty);
         }
 
         [UsedImplicitly]

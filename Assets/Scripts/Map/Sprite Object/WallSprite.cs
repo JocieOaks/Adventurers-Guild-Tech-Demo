@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.AI;
 using Assets.Scripts.Map.Node;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
 
 namespace Assets.Scripts.Map.Sprite_Object
 {
@@ -138,7 +140,7 @@ namespace Assets.Scripts.Map.Sprite_Object
                 current.color = Graphics.Instance.HighlightColor;
             }
 
-            Graphics.UpdatingGraphics += SetWallMode;
+            Graphics.UpdatingGraphics += WhenUpdatingGraphics;
         }
 
         /// <summary>
@@ -152,7 +154,7 @@ namespace Assets.Scripts.Map.Sprite_Object
         public WallSprite(Vector3Int position, MapAlignment alignment, int height, WallMaterial wallMaterial, WallBlocker wall) : this(position, alignment, height, wallMaterial)
         {
             _wall = wall;
-            OnConfirmingObjects();
+            Confirm();
         }
 
         /// <value>The <see cref="AccentMaterial"/> for a door, if the <see cref="WallSprite"/> has one.</value>
@@ -387,9 +389,9 @@ namespace Assets.Scripts.Map.Sprite_Object
         /// <inheritdoc/>
         public override void Destroy()
         {
-            Graphics.UpdatingGraphics -= SetWallMode;
-            Graphics.ResettingSprite -= ResetSprite;
-            Graphics.LevelChanged -= OnLevelChanged;
+            Graphics.UpdatingGraphics -= WhenUpdatingGraphics;
+            Graphics.ResettingSprite -= WhenResettingSprite;
+            Graphics.LevelChanged -= WhenLevelChanged;
 
             Graphics.Instance.CornerQueue.Enqueue(WorldPosition + (Alignment == MapAlignment.XEdge ? Vector3Int.right : Vector3Int.up));
 
@@ -479,7 +481,9 @@ namespace Assets.Scripts.Map.Sprite_Object
         /// Called when the created <see cref="LinearSpriteObject"/>s are confirmed.
         /// Creates a new <see cref="WallBlocker"/> at the given <see cref="Map"/> position if one is not already present.
         /// </summary>
-        protected sealed override void OnConfirmingObjects()
+        /// <param name="sender"></param>
+        /// <param name="eventArgs"></param>
+        protected sealed override void Confirm()
         {
             _wall ??= new WallBlocker(this, WorldPosition, Alignment);
 
@@ -492,11 +496,11 @@ namespace Assets.Scripts.Map.Sprite_Object
 
             Graphics.Instance.CornerQueue.Enqueue(WorldPosition);
 
-            base.OnConfirmingObjects();
+            base.Confirm();
         }
 
         /// <inheritdoc/>
-        protected override void OnLevelChanged()
+        protected override void WhenLevelChanged(object sender, EventArgs eventArgs)
         {
             int level = GameManager.Instance.IsOnLevel(WorldPosition.z);
             if (level > 0)
@@ -550,7 +554,7 @@ namespace Assets.Scripts.Map.Sprite_Object
                 _doorSprite.color = Color.white;
             }
 
-            Graphics.ResettingSprite -= ResetSprite;
+            Graphics.ResettingSprite -= WhenResettingSprite;
         }
 
         /// <summary>
@@ -602,7 +606,7 @@ namespace Assets.Scripts.Map.Sprite_Object
             if (highlight)
             {
                 DoorSprite.color = Graphics.Instance.HighlightColor;
-                Graphics.ResettingSprite += ResetSprite;
+                Graphics.ResettingSprite += WhenResettingSprite;
                 _highlightDoor = true;
             }
             else
@@ -621,7 +625,7 @@ namespace Assets.Scripts.Map.Sprite_Object
         private void HighlightDoor(Color color)
         {
             _doorSprite.color = color;
-            Graphics.ResettingSprite += ResetSprite;
+            Graphics.ResettingSprite += WhenResettingSprite;
         }
 
         /// <summary>
@@ -697,6 +701,11 @@ namespace Assets.Scripts.Map.Sprite_Object
             _doorMask = null;
 
             _nextDoorWall = null;
+        }
+
+        private void WhenUpdatingGraphics(object sender, EventArgs eventArgs)
+        {
+            SetWallMode();
         }
 
         /// <summary>

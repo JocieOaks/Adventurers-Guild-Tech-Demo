@@ -140,10 +140,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 516556166bcf79b4997d3c385ea54423, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _animationSprites: []
-  _spriteRenderer: {fileID: 207992316}
+  AnimationSprites: []
+  SpriteRenderer: {fileID: 207992316}
   _collider: {fileID: 207992318}
-  _defaultMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  _defaultMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 3}
   _outlineMaterial: {fileID: 2100000, guid: 187bf8af3c07f8b42b842079056e4b33, type: 2}
 --- !u!212 &207992316 stripped
 SpriteRenderer:
@@ -279,66 +279,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3fe037ba8a251d4eaa16868cc662b8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _animationSprites:
-  - {fileID: 21300000, guid: 06b16774d24a6d74181ba804af4477b1, type: 3}
-  - {fileID: 21300000, guid: ce5f31bacf4edb244a49b04d1ebf5bcb, type: 3}
-  - {fileID: 21300000, guid: f1eda824ac70a3648b6d08e9064e3eaf, type: 3}
-  - {fileID: 21300000, guid: b205c513e32204741937333f26e553f9, type: 3}
-  - {fileID: 21300000, guid: c59779875bb3ef54b82cb3c8d5300b05, type: 3}
-  - {fileID: 21300000, guid: aef85ea006fced5469d5df497981d138, type: 3}
-  - {fileID: 21300000, guid: 5b215f965230c8843b9660c93542c7be, type: 3}
-  - {fileID: 21300000, guid: 03216f7dbadd9df488b9483ffaa4f54b, type: 3}
-  - {fileID: 21300000, guid: 91124602ecbc18a48901f2b003f3a5cf, type: 3}
-  - {fileID: 21300000, guid: 5c76d1993e858d14681ed6e64502729a, type: 3}
-  - {fileID: 21300000, guid: 19419deb76c4a2841a849dd7b02aefdc, type: 3}
-  - {fileID: 21300000, guid: 2aa75c091305d154e9a8cf44e30a51f5, type: 3}
-  - {fileID: 21300000, guid: 3205313a2b217f54295c9ae09ecf9fd6, type: 3}
-  - {fileID: 21300000, guid: e2c251334aa35d245a2347b964bdecc0, type: 3}
-  - {fileID: 21300000, guid: b0f08aa4de1d6374fa55c1f4acacac79, type: 3}
-  - {fileID: 21300000, guid: d338dd57a133e9a47831b44170e0a5e7, type: 3}
-  - {fileID: 21300000, guid: 3c9d6df8ee1a39e4b8a9647fe57a8a9b, type: 3}
-  - {fileID: 21300000, guid: 03ab9a10b654f84459af6629df5a7712, type: 3}
-  - {fileID: 21300000, guid: b6e74ffcd7a996b4f83f54806e2fe031, type: 3}
-  - {fileID: 21300000, guid: 96fb31d246f517843abd4b80564c19d5, type: 3}
-  - {fileID: 21300000, guid: f0c48384b4ce0c442823826368212228, type: 3}
-  - {fileID: 21300000, guid: d673b64e9efe9b841a2a4eb752de598a, type: 3}
-  - {fileID: 21300000, guid: 8fb476167325c2744a69c2358eaf1cc5, type: 3}
-  - {fileID: 21300000, guid: a9fc18b06ce92794291461176457982d, type: 3}
-  - {fileID: 21300000, guid: c461b9b6c8d4ecb49876da791e7ae99a, type: 3}
-  - {fileID: 21300000, guid: 96f3003be08dfcf4c82285f5b7fda567, type: 3}
-  - {fileID: 21300000, guid: 1ef9090bec2f5d446b5e986ecf4813d9, type: 3}
-  - {fileID: 21300000, guid: a06d80a9bb64ca741b64e14e7ba6060d, type: 3}
-  - {fileID: 21300000, guid: 629dac84736f3aa4c8454e91979c4b9f, type: 3}
-  - {fileID: 21300000, guid: 9a8944624a803aa4eab6983057461820, type: 3}
-  - {fileID: 21300000, guid: 1663f593984153740bf4be62d89db36a, type: 3}
-  - {fileID: 21300000, guid: f9a1769ae8fb3e041ba249efeaa6bae8, type: 3}
-  - {fileID: 21300000, guid: e69c40744df83e946991d8c647f30057, type: 3}
-  - {fileID: 21300000, guid: 78d64ac969813a04f85bd27ee06f3903, type: 3}
-  - {fileID: 21300000, guid: 0125a02c8f89d7b43987c028d10c4447, type: 3}
-  - {fileID: 21300000, guid: 522be4895f3af0e4fb197ef17a56b83a, type: 3}
-  - {fileID: 21300000, guid: 21f3a3f5557b189418974dac80859709, type: 3}
-  - {fileID: 21300000, guid: 17836e95fc0f68e47831f2f89eb86577, type: 3}
-  - {fileID: 21300000, guid: 30bcc1ae650885f4fada246fbf3698c8, type: 3}
-  - {fileID: 21300000, guid: 1f65de598565a7d41a1c09c1862954eb, type: 3}
-  - {fileID: 21300000, guid: 28acebad1a06330418bc237bc80b038f, type: 3}
-  - {fileID: 21300000, guid: 26469cd075a965a4b8bdeeabc998bf71, type: 3}
-  - {fileID: 21300000, guid: f7d199e01d4b5fb4aa6e5a00d9feec14, type: 3}
-  - {fileID: 21300000, guid: dbbbd2a9a228d2947bd212f254a703f7, type: 3}
-  - {fileID: 21300000, guid: a4aada854459f3a4ba7b569d25ee4894, type: 3}
-  - {fileID: 21300000, guid: a956ebd8081bfb6499799e382945de74, type: 3}
-  - {fileID: 21300000, guid: a4aada854459f3a4ba7b569d25ee4894, type: 3}
-  - {fileID: 21300000, guid: a956ebd8081bfb6499799e382945de74, type: 3}
-  _spriteRenderer: {fileID: 318307013}
+  AnimationSprites: []
+  SpriteRenderer: {fileID: 0}
   _collider: {fileID: 318307016}
   _emoji: {fileID: 1319342378}
   _speechBubble: {fileID: 2015189312}
-  <CharacterName>k__BackingField: Queltocn
-  <CharacterClass>k__BackingField: 4
-  <Race>k__BackingField: 4
-  <Strength>k__BackingField: 16
-  <Dexterity>k__BackingField: 4
-  <Charisma>k__BackingField: 8
-  <Intelligence>k__BackingField: 12
 --- !u!60 &318307016
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -491,7 +436,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa2452cacfea2c64dbc73a38ce59f70f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _highlight: {fileID: 0}
+  Highlight: {fileID: 0}
   BarX:
   - {fileID: 21300000, guid: 2bc8754eb007a844cb3f971fb70cf68d, type: 3}
   - {fileID: 21300000, guid: e0fd36680f25e2044ab13b405f5cfc42, type: 3}
@@ -527,7 +472,6 @@ MonoBehaviour:
   FloorSprites:
   - {fileID: 21300000, guid: 10df58eb1326a4f4a92fdcbcafcffb9b, type: 3}
   - {fileID: 21300000, guid: 45d9d81e3e884884a9a05deccaa96e68, type: 3}
-  Marker: {fileID: 21300000, guid: c4e2123aca855c547899d4e1cbd4312b, type: 3}
   PawnGradientGreyscale: {fileID: 2800000, guid: 03dcff08e7dae364e84e8bda10eca590, type: 3}
   PawnGradientHair: {fileID: 2800000, guid: 5bb8b62fb550662469fc326cff56afb9, type: 3}
   PawnGradientHorns: {fileID: 2800000, guid: cbad70d5e4d1c454b916296e96e60796, type: 3}
@@ -548,7 +492,6 @@ MonoBehaviour:
   PawnTextureHornsFront: {fileID: 2800000, guid: 5291d485f470dfd4f9173d57fa66126c, type: 3}
   PawnTextureOrcTeeth: {fileID: 2800000, guid: 703013f469c9b8548a314c4f3157d0bc, type: 3}
   SortingObject: {fileID: 7166101619220699102, guid: 68bb38e829af9124a8c4bedc4010c847, type: 3}
-  SpeechBubble: {fileID: 6450863367998771783, guid: 0ec6ebe32cf222940a474f522cbaa6aa, type: 3}
   SpritePrefab: {fileID: 4334146755354440016, guid: 2e79435de366dcf47b0ed05833b85dbe, type: 3}
   StairsEast: {fileID: 21300000, guid: 924fb79e03671154894868ea717585b1, type: 3}
   StairsNorth: {fileID: 21300000, guid: b89078a9e29516946a9707b6859d07ee, type: 3}
@@ -645,7 +588,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 774c934e63e75db4ebaf384a410fda0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DEBUG: 0
   _player: {fileID: 207992315}
 --- !u!114 &519420036
 MonoBehaviour:
@@ -659,7 +601,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8cb6e766479fb54195991d6c5e06f8b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fileName: save.data
+  _fileName: 
 --- !u!1001 &1275923212
 PrefabInstance:
   m_ObjectHideFlags: 0

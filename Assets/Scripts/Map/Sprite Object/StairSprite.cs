@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Assets.Scripts.AI.Step;
 using Assets.Scripts.Map.Node;
 using UnityEngine;
@@ -57,7 +58,7 @@ namespace Assets.Scripts.Map.Sprite_Object
         public StairSprite(Direction direction, Vector3Int worldPosition, int z, StairNode stair) : this(direction, worldPosition, z)
         {
             _stair = stair;
-            OnConfirmingObjects();
+            Confirm();
         }
 
         /// <value>The 3D dimensions of a <see cref="StairSprite"/> in terms of <see cref="Map"/> coordinates.</value>
@@ -211,13 +212,14 @@ namespace Assets.Scripts.Map.Sprite_Object
         /// Called when the created <see cref="AreaSpriteObject"/>s are confirmed.
         /// Creates a new <see cref="StairNode"/> at the given <see cref="Map"/> position if one is not already present.
         /// </summary>
-        protected sealed override void OnConfirmingObjects()
+        /// <inheritdoc />
+        protected sealed override void Confirm()
         {
             RoomNode roomNode = Map.Instance[WorldPosition];
 
             _stair ??= new StairNode(this, roomNode, WorldPosition.z, Direction);
 
-            base.OnConfirmingObjects();
+            base.Confirm();
         }
     }
 }

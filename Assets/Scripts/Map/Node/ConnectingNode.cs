@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -31,7 +32,7 @@ namespace Assets.Scripts.Map.Node
             _adjoiningConnectionsDictionary = new Dictionary<ConnectingNode, (float, IEnumerable<RoomNode>)>();
             WorldPosition = worldPosition;
 
-            GameManager.MapChangingSecond += RegisterRooms;
+            GameManager.MapChangingLate += WhenMapChanging;
         }
 
         /// <inheritdoc/>
@@ -209,6 +210,12 @@ namespace Assets.Scripts.Map.Node
             return node == FirstNode || node == SecondNode;
         }
 
+        protected void WhenMapChanging(object sender, EventArgs eventArgs)
+        {
+            RegisterRooms();
+            GameManager.MapChangingLate -= WhenMapChanging;
+        }
+
         /// <summary>
         /// Adds this <see cref="ConnectingNode"/> to the <see cref="Scripts.Map.Room.Connections"/> of it's adjacent <see cref="Scripts.Map.Room"/>s.
         /// </summary>
@@ -217,8 +224,6 @@ namespace Assets.Scripts.Map.Node
             FirstNode.Room.AddConnection(this);
             if (SecondNode.Room != FirstNode.Room)
                 SecondNode.Room.AddConnection(this);
-
-            GameManager.MapChangingSecond -= RegisterRooms;
         }
 
         /// <summary>

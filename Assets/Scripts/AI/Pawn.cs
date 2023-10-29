@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.AI.Action;
@@ -200,6 +201,11 @@ namespace Assets.Scripts.AI
             SpriteRenderer.sprite = AnimationSprites[spriteIndex];
         }
 
+        protected void WhenUpdatedGraphics(object sender, EventArgs eventArgs)
+        {
+            BuildSpriteMask();
+        }
+
         /// <summary>
         /// Constructs a <see cref="SpriteMask"/> to layer over the <see cref="AdventurerPawn"/>'s <see cref="UnityEngine.SpriteRenderer"/> for whenever there is a <see cref="SpriteObject"/> in front of it.
         /// </summary>
@@ -309,8 +315,22 @@ namespace Assets.Scripts.AI
         }
 
         /// <summary>
-        /// Called when the current <see cref="Task"/> has completed.
+        /// Event subscriber called when the map level is moved up or down.
         /// </summary>
+        /// <param name="sender">Event sender.</param>
+        /// <param name="eventArgs">Event has no arguments.</param>
+        protected void WhenLevelChanging(object sender, EventArgs eventArgs)
+        {
+            CheckSpriteVisibility();
+        }
+
+        /// <summary>
+        /// Enables or disables the sprite from view if the <see cref="Pawn"/> is on a visible level.
+        /// </summary>
+        protected void CheckSpriteVisibility()
+        {
+            SpriteRenderer.enabled = GameManager.Instance.IsOnLevel(CurrentLevel) <= 0;
+        }
         protected abstract void OnTaskFinish();
 
         /// <summary>

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Assets.Scripts.AI;
@@ -599,7 +600,7 @@ namespace Assets.Scripts.Map
 
             Graphics.Instance.SetLevel();
             BuildFunctions.Confirm();
-            GameManager.MapChangingSecond += BuildSectors;
+            GameManager.MapChangingLate += WhenMapChanging;
 
             Ready = true;
         }
@@ -900,7 +901,7 @@ namespace Assets.Scripts.Map
         /// <summary>
         /// Divides the <see cref="RoomNode"/>s on the <see cref="Map"/> into <see cref="Sector"/>s, and reserves <see cref="RoomNode"/> that are bottlenecks.
         /// </summary>
-        private void BuildSectors()
+        private void WhenMapChanging(object sender, EventArgs eventArgs)
         {
             Sector.DivideIntoSectors(Instance, ref _sectors);
             foreach(Sector sector in _sectors)
