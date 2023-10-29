@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Assets.Scripts.AI;
 using Assets.Scripts.AI.Actor;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -13,12 +12,10 @@ namespace Assets.Scripts.UI
     public class TutorialUI : MonoBehaviour
     {
         private bool _clickAnywhere;
-#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
-        [SerializeField] private AdventurerProfileUI _adventurerProfilePrefab;
+        [SerializeField][UsedImplicitly] private AdventurerProfileUI _adventurerProfilePrefab;
 
-        [SerializeField] private GameObject _doTutorialPanel;
-        [SerializeField] private GameObject _hiresTutorial, _hireTutorial2, _adventurersMessageBox, _build1, _build2, _build3, _quests1, _quests2, _quests3, _quests4, _quests5, _endMessage;
-#pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
+        [SerializeField][UsedImplicitly] private GameObject _doTutorialPanel;
+        [SerializeField][UsedImplicitly] private GameObject _hiresTutorial, _hireTutorial2, _adventurersMessageBox, _build1, _build2, _build3, _quests1, _quests2, _quests3, _quests4, _quests5, _endMessage;
 
         /// <value>Gives the singleton instance of <see cref="TutorialUI"/>.</value>
         public static TutorialUI Instance { get; private set; }

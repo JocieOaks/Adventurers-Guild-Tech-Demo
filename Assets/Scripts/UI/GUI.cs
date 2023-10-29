@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Assets.Scripts.AI;
 using Assets.Scripts.AI.Actor;
 using JetBrains.Annotations;
 using TMPro;
@@ -15,24 +14,23 @@ namespace Assets.Scripts.UI
     {
         private readonly List<AdventurerProfileUI> _availableHires = new();
         private readonly List<AdventurerProfileUI> _questAdventurers = new();
-#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
-        [SerializeField] private AdventurerProfileUI _adventurerProfilePrefab;
+        [SerializeField][UsedImplicitly] private AdventurerProfileUI _adventurerProfilePrefab;
 
-        [SerializeField] private GameObject _adventurerSelect;
-        [SerializeField] private GameObject _baseBar;
-        [SerializeField] private GameObject _buildBar;
-        [SerializeField] private GameObject _debugPanel;
-        [SerializeField] private TextMeshProUGUI _debugPanelText;
-        [SerializeField] private GameObject _demolishPanel;
-        [SerializeField] private HireAdventurerPopup _hirePopup;
-        [SerializeField] private GameObject _hiresPanel;
-        [SerializeField] private GameObject _objectPanel;
+        [SerializeField][UsedImplicitly] private GameObject _adventurerSelect;
+        [SerializeField][UsedImplicitly] private GameObject _baseBar;
+        [SerializeField][UsedImplicitly] private GameObject _buildBar;
+        [SerializeField][UsedImplicitly] private GameObject _debugPanel;
+        [SerializeField][UsedImplicitly] private TextMeshProUGUI _debugPanelText;
+        [SerializeField][UsedImplicitly] private GameObject _demolishPanel;
+        [SerializeField][UsedImplicitly] private HireAdventurerPopup _hirePopup;
+        [SerializeField][UsedImplicitly] private GameObject _hiresPanel;
+        [SerializeField][UsedImplicitly] private GameObject _objectPanel;
         private Actor _questAdventurer;
-        [SerializeField] private QuestCompletePopup _questCompletePopup;
+        [SerializeField][UsedImplicitly] private QuestCompletePopup _questCompletePopup;
         private int _questId;
-        [SerializeField] private GameObject _questPanel;
-        [SerializeField] private Button _startQuestButton;
-#pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
+        [SerializeField][UsedImplicitly] private GameObject _questPanel;
+        [SerializeField][UsedImplicitly] private Button _startQuestButton;
+
         /// <value>Gives reference to the <see cref="GUI"/> singleton.</value>
         public static GUI Instance { get; private set; }
 

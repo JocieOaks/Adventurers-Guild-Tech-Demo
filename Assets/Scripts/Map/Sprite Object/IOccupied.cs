@@ -1,5 +1,4 @@
-﻿using Assets.Scripts.AI;
-using Assets.Scripts.AI.Actor;
+﻿using Assets.Scripts.AI.Actor;
 using UnityEngine;
 
 namespace Assets.Scripts.Map.Sprite_Object

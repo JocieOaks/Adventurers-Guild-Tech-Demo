@@ -184,9 +184,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b46f4d2e44367c749be0f55d5b1f6b71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AnimationSprites: []
-  SpriteRenderer: {fileID: 5824294579052192529}
   _collider: {fileID: -4510925741537775956}
+  _spriteRenderer: {fileID: 5824294579052192529}
+  <AnimationSprites>k__BackingField: []
   _emoji: {fileID: 2964818539939146221}
   _speechBubble: {fileID: 6836913769161301064}
 --- !u!210 &-5207509725947692550

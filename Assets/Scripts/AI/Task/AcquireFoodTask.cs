@@ -31,7 +31,7 @@ namespace Assets.Scripts.AI.Task
         /// <inheritdoc/>
         public override bool ConditionsMet(WorldState worldState)
         {
-            return !worldState.PrimaryActor.HasFood && base.ConditionsMet(worldState) && InteractablesCondition(worldState, FoodGoal.FoodSources);
+            return !worldState.PrimaryActor.HasFood && base.ConditionsMet(worldState) && InteractablesCondition(worldState, FoodDestination.FoodSources);
         }
 
         /// <inheritdoc/>
@@ -46,7 +46,7 @@ namespace Assets.Scripts.AI.Task
             IInteractable foodSource = GetFoodSource(actor.Stats);
             if (foodSource == null)
                 yield break;
-            yield return new TravelAction(foodSource, actor.Pawn);
+            yield return new TravelAction(new FoodDestination(), actor.Pawn);
             yield return new AcquireFoodAction(actor, foodSource);
         }
 
@@ -56,7 +56,7 @@ namespace Assets.Scripts.AI.Task
             IInteractable foodSource = GetFoodSource(actor.Stats);
             if (foodSource == null)
                 yield break;
-            yield return new TravelAction(foodSource, actor.Pawn);
+            yield return new TravelAction(new FoodDestination(), actor.Pawn);
             yield return new AcquireFoodAction(actor, foodSource);
         }
 
@@ -81,7 +81,7 @@ namespace Assets.Scripts.AI.Task
         {
             float closestDistance = float.PositiveInfinity;
             IInteractable best = null;
-            foreach (IInteractable foodSource in FoodGoal.FoodSources)
+            foreach (IInteractable foodSource in FoodDestination.FoodSources)
             {
                 float distance = Map.Map.Instance.ApproximateDistance(profile.Position, foodSource.WorldPosition);
                 if (distance < closestDistance)

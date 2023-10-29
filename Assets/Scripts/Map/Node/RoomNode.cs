@@ -291,6 +291,12 @@ namespace Assets.Scripts.Map.Node
         }
 
         /// <inheritdoc/>
+        public bool AdjacentToRoomNode(RoomNode node)
+        {
+            return node == this;
+        }
+
+        /// <inheritdoc/>
         public Vector3Int WorldPosition => Room.GetWorldPosition(this);
 
         /// <value>Gives the speed multiplier just from this <see cref="RoomNode"/>.</value>
@@ -434,9 +440,13 @@ namespace Assets.Scripts.Map.Node
                 case Direction.West:
                     INode node = GetNode(direction);
                     if (node is IDividerNode divider)
+                    {
+                        if (divider is LandingConnector landing)
+                            return landing.GetOppositeRoomNode(this);
                         return divider.GetOppositeRoomNode(this);
-                    else
-                        return node as RoomNode;
+                    }
+
+                    return node as RoomNode;
                 default:
                     return direction switch
                     {
@@ -610,7 +620,10 @@ namespace Assets.Scripts.Map.Node
                 INode node = GetNode(vector.x > 0 ? Direction.East : Direction.West);
                 if (node is IDividerNode divider)
                 {
-                    roomNode = divider.GetOppositeRoomNode(this);
+                    if (divider is LandingConnector landing)
+                        roomNode = landing.GetOppositeRoomNode(this);
+                    else
+                        roomNode = divider.GetOppositeRoomNode(this);
                 }
                 else
                     roomNode = node as RoomNode;
@@ -621,7 +634,10 @@ namespace Assets.Scripts.Map.Node
                 INode node = GetNode(vector.y > 0 ? Direction.North : Direction.South);
                 if (node is IDividerNode divider)
                 {
-                    roomNode = divider.GetOppositeRoomNode(this);
+                    if (divider is LandingConnector landing)
+                        roomNode = landing.GetOppositeRoomNode(this);
+                    else
+                        roomNode = divider.GetOppositeRoomNode(this);
                 }
                 else
                     roomNode = node as RoomNode;

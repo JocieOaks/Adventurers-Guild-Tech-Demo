@@ -34,7 +34,8 @@ namespace Assets.Scripts.Utility
         /// <param name="priority">The new priority for the node.</param>
         public void ChangePriority(IReference node, T2 priority)
         {
-            _heap.ChangePriority(node, priority);
+            if (!_heap.ChangePriority(node, priority))
+                Count++;
         }
 
         /// <summary>

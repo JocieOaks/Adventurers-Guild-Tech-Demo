@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.AI.Action;
 using Assets.Scripts.AI.Step;
-using Assets.Scripts.AI.Task;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
 using Assets.Scripts.Map.Sprite_Object;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -30,26 +30,27 @@ namespace Assets.Scripts.AI.Actor
     /// </summary>
     public abstract class Pawn : MonoBehaviour, IWorldPosition
     {
-        [SerializeField] protected Sprite[] AnimationSprites;
-        protected RoomNode CurrentNodeField;
-        protected bool Ready = false;
-        [SerializeField] protected SpriteRenderer SpriteRenderer;
+        /// <value>A list containing all the <see cref="Collider2D"/>s that currently intersect with the <see cref="Pawn"/>'s hit box.</value>
+        protected readonly List<Collider2D> OverlappingColliders = new();
+
         private static readonly Vector2 s_maskPivot = new(36, 18);
 
-        protected readonly Queue<TaskAction> TaskActions = new();
-        protected int Recovery;
+        [SerializeField][UsedImplicitly] private PolygonCollider2D _collider;
 
-        protected readonly List<Collider2D> OverlappingColliders = new();
-#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
-        [SerializeField] private PolygonCollider2D _collider;
-#pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
         private SpriteMask _mask;
 
         private Color32[] _maskArray;
 
         private Texture2D _maskTexture;
+
         private SortingGroup _sortingGroup;
+
+        [SerializeField][UsedImplicitly] private SpriteRenderer _spriteRenderer;
+
         private Vector3 _worldPosition;
+
+        /// <inheritdoc />
+        public MapAlignment Alignment => MapAlignment.Center;
 
         /// <value> The current <see cref="TaskAction"/> the <see cref="AdventurerPawn"/> is performing.</value> 
         public TaskAction CurrentAction { get; protected set; }
@@ -58,10 +59,13 @@ namespace Assets.Scripts.AI.Actor
         public int CurrentLevel => CurrentNode.SurfacePosition.z;
 
         /// <value> The nearest <see cref="RoomNode"/> to the <see cref="AdventurerPawn"/>'s current position. When set, CurrentNode evaluates whether the <see cref="AdventurerPawn"/> should be visible on screen.</value>
-        public abstract RoomNode CurrentNode { get; protected set; }
+        public virtual RoomNode CurrentNode { get; protected set; }
 
         /// <value> The current <see cref="TaskStep"/> the <see cref="Pawn"/> is performing.</value>
         public TaskStep CurrentStep { get; set; }
+
+        /// <inheritdoc/>
+        public Vector3Int Dimensions => new(3, 3, 5);
 
         /// <value> The current <c>Direction</c> the <see cref="Pawn"/> is currently facing. May be undirected if the <see cref="TaskStep"/> the <see cref="Pawn"/> is performing does not face a cardinal direction, i.e. lying down.</value>
         public Direction Direction
@@ -77,18 +81,20 @@ namespace Assets.Scripts.AI.Actor
             }
         }
 
-        /// <inheritdoc/>
-        public Vector3Int NearestCornerPosition => WorldPosition - new Vector3Int(1,1,0);
-
         /// <summary>
         /// The name of the <see cref="Pawn"/>.
         /// </summary>
         public abstract string Name { get; }
 
         /// <inheritdoc/>
+        public Vector3Int NearestCornerPosition => WorldPosition - new Vector3Int(1, 1, 0);
+
+        /// <inheritdoc/>
         public RoomNode Node => CurrentNode;
 
+        /// <value>The <see cref="IOccupied"/> the <see cref="Pawn"/> is currently occupying. Null when the <see cref="Pawn"/> is not occupying anything.</value>
         public IOccupied Occupying { get; set; }
+
         /// <inheritdoc/>
         public Room Room => Node.Room;
 
@@ -117,7 +123,7 @@ namespace Assets.Scripts.AI.Actor
             get => _worldPosition;
             set
             {
-                if(CurrentNode is StairNode stair)
+                if (CurrentNode is StairNode stair)
                 {
                     _worldPosition = stair.StairPosition(value);
                 }
@@ -143,11 +149,17 @@ namespace Assets.Scripts.AI.Actor
             }
         }
 
-        /// <inheritdoc/>
-        public Vector3Int Dimensions => new(3,3,5);
+        /// <value>Array containing all the <see cref="Sprite"/>s used by the <see cref="Pawn"/>.</value>
+        [field: SerializeField] protected Sprite[] AnimationSprites { get; set; }
 
-        public MapAlignment Alignment => MapAlignment.Center;
+        /// <value>Set to true once the <see cref="Pawn"/> has finished initial setup.</value>
+        protected bool Ready { get; set; } = false;
+        /// <value>The number of times the AI has attempted to recover the current <see cref="Task"/>.
+        /// After too many failed recoveries the current <see cref="Task"/> will be abandoned.</value>
+        protected int Recovery { get; set; }
 
+        /// <value>A queue containing all the <see cref="TaskAction"/>s to be performed to complete the current <see cref="Task"/>.</value>
+        protected Queue<TaskAction> TaskActions { get; } = new();
         /// <summary>
         /// Forces the <see cref="Pawn"/> to a specified <see cref="RoomNode"/>, even if it is not adjacent to their previous position.
         /// </summary>
@@ -180,7 +192,7 @@ namespace Assets.Scripts.AI.Actor
         /// <param name="material">The <see cref="Material"/> to use.</param>
         public void SetMaterial(Material material)
         {
-            SpriteRenderer.material = material;
+            _spriteRenderer.material = material;
         }
 
         /// <summary>
@@ -189,7 +201,7 @@ namespace Assets.Scripts.AI.Actor
         /// <param name="spriteIndex">The index of the <see cref="Sprite"/> to set the <see cref="UnityEngine.SpriteRenderer"/> to. Must be less than 48.</param>
         public void SetSprite(int spriteIndex)
         {
-            SpriteRenderer.sprite = AnimationSprites[spriteIndex];
+            _spriteRenderer.sprite = AnimationSprites[spriteIndex];
         }
 
         /// <summary>
@@ -200,7 +212,7 @@ namespace Assets.Scripts.AI.Actor
             //The function is currently most efficient when there are only a few sprites overlaying the Pawn sprite.
             //When there is a large number of overlapping sprites covering the Pawn sprite, it may be more efficient to check pixels semi-individually, so that only the first sprite found is evaluated.
 
-            if (SpriteRenderer.enabled)
+            if (_spriteRenderer.enabled)
             {
                 int colliderCount = _collider.OverlapCollider(new ContactFilter2D().NoFilter(), OverlappingColliders);
 
@@ -255,6 +267,28 @@ namespace Assets.Scripts.AI.Actor
         }
 
         /// <summary>
+        /// Initializes _sortingGroup and the mask elements for the Pawn.
+        /// </summary>
+        protected void InitializeGameObject()
+        {
+            _sortingGroup = Instantiate(Graphics.Instance.SortingObject);
+            _sortingGroup.transform.position = Vector3.zero;
+            _sortingGroup.sortingLayerName = "Pawn";
+            transform.SetParent(_sortingGroup.transform);
+
+            _maskTexture = new Texture2D(72, 96, TextureFormat.ARGB32, false)
+            {
+                filterMode = FilterMode.Point,
+                wrapMode = TextureWrapMode.Clamp
+            };
+
+            _mask = new GameObject(Name + " Mask").AddComponent<SpriteMask>();
+            _mask.transform.SetParent(_sortingGroup.transform);
+
+            _maskArray = new Color32[_maskTexture.width * _maskTexture.height];
+        }
+
+        /// <summary>
         /// Evaluates the state of the current <see cref="Task"/> and <see cref="TaskAction"/>s and updates them if necessary.
         /// </summary>
         protected void ManageTask()
@@ -301,9 +335,12 @@ namespace Assets.Scripts.AI.Actor
         }
 
         /// <summary>
-        /// Called when the current <see cref="Task"/> has completed.
+        /// Enables or disables the sprite from view if the <see cref="Pawn"/> is on a visible level.
         /// </summary>
-        protected abstract void OnTaskFinish();
+        protected void OnLevelChange()
+        {
+            _spriteRenderer.enabled = GameManager.Instance.IsOnLevel(CurrentLevel) <= 0;
+        }
 
         /// <summary>
         /// Called when the current <see cref="Task"/> has failed and must be recovered from or ended.
@@ -311,36 +348,13 @@ namespace Assets.Scripts.AI.Actor
         protected abstract void OnTaskFail();
 
         /// <summary>
-        /// Initializes _sortingGroup and the mask elements for the Pawn.
+        /// Called when the current <see cref="Task"/> has completed.
         /// </summary>
-        protected void InitializeGameObject()
-        {
-            _sortingGroup = Instantiate(Graphics.Instance.SortingObject);
-            _sortingGroup.transform.position = Vector3.zero;
-            _sortingGroup.sortingLayerName = "Pawn";
-            transform.SetParent(_sortingGroup.transform);
-
-            _maskTexture = new Texture2D(72, 96, TextureFormat.ARGB32, false)
-            {
-                filterMode = FilterMode.Point,
-                wrapMode = TextureWrapMode.Clamp
-            };
-
-            _mask = new GameObject(Name + " Mask").AddComponent<SpriteMask>();
-            _mask.transform.SetParent(_sortingGroup.transform);
-
-            _maskArray = new Color32[_maskTexture.width * _maskTexture.height];
-        }
+        protected abstract void OnTaskFinish();
 
         /// <summary>
-        /// Enables the or disables the sprite from view if the <see cref="Pawn"/> is on a visible level.
+        /// Start is called before the first frame update
         /// </summary>
-        protected void OnLevelChange()
-        {
-            SpriteRenderer.enabled = GameManager.Instance.IsOnLevel(CurrentLevel) <= 0;
-        }
-
-        // Start is called before the first frame update
         protected virtual void Start()
         {
             StartCoroutine(Startup());

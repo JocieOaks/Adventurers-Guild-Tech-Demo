@@ -1,5 +1,4 @@
 using System;
-using Assets.Scripts.AI;
 using Assets.Scripts.AI.Actor;
 using JetBrains.Annotations;
 using TMPro;
@@ -23,15 +22,14 @@ namespace Assets.Scripts.UI
     /// </summary>
     public class AdventurerProfileUI : MonoBehaviour
     {
-#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
-        [SerializeField] private Image _charismaBar;
-        [SerializeField] private TextMeshProUGUI _class;
-        [SerializeField] private Image _dexterityBar;
-        [SerializeField] private Image _icon;
-        [SerializeField] private Image _intelligenceBar;
-        [SerializeField] private TextMeshProUGUI _name;
-        [SerializeField] private Image _strengthBar;
-#pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
+        [SerializeField][UsedImplicitly] private Image _charismaBar;
+        [SerializeField][UsedImplicitly] private TextMeshProUGUI _class;
+        [SerializeField][UsedImplicitly] private Image _dexterityBar;
+        [SerializeField][UsedImplicitly] private Image _icon;
+        [SerializeField][UsedImplicitly] private Image _intelligenceBar;
+        [SerializeField][UsedImplicitly] private TextMeshProUGUI _name;
+        [SerializeField][UsedImplicitly] private Image _strengthBar;
+
         private Actor _adventurer;
 
         private AdventurerProfileMode _mode;

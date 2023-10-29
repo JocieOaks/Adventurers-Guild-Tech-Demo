@@ -12,6 +12,9 @@ using UnityEngine;
 
 namespace Assets.Scripts.AI.Actor
 {
+    /// <summary>
+    /// The <see cref="PlayerPawn"/> class is a <see cref="Pawn"/> that is controlled by the player rather than AI.
+    /// </summary>
     public class PlayerPawn : Pawn
     {
         private const float DIRECTION_DELAY_TIME = 0.025f;
@@ -20,16 +23,14 @@ namespace Assets.Scripts.AI.Actor
 
         private bool _aiControl;
 
-#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
-        [SerializeField] private Material _defaultMaterial;
+        [SerializeField][UsedImplicitly] private Material _defaultMaterial;
 
 
         private float _directionDelay;
 
         private IWorldPosition _nearestInteractable;
 
-        [SerializeField] private Material _outlineMaterial;
-#pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
+        [SerializeField][UsedImplicitly] private Material _outlineMaterial;
 
         private float _speed = 2.5f;
 
@@ -39,10 +40,10 @@ namespace Assets.Scripts.AI.Actor
         /// <inheritdoc/>
         public override RoomNode CurrentNode
         {
-            get => CurrentNodeField;
+            get => base.CurrentNode;
             protected set
             {
-                CurrentNodeField = value;
+                base.CurrentNode = value;
                 int level = GameManager.Instance.IsOnLevel(CurrentLevel);
                 if (level < 0)
                     GameManager.Instance.ChangeLevel(false);

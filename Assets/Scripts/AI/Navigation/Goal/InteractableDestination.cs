@@ -1,22 +1,23 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
 using Assets.Scripts.Map.Sprite_Object;
 
 namespace Assets.Scripts.AI.Navigation.Goal
 {
     /// <summary>
-    /// The <see cref="DestinationGoal"/> class is an <see cref="IGoal"/> for traveling to a specified <see cref="IInteractable"/>.
+    /// The <see cref="TargetDestination"/> class is an <see cref="IDestination"/> for traveling to a specified <see cref="IInteractable"/>.
     /// </summary>
-    public class InteractableGoal : IGoal
+    public class InteractableDestination : IDestination
     {
         private readonly IInteractable _interactable;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DestinationGoal"/> class.
+        /// Initializes a new instance of the <see cref="TargetDestination"/> class.
         /// </summary>
         /// <param name="interactable">The interactable trying to be reached.</param>
-        public InteractableGoal(IInteractable interactable)
+        public InteractableDestination(IInteractable interactable)
         {
             _interactable = interactable;
         }
@@ -25,9 +26,18 @@ namespace Assets.Scripts.AI.Navigation.Goal
         public IEnumerable<RoomNode> Endpoints => _interactable.InteractionPoints;
 
         /// <inheritdoc/>
+        public IEnumerable<Room> EndRooms
+        {
+            get
+            {
+                yield return _interactable.Room;
+            }
+        }
+
+        /// <inheritdoc/>
         public float Heuristic(RoomNode start)
         {
-            return Map.Map.EstimateDistance(start, _interactable.Node as RoomNode);
+            return Map.Map.EstimateDistance(start, _interactable.Node);
         }
 
         /// <inheritdoc/>

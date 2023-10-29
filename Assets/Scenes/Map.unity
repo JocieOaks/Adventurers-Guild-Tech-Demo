@@ -140,9 +140,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 516556166bcf79b4997d3c385ea54423, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AnimationSprites: []
-  SpriteRenderer: {fileID: 207992316}
   _collider: {fileID: 207992318}
+  _spriteRenderer: {fileID: 207992316}
+  <AnimationSprites>k__BackingField: []
   _defaultMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
   _outlineMaterial: {fileID: 2100000, guid: 187bf8af3c07f8b42b842079056e4b33, type: 2}
 --- !u!212 &207992316 stripped
@@ -279,9 +279,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3fe037ba8a251d4eaa16868cc662b8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AnimationSprites: []
-  SpriteRenderer: {fileID: 0}
   _collider: {fileID: 318307016}
+  _spriteRenderer: {fileID: 0}
+  <AnimationSprites>k__BackingField: []
   _emoji: {fileID: 1319342378}
   _speechBubble: {fileID: 2015189312}
 --- !u!60 &318307016

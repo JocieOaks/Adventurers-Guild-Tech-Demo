@@ -22,10 +22,8 @@ namespace Assets.Scripts.Data
 
         private List<IDataPersistence> _dataPersistenceObjects;
 
-#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
         [Header("File Storage Config")]
-        [SerializeField] private string _fileName;
-#pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
+        [SerializeField][UsedImplicitly] private string _fileName;
 
         private GameData _gameData;
 

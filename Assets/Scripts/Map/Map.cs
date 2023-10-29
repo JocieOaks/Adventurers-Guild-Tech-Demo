@@ -1,7 +1,5 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
-using Assets.Scripts.AI.Actor;
-using Assets.Scripts.AI.Navigation.Goal;
 using Assets.Scripts.Data;
 using Assets.Scripts.Data.Serializable;
 using Assets.Scripts.Map.Node;
@@ -17,14 +15,23 @@ namespace Assets.Scripts.Map
     /// </summary>
     public enum Direction
     {
+        /// <summary>Points in no particular direction. Used when the direction is ambiguous or trivial.</summary>
         Undirected = -100,
+        /// <summary>Points north. Because the game is isometric from the user perspective this points to the upper left.</summary>
         North = 0,
+        /// <summary>Points south. Because the game is isometric from the user perspective this points to the lower right.</summary>
         South = ~North,
+        /// <summary>Points east. Because the game is isometric from the user perspective this points to the upper right.</summary>
         East = 1,
+        /// <summary>Points south. Because the game is isometric from the user perspective this points to the lower left.</summary>
         West = ~East,
+        /// <summary>Points northeast. Because the game is isometric from the user perspective this points directly up.</summary>
         NorthEast = 2,
+        /// <summary>Points northwest. Because the game is isometric from the user perspective this points to the left.</summary>
         NorthWest = 3,
+        /// <summary>Points southeast. Because the game is isometric from the user perspective this points to the right.</summary>
         SouthEast = ~NorthWest,
+        /// <summary>Points southwest. Because the game is isometric from the user perspective this points directly down.</summary>
         SouthWest = ~NorthEast
     }
 
@@ -48,8 +55,11 @@ namespace Assets.Scripts.Map
     /// </summary>
     public enum PointOfInterest
     {
+        /// <summary>Indicated locations where an actor can get food.</summary>
         Food,
+        /// <summary>Indicates locations where an actor can sit. </summary>
         Sit,
+        /// <summary>Indicates locations where an actor can lay down. </summary>
         Lay
     }
 
@@ -78,7 +88,7 @@ namespace Assets.Scripts.Map
                     if (layer == null)
                         yield break;
 
-                    foreach (RoomNode node in layer.Nodes)
+                    foreach (RoomNode node in layer.GetNodes)
                         yield return node;
                 }
             }
@@ -204,7 +214,7 @@ namespace Assets.Scripts.Map
         {
             get
             {
-                for (int i = 0; i < _layers.Length; i++)
+                for (var i = 0; i < _layers.Length; i++)
                 {
                     if (_layers[i] == null)
                         return null;
@@ -221,12 +231,12 @@ namespace Assets.Scripts.Map
             }
             set
             {
-                for (int i = 0; i < _layers.Length; i++)
+                for (var i = 0; i < _layers.Length; i++)
                 {
                     if (z < _layers[i].Height)
                     {
                         if (i + relZ < 0 || i + relZ >= _layers.Length)
-                            throw new System.ArgumentException();
+                            throw new ArgumentException();
                         else
                             _layers[i + relZ] = value;
                         return;
@@ -246,15 +256,17 @@ namespace Assets.Scripts.Map
         /// <returns>Returns the estimated path length from <paramref name="start"/> to <paramref name="end"/>.</returns>
         public static float EstimateDistance(IWorldPosition start, IWorldPosition end)
         {
-            int xDiff = Mathf.Abs(start.WorldPosition.x - end.WorldPosition.x);
+            return Vector3Int.Distance(start.WorldPosition, end.WorldPosition);
+            /*int xDiff = Mathf.Abs(start.WorldPosition.x - end.WorldPosition.x);
             int yDiff = Mathf.Abs(start.WorldPosition.y - end.WorldPosition.y);
+            int zDiff = Mathf.Abs(start.WorldPosition.z - end.WorldPosition.z);
             return (xDiff, yDiff) switch
             {
                 _ when xDiff > 2 * yDiff => xDiff + yDiff * (Utility.Utility.RAD5 - 1),                                                                         //Equal to yDiff * RAD5 + (xDiff - yDiff);
                 _ when xDiff > yDiff => xDiff * (Utility.Utility.RAD5 - Utility.Utility.RAD2) + yDiff * (2 * Utility.Utility.RAD2 - Utility.Utility.RAD5),
                 _ when 2 * xDiff > yDiff => xDiff * (2 * Utility.Utility.RAD2 - Utility.Utility.RAD5) + yDiff * (Utility.Utility.RAD5 - Utility.Utility.RAD2),
                 _ => xDiff * (Utility.Utility.RAD5 - 1) + yDiff,
-            };
+            } + zDiff;*/
         }
 
         //Rooms are no longer tracked by the map, as that was never really used. Currently just sets up the RoomNodes that can be above the Room, which should be changed later.
@@ -270,7 +282,7 @@ namespace Assets.Scripts.Map
 
             Instance[roomZ, 1] ??= new Layer(MapWidth, MapLength, new Vector3Int(0, 0, z), roomLayer.LayerID + 1);
 
-            foreach (RoomNode node in room.Nodes)
+            foreach (RoomNode node in room.GetNodes)
             {
                 Vector3Int position = node.WorldPosition;
                 if (Instance[position.x, position.y, z] == null || Instance[position.x, position.y, z] == RoomNode.Undefined)
@@ -375,12 +387,14 @@ namespace Assets.Scripts.Map
                         gScore[end] = (nextScore, nodeQueue.Push(end, nextScore));
                 }
 
-                foreach (ConnectingNode next in current.ConnectionNodes)
+                foreach (ConnectingNode next in current.FirstNode.Room.Connections)
                 {
-                    float nextScore = current.GetDistance(next) + currentScore;
+                    if (next == current) continue;
+
+                    float nextScore = current.FirstNode.Room.GetDistance(current.FirstNode, next) + currentScore;
                     if (gScore.TryGetValue(next, out (float score, IReference queueNode) score))
                     {
-                        if (score.score < nextScore) continue;
+                        if (score.score <= nextScore) continue;
 
                         gScore[end] = (nextScore, score.queueNode);
                         nodeQueue.ChangePriority(score.queueNode, nextScore + Vector3.Distance(endPosition, next.WorldPosition));
@@ -388,6 +402,28 @@ namespace Assets.Scripts.Map
                     }
                     else
                         gScore[next] = (nextScore, nodeQueue.Push(next, nextScore + Vector3.Distance(endPosition, next.WorldPosition)));
+                }
+
+                if (!current.IsWithinSingleRoom)
+                {
+                    foreach (ConnectingNode next in current.SecondNode.Room.Connections)
+                    {
+                        if (next == current) continue;
+
+                        float nextScore = current.SecondNode.Room.GetDistance(current.SecondNode, next) + currentScore;
+                        if (gScore.TryGetValue(next, out (float score, IReference queueNode) score))
+                        {
+                            if (score.score < nextScore) continue;
+
+                            gScore[end] = (nextScore, score.queueNode);
+                            nodeQueue.ChangePriority(score.queueNode,
+                                nextScore + Vector3.Distance(endPosition, next.WorldPosition));
+
+                        }
+                        else
+                            gScore[next] = (nextScore,
+                                nodeQueue.Push(next, nextScore + Vector3.Distance(endPosition, next.WorldPosition)));
+                    }
                 }
             }
 
@@ -627,143 +663,9 @@ namespace Assets.Scripts.Map
 
             Graphics.Instance.SetLevel();
             BuildFunctions.Confirm();
-            GameManager.MapChangingSecond += BuildSectors;
-
-            SitGoal.OnMapReady();
-            LayGoal.OnMapReady();
-            FoodGoal.OnMapReady();
+            GameManager.MapChangingLate += BuildSectors;
 
             Ready = true;
-        }
-        /// <summary>
-        /// Finds the shortest path for an <see cref="AdventurerPawn"/> to take to travel from one <see cref="IWorldPosition"/> to another.
-        /// </summary>
-        /// <param name="start">The <see cref="IWorldPosition"/> the <see cref="AdventurerPawn"/> is starting at.</param>
-        /// <param name="end">The <see cref="IWorldPosition"/> the <see cref="AdventurerPawn"/> wishes to end in.</param>
-        /// <returns>Yield returns the distance of the path, and then the <see cref="INode"/>s designating the path for the <see cref="Pawn"/> to take. 
-        /// Returns <see cref="float.PositiveInfinity"/> if no path exists.</returns>
-        public IEnumerator NavigateBetweenRooms(IWorldPosition start, IWorldPosition end)
-        {
-
-            if (!Sector.SameSector(start, end))
-                yield return float.PositiveInfinity;
-
-            Room startingRoom = start.Room;
-            Room endingRoom = end.Room;
-
-            Dictionary<IWorldPosition, (float score, IReference queueNode)> gScore = new();
-            Dictionary<IWorldPosition, IWorldPosition> immediatePredecessor = new();
-
-            PriorityQueue<(IWorldPosition, IWorldPosition), float> nodeQueue = new(PriorityQueue<INode, float>.MinComparer.Instance);
-
-            Vector3Int endPosition = end.WorldPosition;
-
-            gScore.Add(start, (0, null));
-
-            if (startingRoom == endingRoom)
-            {
-                nodeQueue.Push((start, end), Vector3Int.Distance(start.WorldPosition, endPosition));
-            }
-
-            foreach (ConnectingNode node in startingRoom.Connections)
-            {
-                nodeQueue.Push((start, node), Vector3Int.Distance(start.WorldPosition, node.WorldPosition) + Vector3Int.Distance(node.WorldPosition, endPosition));
-            }
-
-            while (!nodeQueue.Empty && nodeQueue.Count < 50)
-            {
-                (IWorldPosition prevNode, IWorldPosition current) = nodeQueue.Pop();
-                if (current == end)
-                {
-                    if (immediatePredecessor.TryGetValue(end, out IWorldPosition preceding) && preceding == prevNode)
-                    {
-                        yield return gScore[end].score;
-
-                        if (preceding != start)
-                        {
-                            IWorldPosition receding = preceding;
-                            yield return receding;
-                            preceding = immediatePredecessor[receding];
-                            while (preceding != start)
-                            {
-                                receding = preceding;
-                                yield return receding;
-                                preceding = immediatePredecessor[receding];
-                            }
-                        }
-                        yield break;
-                    }
-
-                    if (GetPath(prevNode, end, endingRoom, out float score))
-                    {
-                        nodeQueue.Push((prevNode, end), score);
-                    }
-
-                    continue;
-                }
-
-                if (current is not ConnectingNode currentNode || currentNode.Obstructed)
-                    continue;
-
-                float currentScore;
-
-                if (prevNode == start)
-                {
-                    GetPath(start, currentNode, startingRoom, out currentScore);
-                }
-                else
-                {
-                    currentScore = gScore[currentNode].score;
-                }
-
-                if (currentNode.AdjacentToRoom(endingRoom))
-                {
-                    nodeQueue.Push((currentNode, end), currentScore + Vector3Int.Distance(currentNode.WorldPosition, endPosition));
-                }
-
-                List<ConnectingNode> nextNodes = currentNode.ConnectionNodes;
-
-                foreach (ConnectingNode next in nextNodes)
-                {
-                    float nextScore = currentNode.GetDistance(next) + currentScore;
-                    if (gScore.TryGetValue(next, out var score))
-                    {
-                        if (score.score < nextScore)
-                            continue;
-                        else
-                        {
-                            nodeQueue.ChangePriority(score.queueNode, nextScore + Vector3.Distance(endPosition, next.WorldPosition));
-                            gScore[next] = (nextScore, score.queueNode);
-                        }
-                    }
-                    else
-                        gScore[next] = (nextScore, nodeQueue.Push((currentNode, next), nextScore + Vector3.Distance(endPosition, next.WorldPosition)));
-
-                
-                    immediatePredecessor[next] = currentNode;
-                }
-
-            }
-
-            yield return float.PositiveInfinity;
-
-
-            bool GetPath(IWorldPosition pathStart, IWorldPosition pathEnd, Room room, out float score)
-            {
-                IEnumerator pathIter = room.Navigate(pathStart, pathEnd);
-                pathIter.MoveNext();
-                if (!gScore.TryGetValue(pathEnd, out (float score, IReference queueNode) prev) || prev.score > (float)pathIter.Current! + gScore[pathStart].score)
-                {
-                    score = (float)pathIter.Current! + gScore[pathStart].score;
-                    gScore[pathEnd] = (score, null);
-                    immediatePredecessor[pathEnd] = pathStart;
-                    return true;
-                }
-
-                score = prev.score;
-
-                return false;
-            }
         }
 
         /// <summary>
@@ -891,7 +793,7 @@ namespace Assets.Scripts.Map
                 }
             }
 
-            System.Array.Resize(ref mapData, arrayLength);
+            Array.Resize(ref mapData, arrayLength);
 
             gameData.Map = mapData;
             gameData.MapWidth = MapWidth;

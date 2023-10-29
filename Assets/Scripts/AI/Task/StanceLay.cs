@@ -44,7 +44,7 @@ namespace Assets.Scripts.AI.Task
         /// <inheritdoc/>
         public override bool ConditionsMet(WorldState worldState)
         {
-            return base.ConditionsMet(worldState) && InteractablesCondition(worldState, LayGoal.LayingObjects) && worldState.PreviousTask is not StanceSit && worldState.PreviousTask is not StanceStand;
+            return base.ConditionsMet(worldState) && InteractablesCondition(worldState, LayDestination.LayingObjects) && worldState.PreviousTask is not StanceSit && worldState.PreviousTask is not StanceStand;
         }
 
         /// <inheritdoc/>
@@ -57,7 +57,7 @@ namespace Assets.Scripts.AI.Task
         /// <inheritdoc/>
         public IEnumerable<TaskAction> GetActions(Pawn pawn)
         {
-            yield return new TravelAction(_bed, pawn);
+            yield return new TravelAction(new LayDestination(), pawn);
             yield return new LayDownAction(_bed, pawn);
         }
 
@@ -68,7 +68,7 @@ namespace Assets.Scripts.AI.Task
                 _bed = GetBed(actor.Stats);
             if (_bed == null)
                 yield break;
-            yield return new TravelAction(_bed, actor.Pawn);
+            yield return new TravelAction(new LayDestination(), actor.Pawn);
             yield return new LayDownAction(_bed, actor.Pawn);
         }
 
@@ -93,7 +93,7 @@ namespace Assets.Scripts.AI.Task
         {
             float closestDistance = float.PositiveInfinity;
             BedSprite best = null;
-            foreach (IInteractable interactable in LayGoal.LayingObjects)
+            foreach (IInteractable interactable in LayDestination.LayingObjects)
             {
                 var bed = (BedSprite)interactable;
                 if (!bed.Occupied)

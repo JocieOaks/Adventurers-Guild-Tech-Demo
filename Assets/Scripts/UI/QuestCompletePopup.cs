@@ -1,4 +1,3 @@
-using Assets.Scripts.AI;
 using Assets.Scripts.AI.Actor;
 using JetBrains.Annotations;
 using TMPro;
@@ -12,12 +11,10 @@ namespace Assets.Scripts.UI
     /// </summary>
     public class QuestCompletePopup : MonoBehaviour
     {
-#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
-        [SerializeField] private Image _icon;
-        [SerializeField] private TextMeshProUGUI _results;
-        [SerializeField] private TextMeshProUGUI _gold;
-        [SerializeField] private TextMeshProUGUI _prestige;
-#pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
+        [SerializeField][UsedImplicitly] private Image _icon;
+        [SerializeField][UsedImplicitly] private TextMeshProUGUI _results;
+        [SerializeField][UsedImplicitly] private TextMeshProUGUI _gold;
+        [SerializeField][UsedImplicitly] private TextMeshProUGUI _prestige;
 
         /// <summary>
         /// Sets the <see cref="QuestCompletePopup"/> to display the results of the given <see cref="Quest"/>.

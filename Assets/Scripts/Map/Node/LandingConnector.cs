@@ -61,7 +61,7 @@ namespace Assets.Scripts.Map.Node
             //can be equal to the surface position of a RoomNode on the level above it.
             if (entrance == FirstNode || entrance.SurfacePosition == FirstNode.SurfacePosition)
                 return SecondNode;
-            else if (entrance == SecondNode || entrance.SurfacePosition == FirstNode.SurfacePosition)
+            if (entrance == SecondNode || entrance.SurfacePosition == FirstNode.SurfacePosition)
                 return FirstNode;
             else
             {
@@ -75,7 +75,7 @@ namespace Assets.Scripts.Map.Node
             FirstNode.Room.AddConnection(this);
             SecondNode.Room.AddConnection(this);
 
-            GameManager.MapChangingSecond -= RegisterRooms;
+            GameManager.MapChangingLate -= RegisterRooms;
         }
     }
 }

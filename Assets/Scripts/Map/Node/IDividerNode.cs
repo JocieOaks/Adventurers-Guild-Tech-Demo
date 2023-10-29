@@ -1,5 +1,3 @@
-using JetBrains.Annotations;
-
 namespace Assets.Scripts.Map.Node
 {
     /// <summary>
@@ -33,12 +31,11 @@ namespace Assets.Scripts.Map.Node
         {
             if (node == FirstNode)
                 return SecondNode;
-            else if (node == SecondNode)
+            if (node == SecondNode)
                 return FirstNode;
-            else
-            {
-                throw new System.ArgumentException();
-            }
+
+            throw new System.ArgumentException();
+            
         }
     }
 }

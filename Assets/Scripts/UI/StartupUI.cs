@@ -9,9 +9,7 @@ namespace Assets.Scripts.UI
     /// </summary>
     public class StartupUI : MonoBehaviour
     {
-#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
-        [SerializeField] private GameObject _welcome, _class, _party, _name;
-#pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
+        [SerializeField][UsedImplicitly] private GameObject _welcome, _class, _party, _name;
 
         /// <summary>
         /// Called when the welcome message is clicked.

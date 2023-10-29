@@ -26,7 +26,7 @@ namespace Assets.Scripts.Map
             for (int i = 0; i < x; i++)
             for (int j = 0; j < y; j++)
             {
-                _nodes[i, j] = RoomNode.Undefined;
+                Nodes[i, j] = RoomNode.Undefined;
             }
             LayerID = layerID;
         }
@@ -63,11 +63,11 @@ namespace Assets.Scripts.Map
         /// <param name="y">Y position of new RoomNode.</param>
         public void InstantiateRoomNode(int x, int y)
         {
-            _nodes[x, y] = new RoomNode(this, x, y);
-            _nodes[x, y].SetNode(Direction.North, _nodes[x, y + 1]);
-            _nodes[x, y].SetNode(Direction.South, _nodes[x, y - 1]);
-            _nodes[x, y].SetNode(Direction.East, _nodes[x + 1, y]);
-            _nodes[x, y].SetNode(Direction.West, _nodes[x - 1, y]);
+            Nodes[x, y] = new RoomNode(this, x, y);
+            Nodes[x, y].SetNode(Direction.North, Nodes[x, y + 1]);
+            Nodes[x, y].SetNode(Direction.South, Nodes[x, y - 1]);
+            Nodes[x, y].SetNode(Direction.East, Nodes[x + 1, y]);
+            Nodes[x, y].SetNode(Direction.West, Nodes[x - 1, y]);
         }
 
         /// <inheritdoc/>
@@ -82,8 +82,8 @@ namespace Assets.Scripts.Map
             {
                 if (roomDesignation[i, j] == flag)
                 {
-                    nodes[i - originX, j - originY] = _nodes[i, j];
-                    _nodes[i, j].Reassign(newRoom, i - originX, j - originY);
+                    nodes[i - originX, j - originY] = Nodes[i, j];
+                    Nodes[i, j].Reassign(newRoom, i - originX, j - originY);
                 }
             }
 

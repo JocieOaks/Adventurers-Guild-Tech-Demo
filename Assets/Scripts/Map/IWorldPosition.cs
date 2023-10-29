@@ -26,7 +26,7 @@ namespace Assets.Scripts.Map
         /// <value>Gives the position of the object in <see cref="Map"/> coordinates.</value>
         Vector3Int WorldPosition { get; }
         /// <summary>
-        /// Method for <see cref="Room.Navigate(IWorldPosition, IWorldPosition)"/>. Determines if the given node is an acceptable endpoint when navigating to this <see cref="IWorldPosition"/>.
+        /// Method for <see cref="Scripts.Map.Room.CreateGScoreTable"/>. Determines if the given node is an acceptable endpoint when navigating to this <see cref="IWorldPosition"/>.
         /// </summary>
         /// <param name="node">The potential endpoint.</param>
         /// <returns>Returns true if the given <see cref="RoomNode"/> is an acceptable endpoint for navigation.</returns>

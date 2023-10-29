@@ -29,7 +29,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
         public StoolSprite(Vector3Int worldPosition)
             : base(1, s_sprites, Direction.Undirected, worldPosition, "Stool", ObjectDimensions, true)
         {
-            SitGoal.AddSittingObject(this);
+            SitDestination.AddSittingObject(this);
         }
 
         /// <value>The 3D dimensions of a <see cref="StoolSprite"/> in terms of <see cref="Map"/> coordinates.</value>
@@ -128,7 +128,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
         /// <inheritdoc/>
         public override void Destroy()
         {
-            SitGoal.RemoveSittingObject(this);
+            SitDestination.RemoveSittingObject(this);
             base.Destroy();
         }
 
@@ -144,6 +144,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
             pawn.ForcePosition(WorldPosition + Vector3Int.back);
             pawn.Occupying = this;
             Occupant = pawn;
+            SitDestination.RemoveSittingObject(this);
         }
 
         /// <inheritdoc/>
@@ -167,6 +168,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
                 //Emergency option if there's no interaction points to move to.
                 pawn.ForcePosition(roomNode?.WorldPosition ?? Vector3Int.one);
             }
+            SitDestination.AddSittingObject(this);
         }
 
         /// <inheritdoc/>

@@ -9,84 +9,127 @@ using UnityEngine;
 
 namespace Assets.Scripts.AI.Navigation
 {
+    /// <summary>
+    /// The <see cref="NavigateRoom"/> class is a child of <see cref="DLite{T}"/> that finds the optimal path within a <see cref="Scripts.Map.Room"/> to reach a <see cref="IDestination"/>.
+    /// </summary>
     public class NavigateRoom : DLite<RoomNode>
     {
-        private (float gScore, float rhs, IReference reference)[,] _nodes;
-        private Room _room;
+        /// <value>A 2D array containing the associated value for every node within the current room.</value>
+        protected (float gScore, float rhs, IReference reference)[,] Nodes { get; set; }
 
-        public NavigateRoom(Pawn pawn) : base(pawn)
+        /// <value>The current room being navigated through.</value>
+        protected Room Room { get; set; }
+
+        private readonly Pawn _pawn;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NavigateRoom"/> algorithm.
+        /// </summary>
+        /// <param name="pawn">The <see cref="_pawn"/> who's path is being navigated.</param>
+        public NavigateRoom(Pawn pawn)
         {
-            _room = pawn.Room;
+            Room = pawn.Room;
+            _pawn = pawn;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NavigateRoom"/> algorithm, without a corresponding <see cref="Pawn"/>.
+        /// Used to calculate pathing to points of interest within a <see cref="Scripts.Map.Room"/>.
+        /// </summary>
+        /// <param name="room"></param>
+        protected NavigateRoom(Room room)
+        {
+            Room = room;
+        }
+
+        /// <inheritdoc/>
         protected override (float gScore, float rhs, IReference reference) NodeValues(RoomNode node)
         {
+            if (_pawn.Room != Room)
+            {
+                SetGoal(Destination);
+            }
+
             Vector3Int position = node.RoomPosition;
-            return _nodes[position.x, position.y];
+            return Nodes[position.x, position.y];
         }
 
+        /// <inheritdoc/>
         protected override IEnumerable<(RoomNode, float)> Successors(RoomNode node)
         {
             return node.NextNodes;
         }
 
+        /// <inheritdoc/>
         protected override void SetRHS(RoomNode node, float value)
         {
             Vector3Int position = node.RoomPosition;
-            _nodes[position.x, position.y].rhs = value;
+            Nodes[position.x, position.y].rhs = value;
         }
 
+        /// <inheritdoc/>
         protected override void SetGScore(RoomNode node, float value)
         {
             Vector3Int position = node.RoomPosition;
-            _nodes[position.x, position.y].gScore = value;
+            Nodes[position.x, position.y].gScore = value;
         }
 
-        public override bool IsGoalReachable(RoomNode node)
+        /// <inheritdoc />
+        protected override RoomNode Start { get; set; }
+
+        /// <inheritdoc/>
+        public override bool IsGoalReachable()
         {
-            return base.IsGoalReachable(node) && node.Room == _room;
+            return Destination.EndRooms.Contains(Room) && base.IsGoalReachable();
         }
 
+        /// <inheritdoc/>
         protected override void SetElement(RoomNode node, IReference value)
         {
             Vector3Int position = node.RoomPosition;
-            _nodes[position.x, position.y].reference = value;
+            Nodes[position.x, position.y].reference = value;
         }
 
-        protected override float Heuristic(RoomNode node)
+        /// <inheritdoc/>
+        public override void SetGoal(IDestination destination)
         {
-            return Goal.Heuristic(node);
+            Room = _pawn?.Room ?? Room;
+            base.SetGoal(destination);
         }
 
-        public override void SetGoal(IGoal goal)
-        {
-            _room = Pawn.Room;
-            base.SetGoal(goal);
-        }
-
+        /// <inheritdoc/>
         protected override void InitializeGraph()
         {
-            _nodes = new (float, float, IReference)[_room.Width, _room.Length];
+            Start = _pawn.CurrentNode;
 
-            for (int i = 0; i < _room.Width; i++)
+            if (Nodes == null || Nodes.GetLength(0) != Room.Width || Nodes.GetLength(0) != Room.Length)
             {
-                for (int j = 0; j < _room.Length; j++)
+                Nodes = new (float, float, IReference)[Room.Width, Room.Length];
+            }
+            for (var i = 0; i < Room.Width; i++)
+            {
+                for (var j = 0; j < Room.Length; j++)
                 {
-                    _nodes[i, j] = (float.PositiveInfinity, float.PositiveInfinity, null);
+                    Nodes[i, j] = (float.PositiveInfinity, float.PositiveInfinity, null);
                 }
             }
         }
 
+        /// <inheritdoc/>
         protected override IEnumerable<RoomNode> Endpoints()
         {
-            return Goal.Endpoints.Where(node => node.Room == _room);
+            return Destination.Endpoints.Where(node => node.Room == Room);
         }
 
-        public override void UpdateStart()
+        /// <param name="node"></param>
+        /// <inheritdoc/>
+        public override void UpdateStart(RoomNode node)
         {
+            node ??= _pawn.CurrentNode;
+
             if (Start != null)
-                PriorityAdjustment += Map.Map.EstimateDistance(Start, Pawn.CurrentNode);
-            Start = Pawn.CurrentNode;
+                PriorityAdjustment += Map.Map.EstimateDistance(Start, node);
+            Start = node;
             EstablishPathing();
         }
     }

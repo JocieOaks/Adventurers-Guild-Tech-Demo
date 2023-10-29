@@ -1,5 +1,4 @@
 ﻿using Assets.Scripts.AI.Actor;
-using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
 
 namespace Assets.Scripts.AI.Step
@@ -10,9 +9,7 @@ namespace Assets.Scripts.AI.Step
     /// </summary>
     public class TraverseStep : WalkStep
     {
-        private readonly ConnectingNode _connection;
-        private readonly Room _newRoom;
-        private readonly Room _oldRoom;
+        public ConnectingNode Connection { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TraverseStep"/> class.
@@ -21,6 +18,10 @@ namespace Assets.Scripts.AI.Step
         /// <param name="connection">The <see cref="ConnectingNode"/> for the <see cref="Pawn"/> to traverse.</param>
         /// <param name="pawn">The <see cref="Pawn"/> performing the step.</param>
         /// <param name="step">The previous <see cref="TaskStep"/> the <see cref="Pawn"/> was performing.</param>
-        public TraverseStep(RoomNode start, ConnectingNode connection, Pawn pawn, TaskStep step) : base(connection.GetOppositeRoomNode(start).SurfacePosition, pawn, step) {}
+        public TraverseStep(RoomNode start, ConnectingNode connection, Pawn pawn, TaskStep step) : base(
+            connection.GetOppositeRoomNode(start).SurfacePosition, pawn, step)
+        {
+            Connection = connection;
+        }
     }
 }

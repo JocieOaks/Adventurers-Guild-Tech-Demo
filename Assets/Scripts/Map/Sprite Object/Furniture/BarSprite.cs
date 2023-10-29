@@ -30,7 +30,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
         public BarSprite(Direction direction, Vector3Int worldPosition)
             : base(2, s_sprites, direction, worldPosition, "Bar", ObjectDimensions, true)
         {
-            FoodGoal.AddFoodSource(this);
+            FoodDestination.AddFoodSource(this);
             Direction = direction;
             SpriteRenderers[1].sprite = Alignment == MapAlignment.XEdge ? Graphics.Instance.BarX[1] : Graphics.Instance.BarY[1];
             SpriteRenderers[1].sortingOrder = Utility.Utility.GetSortOrder(WorldPosition + (Alignment == MapAlignment.XEdge ? Vector3Int.down : Vector3Int.left));
@@ -120,6 +120,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
             }
         }
 
+        /// <inheritdoc />
         [JsonProperty]
         public Direction Direction { get; }
 
@@ -183,7 +184,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
         /// <inheritdoc/>
         public override void Destroy()
         {
-            FoodGoal.RemoveFoodSource(this);
+            FoodDestination.RemoveFoodSource(this);
             base.Destroy();
         }
 

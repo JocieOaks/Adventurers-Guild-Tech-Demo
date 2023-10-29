@@ -39,10 +39,19 @@ namespace Assets.Scripts
         private static Direction s_direction;
         private static int s_lineEnd;
         private static Vector3Int s_lineStart;
+        /// <summary>
+        /// Called when checking the build constraints for doing an area build.
+        /// </summary>
         public static event Action<Vector3Int, Vector3Int> CheckingAreaConstraints;
 
+        /// <summary>
+        /// Called when checking the build constraints for doing a line build.
+        /// </summary>
         public static event Action<int, int> CheckingLineConstraints;
 
+        /// <summary>
+        /// Called when a build action is confirmed.
+        /// </summary>
         public static event Action ConfirmingObjects;
 
         /// <value>Gives the type of object being built, so that <see cref="GameManager"/> knows how to use the player input.</value>
@@ -149,7 +158,7 @@ namespace Assets.Scripts
         [UsedImplicitly]
         public static void PlaceFloor(Room room, int floorType)
         {
-            foreach (RoomNode node in room.Nodes)
+            foreach (RoomNode node in room.GetNodes)
             {
                 Vector3Int position = room.GetWorldPosition(node);
                 if (Map.Map.Instance.IsSupported(position, MapAlignment.Center))

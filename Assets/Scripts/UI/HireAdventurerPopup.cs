@@ -1,4 +1,3 @@
-using Assets.Scripts.AI;
 using Assets.Scripts.AI.Actor;
 using JetBrains.Annotations;
 using TMPro;
@@ -11,9 +10,7 @@ namespace Assets.Scripts.UI
     /// </summary>
     public class HireAdventurerPopup : MonoBehaviour
     {
-#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
-        [SerializeField] private TextMeshProUGUI _header;
-#pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
+        [SerializeField][UsedImplicitly] private TextMeshProUGUI _header;
         private Actor _adventurer;
 
         /// <value>The <see cref="Actor"/> to be hired or rejected.</value>

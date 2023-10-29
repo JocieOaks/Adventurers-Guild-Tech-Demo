@@ -9,10 +9,8 @@ namespace Assets.Scripts.Map.Node
     /// </summary>
     public class StairNode : RoomNode, IDirected
     {
-#pragma warning disable IDE0052
         // ReSharper disable once NotAccessedField.Local
         private readonly StairSprite _stairSprite;
-#pragma warning restore IDE0052
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StairNode"/> class that does not already have an associated <see cref="StairSprite"/>.

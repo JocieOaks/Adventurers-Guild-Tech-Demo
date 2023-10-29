@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Assets.Scripts.AI;
 using Assets.Scripts.AI.Actor;
 using Assets.Scripts.Data;
 using Assets.Scripts.Map.Node;
@@ -24,9 +23,6 @@ namespace Assets.Scripts.Map.Sprite_Object
     [JsonSubtypes.JsonSubtypes.KnownSubType(typeof(BarSprite), "Bar")]
     public abstract class SpriteObject :  ISpriteObject
     {
-        [JsonIgnore]
-        protected SpriteRenderer[] SpriteRenderers;
-
         private readonly bool _blocking;
 
         /// <summary>
@@ -73,7 +69,7 @@ namespace Assets.Scripts.Map.Sprite_Object
             Map.Instance.StartCoroutine(WaitForMap());
 
             Graphics.LevelChanged += OnLevelChanged;
-            GameManager.MapChangingSecond += OnMapChanging;
+            GameManager.MapChangingLate += OnMapChanging;
 
             if (this is not WallSprite && this is not StairSprite && this is not FloorSprite)
                 DataPersistenceManager.Instance.NonMonoDataPersistenceObjects.Add(this);
@@ -84,6 +80,10 @@ namespace Assets.Scripts.Map.Sprite_Object
         public static Vector3Int ObjectDimensions => throw
             //ObjectDimensions should be hidden by any child class. This is only here in case a child class doesn't set it's dimensions so that it can throw an exception.
             new System.AccessViolationException("Should not be trying to access abstract class dimensions.");
+
+        /// <value>The <see cref="MapAlignment"/> of the <see cref="SpriteObject"/>.
+        /// For most <see cref="SpriteObject"/>s this is <see cref="MapAlignment.Center"/>.</value>
+        public virtual MapAlignment Alignment => MapAlignment.Center;
 
         /// <inheritdoc/>
         [JsonIgnore]
@@ -100,6 +100,7 @@ namespace Assets.Scripts.Map.Sprite_Object
         [JsonIgnore]
         public RoomNode Node { get; private set; }
 
+        /// <value>Indicates where the front corner of the <see cref="SpriteObject"/> is. Used when determining how sprites overlap.</value>
         [JsonIgnore]
         public virtual Vector3 OffsetVector => Vector3.zero;
 
@@ -142,19 +143,20 @@ namespace Assets.Scripts.Map.Sprite_Object
                     AddCollider();
             }
         }
+
+        /// <value>An array containing all the <see cref="UnityEngine.SpriteRenderer"/>s for the <see cref="SpriteObject"/>.</value>
+        /// <remarks>Sprites are split into pieces to handle the way objects overlap on the isometric map.</remarks>
+        [field: JsonIgnore] protected SpriteRenderer[] SpriteRenderers { get; }
         /// <value>Gives the <see cref="UnityEngine.Transform"/> for the forward most sprite of the <see cref="SpriteObject"/>.
         /// All other sprites of the <see cref="SpriteObject"/> will be a child of <see cref="Transform"/>.</value>
         [JsonIgnore]
         protected Transform Transform => SpriteRenderers[0].transform;
-
-        public virtual MapAlignment Alignment => MapAlignment.Center;
-
         /// <inheritdoc/>
         public virtual void Destroy()
         {
             Graphics.LevelChanged -= OnLevelChanged;
             Graphics.ResettingSprite -= ResetSprite;
-            GameManager.MapChangingSecond -= OnMapChanging;
+            GameManager.MapChangingLate -= OnMapChanging;
 
             if (_blocking)
             {

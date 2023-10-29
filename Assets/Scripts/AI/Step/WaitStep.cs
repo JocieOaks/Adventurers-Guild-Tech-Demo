@@ -31,8 +31,6 @@ namespace Assets.Scripts.AI.Step
         public WaitStep(Pawn pawn, Direction direction, bool blocking) : base(pawn)
         {
             _roomNode = pawn.CurrentNode;
-            if (blocking)
-                _roomNode.Occupant = pawn;
             SetDirection(direction);
         }
 

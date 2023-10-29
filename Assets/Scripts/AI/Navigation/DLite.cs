@@ -2,48 +2,37 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Assets.Scripts.AI.Actor;
 using Assets.Scripts.AI.Navigation.Goal;
+using Assets.Scripts.Map;
 using Assets.Scripts.Utility;
 using UnityEngine;
 
 namespace Assets.Scripts.AI.Navigation
 {
-    public abstract class DLite<T>
+    /// <summary>
+    /// The <see cref="DLite{T}"/> class is an abstract class for performing the D*Lite search algorithm to determine the optimal path to reach a <see cref="IDestination"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of the nodes that the algorithm is searching through.</typeparam>
+    public abstract class DLite<T> where T : IWorldPosition
     {
-        protected IGoal Goal;
-        protected T Start;
+        private readonly PriorityQueue<T, (float, float)> _nodeQueue = new(PriorityComparer.Instance);
 
-        private PriorityQueue<T, (float, float)> _nodeQueue;
+        /// <value>The <see cref="IDestination"/> that is being navigated towards.</value>
+        protected IDestination Destination { get; set; }
 
-       
-        protected float PriorityAdjustment;
+        /// <value>Adjust value added to priority to account for the position of <see cref="Start"/> changing.</value>
+        protected float PriorityAdjustment { get; set; }
 
-        protected DLite(Pawn pawn)
-        {
-            Pawn = pawn;
-        }
-
-        protected abstract (float gScore, float rhs, IReference reference) NodeValues(T node);
-
-        protected abstract IEnumerable<(T, float)> Successors(T node);
-
-        protected Pawn Pawn;
-
-        public virtual bool IsGoalReachable(T node)
-        {
-            return !float.IsPositiveInfinity(NodeValues(node).gScore);
-        }
-
+        /// <value>The current starting node - either the node the navigating pawn is currently at or the most recent node the pawn was at.</value>
+        protected abstract T Start { get; set; }
         /// <summary>
-        /// Finds the optimal <see cref="T"/> to traverse to reach the goal destination.
+        /// Finds the optimal node to traverse to reach the destination destination.
         /// </summary>
-        /// <param name="node">The starting <see cref="T"/> for the path.</param>
-        /// <returns>Returns the next <see cref="T"/> on the path.</returns>
-        // ReSharper disable once UnusedMember.Global
-        public T GetNext(T node)
+        /// <returns>Returns the next node on the path.</returns>
+        public T GetNext()
         {
-            T next = default;
+            T node = Start;
+            T next = Start;
             float min = float.PositiveInfinity;
             foreach ((T node, float distance) successor in Successors(node))
             {
@@ -59,34 +48,47 @@ namespace Assets.Scripts.AI.Navigation
         }
 
         /// <summary>
-        /// Sets the rhs value for a particular <see cref="T"/>.
+        /// Determines if the current <see cref="IDestination"/> can be reached from the current node.
         /// </summary>
-        /// <param name="node">The <see cref="T"/> whose value is being set.</param>
-        /// <param name="value">The value the rhs is being set to.</param>
-        protected abstract void SetRHS(T node, float value);
+        /// <returns>Returns false if there is no path from the current node to the destination.</returns>
+        public virtual bool IsGoalReachable()
+        {
+            return !float.IsPositiveInfinity(NodeValues(Start).gScore);
+        }
 
         /// <summary>
-        /// Sets the gScore for a particular <see cref="T"/>.
+        /// Gets the gScore for a particular node.
         /// </summary>
-        /// <param name="node">The <see cref="T"/> whose value is being set.</param>
-        /// <param name="value">The value the gScore is being set to.</param>
-        protected abstract void SetGScore(T node, float value);
+        /// <param name="node">The node whose gScore is desired.</param>
+        /// <returns>Returns <paramref name="node"/>'s gScore.
+        /// Will return <see cref="float.PositiveInfinity"/> if there is no known path to <paramref name="node"/>.</returns>
+        public float Score(T node)
+        {
+            return NodeValues(node).gScore;
+        }
 
         /// <summary>
-        /// Sets the reference for a particular <see cref="T"/>.
+        /// Sets the current <see cref="IDestination"/> to navigate to.
         /// </summary>
-        /// <param name="node">The <see cref="T"/> whose value is being set.</param>
-        /// <param name="value">The reference associated with <paramref name="node"/>.</param>
-        protected abstract void SetElement(T node, IReference value);
-
-        protected abstract float Heuristic(T node);
+        /// <param name="destination">The new <see cref="IDestination"/></param>
+        public virtual void SetGoal(IDestination destination)
+        {
+            Destination = destination;
+            Initialize();
+        }
 
         /// <summary>
-        /// Calculates the priority of <see cref="T"/>s used by <see cref="PriorityQueue{T1, T2}"/>.
+        /// Updates the current start node.
         /// </summary>
-        /// <param name="node">The <see cref="T"/>.</param>
+        /// <param name="node"></param>
+        public abstract void UpdateStart(T node);
+
+        /// <summary>
+        /// Calculates the priority of nodes used by <see cref="PriorityQueue{T1, T2}"/>.
+        /// </summary>
+        /// <param name="node">The node being evaluated.</param>
         /// <returns>Returns the priority of <paramref name="node"/>.</returns>
-        private (float, float) CalculatePriority(T node)
+        protected virtual (float, float) CalculatePriority(T node)
         {
             (float gScore, float rhs, IReference _) = NodeValues(node);
 
@@ -94,6 +96,153 @@ namespace Assets.Scripts.AI.Navigation
             return (min + Heuristic(node) + PriorityAdjustment, min);
         }
 
+        /// <summary>
+        /// An iterable list of all the valid nodes that will result in completing the <see cref="IDestination"/>.
+        /// </summary>
+        /// <returns>Returns all the <see cref="IDestination"/>'s endpoints.</returns>
+        protected abstract IEnumerable<T> Endpoints();
+
+        /// <summary>
+        /// Calculates the path length from nodes to the <see cref="IDestination"/> to determine the optimal path.
+        /// </summary>
+        protected void EstablishPathing()
+        {
+            (float gScore, float rhs, IReference _) = NodeValues(Start);
+            while (!_nodeQueue.Empty &&
+                   (PriorityComparer.Instance.Compare(_nodeQueue.TopPriority, CalculatePriority(Start)) == 1 ||
+                    Math.Abs(gScore - rhs) > Utility.Utility.TOLERANCE))
+            {
+
+
+                (float, float) oldPriority = _nodeQueue.TopPriority;
+                T node = _nodeQueue.Pop();
+                (float, float) newPriority = CalculatePriority(node);
+                (float gScore1, float rhs1, IReference _) = NodeValues(node);
+                if (PriorityComparer.Instance.Compare(oldPriority, newPriority) == 1)
+                {
+                    SetElement(node, _nodeQueue.Push(node, newPriority));
+                }
+                else
+                {
+                    if (gScore1 > rhs1)
+                    {
+                        SetGScore(node, rhs1);
+
+                    }
+                    else
+                    {
+                        SetGScore(node, float.PositiveInfinity);
+                        UpdateNode(node);
+                    }
+
+                    foreach ((T node, float distance) predecessor in Successors(node))
+                    {
+                        UpdateNode(predecessor.node);
+                    }
+                }
+
+                (gScore, rhs, _) = NodeValues(Start);
+            }
+        }
+
+        /// <summary>
+        /// Initializes the graph of all nodes that can be traversed through.
+        /// </summary>
+        protected abstract void InitializeGraph();
+
+        /// <summary>
+        /// Gives the gScore, rhs and an <see cref="IReference"/> for the <see cref="PriorityQueue{T1,T2}"/> associated with the given node.
+        /// </summary>
+        /// <param name="node">The node whose values are being requested.</param>
+        /// <returns>Returns the values associated with <paramref name="node"/>.</returns>
+        protected abstract (float gScore, float rhs, IReference reference) NodeValues(T node);
+
+        /// <summary>
+        /// Sets the reference for a particular node.
+        /// </summary>
+        /// <param name="node">The node whose value is being set.</param>
+        /// <param name="value">The reference associated with <paramref name="node"/>.</param>
+        protected abstract void SetElement(T node, IReference value);
+
+        /// <summary>
+        /// Sets the gScore for a particular node.
+        /// </summary>
+        /// <param name="node">The node whose value is being set.</param>
+        /// <param name="value">The value the gScore is being set to.</param>
+        protected abstract void SetGScore(T node, float value);
+
+        /// <summary>
+        /// Sets the rhs value for a particular node.
+        /// </summary>
+        /// <param name="node">The node whose value is being set.</param>
+        /// <param name="value">The value the rhs is being set to.</param>
+        protected abstract void SetRHS(T node, float value);
+
+        /// <summary>
+        /// Finds all the nodes that can be traversed to directly from the given node.
+        /// </summary>
+        /// <param name="node">The node whose successors are being evaluated.</param>
+        /// <returns>Returns an iterable list of all of <paramref name="node"/>'s successors.</returns>
+        protected abstract IEnumerable<(T, float)> Successors(T node);
+
+        /// <summary>
+        /// Sets the nodes rhs value, and determines if it matches the node's gScore.
+        /// </summary>
+        /// <param name="node">The node being updated.</param>
+        protected void UpdateNode(T node)
+        {
+            if (Endpoints().All(x => !x.Equals(node)))
+            {
+                float min = float.PositiveInfinity;
+                foreach ((T node, float distance) successor in Successors(node))
+                {
+                    min = MathF.Min(min, NodeValues(successor.node).gScore + successor.distance);
+                }
+
+                SetRHS(node, min);
+            }
+
+
+            (float gScore, float rhs, IReference reference) = NodeValues(node);
+            if (Math.Abs(gScore - rhs) < Utility.Utility.TOLERANCE || (float.IsPositiveInfinity(gScore) && float.IsPositiveInfinity(rhs))) return;
+            if (reference != null)
+            {
+                _nodeQueue.ChangePriority(reference, CalculatePriority(node));
+            }
+            else
+            {
+                SetElement(node, _nodeQueue.Push(node, CalculatePriority(node)));
+            }
+        }
+
+        /// <summary>
+        /// An admissible heuristic to estimate the distance from a node to the <see cref="IDestination"/>.
+        /// </summary>
+        /// <param name="node">The node being evaluated.</param>
+        /// <returns>Returns an estimated distance to the <see cref="IDestination"/> that is either less than or equal to the actual distance.</returns>
+        private float Heuristic(T node)
+        {
+            return Map.Map.EstimateDistance(Start, node);
+        }
+        /// <summary>
+        /// Initializes <see cref="DLite{T}"/> for the current <see cref="IDestination"/>.
+        /// </summary>
+        private void Initialize()
+        {
+            _nodeQueue.Clear();
+            PriorityAdjustment = 0;
+
+            InitializeGraph();
+
+            foreach (T node in Endpoints())
+            {
+                SetRHS(node, 0);
+
+                SetElement(node, _nodeQueue.Push(node, CalculatePriority(node)));
+            }
+
+            UpdateStart(default);
+        }
         /// <summary>
         /// The <see cref="PriorityComparer"/> class is an <see cref="IComparer"/> that selects priority based on two float keys, used by the <see cref="DLite{T}"/> class.
         /// </summary>
@@ -116,118 +265,6 @@ namespace Assets.Scripts.AI.Navigation
 
                 return x1 < y1 ? 1 : -1;
             }
-        }
-
-        public virtual void SetGoal(IGoal goal)
-        {
-            Goal = goal;
-            Initialize();
-        }
-
-        protected abstract void InitializeGraph();
-
-        protected abstract IEnumerable<T> Endpoints();
-
-        /// <summary>
-        /// Initializes <see cref="DLite{T}"/> for the current <see cref="IGoal"/>.
-        /// </summary>
-        private void Initialize()
-        {
-            _nodeQueue = new(PriorityComparer.Instance);
-            PriorityAdjustment = 0;
-
-            InitializeGraph();
-
-            foreach (T node in Endpoints())
-            {
-                SetRHS(node, 0);
-
-                SetElement(node, _nodeQueue.Push(node, CalculatePriority(node)));
-            }
-
-            UpdateStart();
-        }
-
-        private void UpdateVertex(T node)
-        {
-            if (Endpoints().All(x => !x.Equals(node)))
-            {
-                float min = float.PositiveInfinity;
-                foreach ((T node, float distance) successor in Successors(node))
-                {
-                    min = MathF.Min(min, NodeValues(successor.node).gScore + successor.distance);
-                }
-
-                SetRHS(node, min);
-            }
-
-
-            (float gScore, float rhs, IReference reference) = NodeValues(node);
-            if(Math.Abs(gScore - rhs) < Utility.Utility.TOLERANCE) return;
-            if (reference != null)
-            {
-                _nodeQueue.ChangePriority(reference, CalculatePriority(node));
-            }
-            else
-            {
-                SetElement(node, _nodeQueue.Push(node, CalculatePriority(node)));
-            }
-        }
-
-        // ReSharper disable once UnusedMember.Local
-        /*private void UpdateGoal(T newNode)
-        {
-        SetRHS(newNode, 0);
-        UpdateVertex(newNode);
-        UpdateVertex(_goal);
-        _goal = newNode;
-        }*/
-
-        // ReSharper disable once UnusedMember.Local
-        public abstract void UpdateStart();
-
-        protected void EstablishPathing()
-        {
-            (float gScore, float rhs, IReference _) = NodeValues(Start);
-            while (_nodeQueue.Count > 0 &&
-                   (PriorityComparer.Instance.Compare(_nodeQueue.TopPriority, CalculatePriority(Start)) == 1 ||
-                    Math.Abs(gScore - rhs) > Utility.Utility.TOLERANCE))
-            {
-                (float, float) oldPriority = _nodeQueue.TopPriority;
-                T node = _nodeQueue.Pop();
-                (float, float) newPriority = CalculatePriority(node);
-                (gScore, rhs, _) = NodeValues(node);
-                if (PriorityComparer.Instance.Compare(oldPriority, newPriority) == 1)
-                {
-                    SetElement(node, _nodeQueue.Push(node, newPriority));
-                }
-                else
-                {
-                    if (gScore > rhs)
-                    {
-                        SetGScore(node, rhs);
-
-                    }
-                    else
-                    {
-                        SetGScore(node, float.PositiveInfinity);
-                        UpdateVertex(node);
-                    }
-
-                    foreach ((T node, float distance) predecessor in Successors(node))
-                    {
-                        UpdateVertex(predecessor.node);
-                    }
-                }
-
-                (gScore, rhs, _) = NodeValues(Start);
-            }
-        }
-
-        // ReSharper disable once UnusedMember.Global
-        public static void ConstructPrototype(T goal, out float[,] gScore)
-        {
-            gScore = null;
         }
     }
 }

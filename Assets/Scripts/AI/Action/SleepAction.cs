@@ -39,7 +39,7 @@ namespace Assets.Scripts.AI.Action
         /// <inheritdoc/>
         public override void Perform()
         {
-            Actor.ChangeNeeds(Needs.Sleep, Time.deltaTime / 5);
+            Actor.ChangeNeeds(Needs.Sleep, Time.deltaTime * 10);
         }
     }
 }

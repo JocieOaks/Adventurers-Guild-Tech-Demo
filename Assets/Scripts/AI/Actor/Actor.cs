@@ -16,10 +16,15 @@ namespace Assets.Scripts.AI.Actor
     /// </summary>
     public enum Class
     {
+        ///<summary>Indicates the mage class.</summary>
         Mage,
+        ///<summary>Indicates the fighter class.</summary>
         Fighter,
+        ///<summary>Indicates the rogue class.</summary>
         Rogue,
+        ///<summary>Indicates the bard class.</summary>
         Bard,
+        ///<summary>Indicates the monk class.</summary>
         Monk
     }
 
@@ -41,10 +46,15 @@ namespace Assets.Scripts.AI.Actor
     /// </summary>
     public enum Race
     {
+        ///<summary>The <see cref="Actor"/> is a human.</summary>
         Human,
+        ///<summary>The <see cref="Actor"/> is an elf.</summary>
         Elf,
+        ///<summary>The <see cref="Actor"/> is an orc.</summary>
         Orc,
+        ///<summary>The <see cref="Actor"/> is a tiefling.</summary>
         Tiefling,
+        ///<summary>The <see cref="Actor"/> is a firbolg.</summary>
         Firbolg
     }
 

@@ -34,7 +34,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
             : base(1,  s_sprites, direction, worldPosition, "Chair", ObjectDimensions, true)
         {
             Direction = direction;
-            SitGoal.AddSittingObject(this);
+            SitDestination.AddSittingObject(this);
         }
 
         /// <value>The 3D dimensions of a <see cref="ChairSprite"/> in terms of <see cref="Map"/> coordinates.</value>
@@ -157,7 +157,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
         /// <inheritdoc/>
         public override void Destroy()
         {
-            SitGoal.RemoveSittingObject(this);
+            SitDestination.RemoveSittingObject(this);
             base.Destroy();
         }
 
@@ -173,6 +173,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
             pawn.ForcePosition(WorldPosition);
             pawn.Occupying = this;
             Occupant = pawn;
+            SitDestination.RemoveSittingObject(this);
         }
 
         /// <inheritdoc/>
@@ -203,6 +204,7 @@ namespace Assets.Scripts.Map.Sprite_Object.Furniture
                     pawn.ForcePosition(roomNode);
                 }
             }
+            SitDestination.AddSittingObject(this);
         }
 
         /// <inheritdoc/>

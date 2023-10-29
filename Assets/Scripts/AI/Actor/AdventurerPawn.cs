@@ -20,10 +20,8 @@ namespace Assets.Scripts.AI.Actor
         private Actor _actor;
         private Planner _planner;
 
-#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
-        [SerializeField] private SpriteRenderer _emoji;
-        [SerializeField] private SpriteRenderer _speechBubble;
-#pragma warning restore CS0649 // Field is never assigned to, and will always have its default value
+        [SerializeField][UsedImplicitly] private SpriteRenderer _emoji;
+        [SerializeField][UsedImplicitly] private SpriteRenderer _speechBubble;
 
         /// <value>The <see cref="AdventurerPawn"/>'s corresponding <see cref="AI.Actor.Actor"/>.</value>
         public Actor Actor
@@ -32,7 +30,11 @@ namespace Assets.Scripts.AI.Actor
             set => _actor ??= value;
         }
 
+        /// <value>The <see cref="DLite{T}"/> navigator the <see cref="AdventurerPawn"/> uses to navigate through a room.</value>
         public NavigateRoom NavigateRoom { get; private set; }
+
+        /// <value>The <see cref="DLite{T}"/> navigator the <see cref="AdventurerPawn"/> uses to navigate through the map.</value>
+        public NavigateMap NavigateMap { get; private set; }
 
         /// <value>The <see cref="Task"/> the <see cref="AdventurerPawn"/> is currently performing.</value>
         public Task.Task CurrentTask { get; private set; }
@@ -43,14 +45,15 @@ namespace Assets.Scripts.AI.Actor
         /// <value> Returns true if the <see cref="AdventurerPawn"/> is currently speaking.</value>
         public bool IsSpeaking => _speechBubble.gameObject.activeSelf;
 
+        /// <inheritdoc/>
         public override RoomNode CurrentNode
         {
-            get => CurrentNodeField;
+            get => base.CurrentNode;
             protected set
             {
-                CurrentNodeField = value;
-                SpriteRenderer.enabled = GameManager.Instance.IsOnLevel(CurrentLevel) <= 0;
-                NavigateRoom?.UpdateStart();
+                base.CurrentNode = value;
+                OnLevelChange();
+                NavigateRoom?.UpdateStart(value);
             }
         }
 
@@ -174,7 +177,8 @@ namespace Assets.Scripts.AI.Actor
 
             WorldPositionNonDiscrete = WorldPosition;
 
-            NavigateRoom = new(this);
+            NavigateRoom = new NavigateRoom(this);
+            NavigateMap = new NavigateMap(this);
 
             InitializeGameObject();
 

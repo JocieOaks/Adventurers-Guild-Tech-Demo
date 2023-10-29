@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Assets.Scripts.AI;
 using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Navigation.Goal;
 using Assets.Scripts.Data;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
@@ -45,19 +45,35 @@ namespace Assets.Scripts
         private List<QuestData> _allQuests;
         private int _lastAdventurerTick;
         private int _lastQuestTick;
+        [SerializeField][UsedImplicitly] private PlayerPawn _player;
         private WallDisplayMode _playWallMode;
         private float _time;
+
+        /// <summary>
+        /// Invoked when the <see cref="Map"/> has been modified.
+        /// </summary>
         public static event System.Action MapChanged;
 
-        public static event System.Action MapChangingFirst;
+        /// <summary>
+        /// Invoked when the <see cref="Map"/> is being modified.
+        /// </summary>
 
-        public static event System.Action MapChangingSecond;
+        public static event System.Action MapChanging;
+
+        /// <summary>
+        /// Invoked when the <see cref="Map"/> is being modified, but after <see cref="MapChanging"/> is called.
+        /// </summary>
+
+        public static event System.Action MapChangingLate;
 
         /// <summary>
         /// Invoked each frame. Used for classes that don't inherit from <see cref="MonoBehaviour"/>.
         /// </summary>
         public static event System.Action NonMonoUpdate;
 
+        /// <summary>
+        /// Invoked every second while the game is not paused.
+        /// </summary>
         public static event System.Action Ticked;
 
         /// <value>The primary game camera.</value>
@@ -152,8 +168,8 @@ namespace Assets.Scripts
                     Graphics.Instance.ResetSprite();
                     GUI.Instance.SwitchMode(false);
                     Graphics.Instance.Mode = _playWallMode;
-                    MapChangingFirst?.Invoke();
-                    MapChangingSecond?.Invoke();
+                    MapChanging?.Invoke();
+                    MapChangingLate?.Invoke();
                     MapChanged?.Invoke();
 
 #if DEBUG
@@ -224,20 +240,6 @@ namespace Assets.Scripts
         /// <inheritdoc/>
         public void SaveData(GameData gameData)
         {
-        }
-
-        /// <summary>
-        /// Zooms <see cref="Camera"/> in or out.
-        /// </summary>
-        /// <param name="zooming">The change to <see cref="Camera"/>'s size.</param>
-        public void ZoomCamera(float zooming)
-        {
-            Camera.orthographicSize -= zooming;
-
-            if (Camera.orthographicSize < ZOOM_MIN)
-                Camera.orthographicSize = ZOOM_MIN;
-            else if (Camera.orthographicSize > ZOOM_MAX)
-                Camera.orthographicSize = ZOOM_MAX;
         }
 
         /// <summary>
@@ -332,6 +334,19 @@ namespace Assets.Scripts
             Paused = false;
         }
 
+        /// <summary>
+        /// Zooms <see cref="Camera"/> in or out.
+        /// </summary>
+        /// <param name="zooming">The change to <see cref="Camera"/>'s size.</param>
+        public void ZoomCamera(float zooming)
+        {
+            Camera.orthographicSize -= zooming;
+
+            if (Camera.orthographicSize < ZOOM_MIN)
+                Camera.orthographicSize = ZOOM_MIN;
+            else if (Camera.orthographicSize > ZOOM_MAX)
+                Camera.orthographicSize = ZOOM_MAX;
+        }
         [UsedImplicitly]
         private void Awake()
         {
@@ -342,61 +357,6 @@ namespace Assets.Scripts
             }
             else
                 Destroy(this);
-        }
-
-        /// <summary>
-        /// Runs the given <see cref="Quest"/>.
-        /// </summary>
-        /// <param name="quest">The <see cref="Quest"/> being run.</param>
-        /// <returns>Yield returns <see cref="WaitUntil"/> objects, first to wait for the <see cref="Pawn"/> to leave the map, then wait the duration of the <see cref="Quest"/>.</returns>
-        private IEnumerator RunQuest(Quest quest)
-        {
-            yield return new WaitUntil(() => !quest.Quester.Pawn.gameObject.activeSelf);
-            yield return new WaitForSeconds(quest.Duration);
-            GUI.Instance.DisplayQuestResults(quest);
-            quest.Quester.IsOnQuest = false;
-            _runningQuests.Remove(quest);
-            GUI.Instance.BuildQuests(_availableQuests, _runningQuests);
-        }
-
-        [UsedImplicitly]
-        private void Start()
-        {
-            StartCoroutine(Startup());
-        }
-
-        /// <summary>
-        /// Runs the initial setup for the game.
-        /// </summary>
-        /// <returns>Yield returns <see cref="WaitUntil"/> objects until the <see cref="Map"/> and all <see cref="SpriteObject"/>s have completed setup.</returns>
-        private IEnumerator Startup()
-        {
-            yield return new WaitUntil(() => Map.Map.Ready && ObjectsReady <= 0);
-
-            MapChangingFirst?.Invoke();
-            MapChangingSecond?.Invoke();
-#if DEBUG
-            DebugHighlightRoomNodes();
-#endif
-
-            for (int i = 0; i < 3; i++)
-            {
-                List<QuestData> potentialQuests = _allQuests.FindAll(x => x.CooldownUntil <= Tick).Except(_availableQuests).ToList();
-                if (potentialQuests.Count > 0)
-                {
-                    QuestData quest = potentialQuests[Random.Range(0, potentialQuests.Count)];
-                    quest.AvailableUntil = quest.AvailableDuration + Tick;
-                    _availableQuests.Add(quest);
-                }
-            }
-            GUI.Instance.BuildQuests(_availableQuests, _runningQuests);
-
-            for(int i = 0; i < 3; i++)
-            {
-                StartCoroutine(CreateActor());
-            }
-
-            GameReady = true;
         }
 
         /// <summary>
@@ -436,6 +396,64 @@ namespace Assets.Scripts
             }
         }
 
+        /// <summary>
+        /// Runs the given <see cref="Quest"/>.
+        /// </summary>
+        /// <param name="quest">The <see cref="Quest"/> being run.</param>
+        /// <returns>Yield returns <see cref="WaitUntil"/> objects, first to wait for the <see cref="Pawn"/> to leave the map, then wait the duration of the <see cref="Quest"/>.</returns>
+        private IEnumerator RunQuest(Quest quest)
+        {
+            yield return new WaitUntil(() => !quest.Quester.Pawn.gameObject.activeSelf);
+            yield return new WaitForSeconds(quest.Duration);
+            GUI.Instance.DisplayQuestResults(quest);
+            quest.Quester.IsOnQuest = false;
+            _runningQuests.Remove(quest);
+            GUI.Instance.BuildQuests(_availableQuests, _runningQuests);
+        }
+
+        [UsedImplicitly]
+        private void Start()
+        {
+            StartCoroutine(Startup());
+        }
+
+        /// <summary>
+        /// Runs the initial setup for the game.
+        /// </summary>
+        /// <returns>Yield returns <see cref="WaitUntil"/> objects until the <see cref="Map"/> and all <see cref="SpriteObject"/>s have completed setup.</returns>
+        private IEnumerator Startup()
+        {
+            yield return new WaitUntil(() => Map.Map.Ready && ObjectsReady <= 0);
+
+            SitDestination.OnMapReady();
+            LayDestination.OnMapReady();
+            FoodDestination.OnMapReady();
+
+            MapChanging?.Invoke();
+            MapChangingLate?.Invoke();
+#if DEBUG
+            DebugHighlightRoomNodes();
+#endif
+
+            for (int i = 0; i < 3; i++)
+            {
+                List<QuestData> potentialQuests = _allQuests.FindAll(x => x.CooldownUntil <= Tick).Except(_availableQuests).ToList();
+                if (potentialQuests.Count > 0)
+                {
+                    QuestData quest = potentialQuests[Random.Range(0, potentialQuests.Count)];
+                    quest.AvailableUntil = quest.AvailableDuration + Tick;
+                    _availableQuests.Add(quest);
+                }
+            }
+            GUI.Instance.BuildQuests(_availableQuests, _runningQuests);
+
+            for(int i = 0; i < 3; i++)
+            {
+                StartCoroutine(CreateActor());
+            }
+
+            GameReady = true;
+        }
         /// <summary>
         /// Called for every second that passes, updates <see cref="Tick"/> and performs periodic actions.
         /// </summary>
@@ -482,8 +500,6 @@ namespace Assets.Scripts
 
             Ticked?.Invoke();
         }
-
-        [SerializeField] private PlayerPawn _player;
 
         [UsedImplicitly]
         private void Update()

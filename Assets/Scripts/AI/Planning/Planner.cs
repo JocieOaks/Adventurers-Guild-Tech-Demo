@@ -130,7 +130,7 @@ namespace Assets.Scripts.AI.Planning
             yield return new StanceStand();
             yield return new AcquireFoodTask();
             yield return new WaitTask(5);
-            //yield return new LeaveConversationTask();
+            yield return new LeaveConversationTask();
         }
 
         /// <summary>

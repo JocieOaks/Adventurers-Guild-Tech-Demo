@@ -9,10 +9,6 @@ namespace Assets.Scripts.Map.Node
     /// </summary>
     public abstract class ConnectingNode : IDividerNode
     {
-        //Dictionary containing the distance from a ConnectionNode to every other ConnectionNode in an adjoining room, as well as the Path to the INode.
-        //Used for navigation by pre-calculating paths.
-        private readonly Dictionary<ConnectingNode, (float, IEnumerable<RoomNode>)> _adjoiningConnectionsDictionary;
-
         /// <summary>
         /// Initializes a new reference of the <see cref="ConnectingNode"/> class.
         /// </summary>
@@ -28,10 +24,9 @@ namespace Assets.Scripts.Map.Node
                 ? MapAlignment.XEdge
                 : MapAlignment.YEdge;
 
-            _adjoiningConnectionsDictionary = new Dictionary<ConnectingNode, (float, IEnumerable<RoomNode>)>();
             WorldPosition = worldPosition;
 
-            GameManager.MapChangingSecond += RegisterRooms;
+            GameManager.MapChangingLate += RegisterRooms;
         }
 
         /// <inheritdoc/>
@@ -46,9 +41,6 @@ namespace Assets.Scripts.Map.Node
 
         /// <inheritdoc/>
         public MapAlignment Alignment { get; }
-
-        /// <value>Property <c>ConnectionNodes</c> represents the <see cref="List{ConnectionNode}"/> of <see cref="ConnectingNode"/>s that share an adjacent room with the <see cref="ConnectingNode"/>.</value>
-        public List<ConnectingNode> ConnectionNodes => new(_adjoiningConnectionsDictionary.Keys);
 
         /// <inheritdoc/>
         public RoomNode FirstNode { get; }
@@ -80,24 +72,16 @@ namespace Assets.Scripts.Map.Node
         public abstract bool Obstructed { get; }
 
         /// <inheritdoc/>
+        public bool AdjacentToRoomNode(RoomNode node)
+        {
+            return node == FirstNode || node == SecondNode;
+        }
+
+        /// <inheritdoc/>
         public Vector3Int WorldPosition { get; protected set; }
 
         /// <inheritdoc/>
         public abstract Vector3Int Dimensions { get; }
-
-        /// <summary>
-        /// Appends the list of <see cref="ConnectingNode"/>s that share a bordering <see cref="Scripts.Map.Room"/>. Used for quickly navigating paths that pass through multiple <see cref="Scripts.Map.Room"/>s.
-        /// </summary>
-        /// <param name="connection">The <see cref="ConnectingNode"/> that share's an adjacent <see cref="Scripts.Map.Room"/>.</param>
-        /// <param name="distance">The path length distance between this <see cref="ConnectingNode"/> and <c>connection</c>.</param>
-        /// <param name="path">The path </param>
-        public void AddAdjoiningConnection(ConnectingNode connection, float distance, IEnumerable<RoomNode> path)
-        {
-            if (_adjoiningConnectionsDictionary.TryGetValue(connection, out (float distance, IEnumerable<RoomNode> path) info))
-                if (distance > info.distance && RoomNode.VerifyPath(info.path))
-                    return;
-            _adjoiningConnectionsDictionary[connection] = (distance, path);
-        }
 
         /// <inheritdoc/>
         public bool AdjacentToRoom(Room room)
@@ -128,48 +112,25 @@ namespace Assets.Scripts.Map.Node
         }
 
         /// <summary>
-        /// Gives the path distance from the <see cref="ConnectingNode"/> to nextConnection through the <see cref="Room"/> that both <see cref="INode"/>s are adjacent to.
-        /// Used for navigation, by pre-calculating path lengths.
+        /// Determines which of the two <see cref="Scripts.Map.Room"/>s connected to this <see cref="ConnectingNode"/> is shared by the given <see cref="INode"/>.
         /// </summary>
-        /// <param name="nextConnection">The <see cref="ConnectingNode"/> that is being traversed to, from the current <see cref="INode"/>.</param>
-        /// <returns>Returns the path length distance between the two <see cref="INode"/>s.</returns>
-        /// <exception cref="System.ArgumentException">Throws exception if the <see cref="ConnectingNode"/> and nextConnection do not share an adjoining room.</exception>
-        public float GetDistance(ConnectingNode nextConnection)
+        /// <param name="node">The <see cref="INode"/> that may share a <see cref="Scripts.Map.Room"/> with the <see cref="ConnectingNode"/>.</param>
+        /// <returns>Returns the <see cref="Scripts.Map.Room"/> shared with <paramref name="node"/>. Returns null if there is no shared room.</returns>
+        public Room GetCommonRoom(INode node)
         {
-            if (_adjoiningConnectionsDictionary.TryGetValue(nextConnection, out (float distance, IEnumerable<RoomNode> path) info))
-                return info.distance;
-            else
-                throw new System.ArgumentException();
-        }
-
-        /// <summary>
-        /// Gives the path from the <see cref="ConnectingNode"/> to nextConnection through the <see cref="Room"/> that both <see cref="INode"/>s are adjacent to.
-        /// Used for navigation, by pre-calculating navigation paths.
-        /// </summary>
-        /// <param name="nextConnection">The <see cref="ConnectingNode"/> that is being traversed to, from the current <see cref="INode"/>.</param>
-        /// <returns>Returns the path between the two <see cref="INode"/>s.</returns>
-        /// <exception cref="System.ArgumentException">Throws exception if the <see cref="ConnectingNode"/> and nextConnection do not share an adjoining room.</exception>
-        public IEnumerable<RoomNode> GetPath(ConnectingNode nextConnection)
-        {
-            if (_adjoiningConnectionsDictionary.TryGetValue(nextConnection, out (float distance, IEnumerable<RoomNode> path) info))
+            if (node is ConnectingNode connection)
             {
-                foreach (RoomNode node in info.path)
-                {
-                    yield return node;
-                }
+                if (connection.FirstNode.Room == FirstNode.Room || connection.FirstNode.Room == SecondNode.Room)
+                    return connection.FirstNode.Room;
+                if (connection.SecondNode.Room == FirstNode.Room || connection.SecondNode.Room == SecondNode.Room)
+                    return connection.SecondNode.Room;
             }
             else
             {
-                RegisterRooms();
-                nextConnection.RegisterRooms();
-                if (_adjoiningConnectionsDictionary.TryGetValue(nextConnection, out info))
-                {
-                    foreach (RoomNode node in info.path)
-                    {
-                        yield return node;
-                    }
-                }
+                if(node.Room == FirstNode.Room || node.Room == SecondNode.Room)
+                    return node.Room;
             }
+            return null;
         }
 
         /// <inheritdoc/>
@@ -217,16 +178,7 @@ namespace Assets.Scripts.Map.Node
             if (SecondNode.Room != FirstNode.Room)
                 SecondNode.Room.AddConnection(this);
 
-            GameManager.MapChangingSecond -= RegisterRooms;
-        }
-
-        /// <summary>
-        /// Removes a <see cref="ConnectingNode"/> from the list of nodes that share and adjoining <see cref="Scripts.Map.Room"/> with this <see cref="ConnectingNode"/>.
-        /// </summary>
-        /// <param name="node"></param>
-        public void RemoveAdjoiningConnection(ConnectingNode node)
-        {
-            _adjoiningConnectionsDictionary.Remove(node);
+            GameManager.MapChangingLate -= RegisterRooms;
         }
     }
 }

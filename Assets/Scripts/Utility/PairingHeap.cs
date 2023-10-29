@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Assets.Scripts.Utility
@@ -7,7 +9,7 @@ namespace Assets.Scripts.Utility
     /// <summary>
     /// The <see cref="PairingHeap{T1, T2}"/> class is a heap data structure for storing elements for <see cref="PriorityQueue{T1, T2}"/>.
     /// </summary>
-    public class PairingHeap<T1, T2> where T2 : System.IComparable
+    public class PairingHeap<T1, T2> where T2 : IComparable
     {
 
         private readonly IComparer _comparer;
@@ -47,14 +49,27 @@ namespace Assets.Scripts.Utility
         /// </summary>
         /// <param name="reference">The <see cref="Node"/> being modified, as an <see cref="IReference"/>.</param>
         /// <param name="priority">The new priority for the <see cref="Node"/>.</param>
-        public void ChangePriority(IReference reference, T2 priority)
+        public bool ChangePriority(IReference reference, T2 priority)
         {
+            bool isInHeap = false;
             Node node = (Node)reference;
+            if(node.Parent != null)
+                isInHeap = true;
+            else if (node == _root)
+            {
+                isInHeap = true;
+                Pop();
+            }
             node.Parent?.Children.Remove(node);
             node.Parent = null;
             node.Priority = priority;
 
-            Meld(node, Root);
+            if (Root != null)
+                Meld(node, Root);
+            else
+                Root = node;
+
+            return isInHeap;
         }
 
         /// <summary>
@@ -132,19 +147,25 @@ namespace Assets.Scripts.Utility
         /// priority <see cref="Node"/> from the list of possible roots.</returns>
         private Node Meld(Node node1, Node node2)
         {
-            if (node1 == node2)
-                return node1;
-            if (_comparer.Compare(node1.Priority, node2.Priority) > 0)
+            try
             {
-                node1.Children.Add(node2);
-                node2.Parent = node1;
-                return node2;
-            }
-            else
-            {
+                if (node1 == node2)
+                    return node1;
+                if (_comparer.Compare(node1.Priority, node2.Priority) > 0)
+                {
+                    node1.Children.Add(node2);
+                    node2.Parent = node1;
+                    return node2;
+                }
+
                 node2.Children.Add(node1);
                 node1.Parent = node2;
                 return node1;
+            }
+            catch (NullReferenceException exception)
+            {
+                Debug.WriteLine(exception);
+                throw;
             }
         }
 

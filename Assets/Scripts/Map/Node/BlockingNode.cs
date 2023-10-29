@@ -53,6 +53,12 @@ namespace Assets.Scripts.Map.Node
         public bool Obstructed => true;
 
         /// <inheritdoc/>
+        public bool AdjacentToRoomNode(RoomNode node)
+        {
+            return node == FirstNode || node == SecondNode;
+        }
+
+        /// <inheritdoc/>
         public Room Room => null;
 
         /// <inheritdoc/>

@@ -44,7 +44,7 @@ namespace Assets.Scripts.AI.Task
         /// <inheritdoc/>
         public override bool ConditionsMet(WorldState worldState)
         {
-            return base.ConditionsMet(worldState) && InteractablesCondition(worldState, SitGoal.SittingObjects) && worldState.PreviousTask is not StanceStand && worldState.PreviousTask is not StanceLay;
+            return base.ConditionsMet(worldState) && InteractablesCondition(worldState, SitDestination.SittingObjects) && worldState.PreviousTask is not StanceStand && worldState.PreviousTask is not StanceLay;
         }
 
         /// <inheritdoc/>
@@ -57,7 +57,7 @@ namespace Assets.Scripts.AI.Task
         /// <inheritdoc/>
         public IEnumerable<TaskAction> GetActions(Pawn pawn)
         {
-            yield return new TravelAction(_seat, pawn);
+            yield return new TravelAction(new SitDestination(), pawn);
             yield return new SitDownAction(_seat, pawn);
         }
 
@@ -68,7 +68,7 @@ namespace Assets.Scripts.AI.Task
                 _seat = GetSeat(actor.Stats);
             if(_seat == null)
                 yield break;
-            yield return new TravelAction(_seat, actor.Pawn);
+            yield return new TravelAction(new SitDestination(), actor.Pawn);
             yield return new SitDownAction(_seat, actor.Pawn);
         }
 
@@ -93,7 +93,7 @@ namespace Assets.Scripts.AI.Task
         {
             float closestDistance = float.PositiveInfinity;
             IOccupied best = null;
-            foreach (IInteractable interactable in SitGoal.SittingObjects)
+            foreach (IInteractable interactable in SitDestination.SittingObjects)
             {
                 var chair = (IOccupied)interactable;
                 if (!chair.Occupied)

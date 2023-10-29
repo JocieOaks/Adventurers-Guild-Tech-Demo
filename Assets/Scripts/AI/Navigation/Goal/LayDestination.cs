@@ -3,22 +3,27 @@ using Assets.Scripts.Map.Sprite_Object;
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.AI.Actor;
+using Assets.Scripts.Map;
 
 namespace Assets.Scripts.AI.Navigation.Goal
 {
     /// <summary>
-    /// The <see cref="DestinationGoal"/> class is an <see cref="IGoal"/> for traveling to any <see cref="IInteractable"/> that a <see cref="Pawn"/> can lay on.
+    /// The <see cref="TargetDestination"/> class is an <see cref="IDestination"/> for traveling to any <see cref="IInteractable"/> that a <see cref="Pawn"/> can lay on.
     /// </summary>
-    public class LayGoal : IGoal
+    public class LayDestination : IDestination
     {
         private static readonly List<RoomNode> s_endpoints = new();
         private static readonly List<IInteractable> s_layingObjects = new();
+        private static readonly List<Room> s_endRooms = new();
 
         /// <value>The list of all <see cref="IInteractable"/>s that a <see cref="Pawn"/> can lay on.</value>
         public static IEnumerable<IInteractable> LayingObjects => s_layingObjects;
 
         /// <inheritdoc/>
         public IEnumerable<RoomNode> Endpoints => s_endpoints.Where(node => node.Traversable);
+
+        /// <inheritdoc/>
+        public IEnumerable<Room> EndRooms => s_endRooms;
 
         /// <summary>
         /// Adds a new food source to the list of objects that can be lain on.
@@ -27,15 +32,28 @@ namespace Assets.Scripts.AI.Navigation.Goal
         public static void AddLayingObject(IInteractable source)
         {
             s_layingObjects.Add(source);
-            if(Map.Map.Ready)
+            if (Map.Map.Ready)
+            {
                 s_endpoints.AddRange(source.InteractionPoints.Except(s_endpoints));
+                if (!s_endRooms.Contains(source.Room))
+                {
+                    s_endRooms.Add(source.Room);
+                }
+            }
         }
 
+        /// <summary>
+        /// Sets up the <see cref="LayDestination"/> endpoints once the map is ready.
+        /// </summary>
         public static void OnMapReady()
         {
             foreach (IInteractable source in LayingObjects)
             {
                 s_endpoints.AddRange(source.InteractionPoints.Except(s_endpoints));
+                if (!s_endRooms.Contains(source.Room))
+                {
+                    s_endRooms.Add(source.Room);
+                }
             }
         }
 
@@ -48,6 +66,8 @@ namespace Assets.Scripts.AI.Navigation.Goal
             s_layingObjects.Remove(source);
             s_endpoints.RemoveAll(endpoint =>
                 !s_layingObjects.Any(interactable => interactable.InteractionPoints.Any(node => node == endpoint)));
+            if (s_layingObjects.All(interactable => interactable.Room != source.Room))
+                s_endRooms.Remove(source.Room);
         }
 
         /// <inheritdoc/>

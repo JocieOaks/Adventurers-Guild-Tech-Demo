@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Assets.Scripts.AI.Action;
 using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Navigation.Goal;
 using Assets.Scripts.AI.Planning;
 using Assets.Scripts.Map;
 using UnityEngine;
@@ -17,6 +18,7 @@ namespace Assets.Scripts.AI.Task
         /// </summary>
         public QuestTask() : base(null, null, null, null) { }
 
+        /// <inheritdoc />
         public override WorldState ChangeWorldState(WorldState worldState)
         {
             worldState.PrimaryActor.Position = Vector3Int.one;
@@ -26,7 +28,7 @@ namespace Assets.Scripts.AI.Task
         /// <inheritdoc/>
         public override IEnumerable<TaskAction> GetActions(Actor.Actor actor)
         {
-            yield return new TravelAction(Map.Map.Instance[Vector3Int.one], actor.Pawn);
+            yield return new TravelAction(new TargetDestination(Map.Map.Instance[Vector3Int.one]), actor.Pawn);
             yield return new QuestingAction(actor);
         }
 
