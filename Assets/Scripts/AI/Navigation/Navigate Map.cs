@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.AI.Actor;
+using Assets.Scripts.AI.Navigation.Destination;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
 using Assets.Scripts.Map.Sprite_Object;
 using Assets.Scripts.Utility;
+using UnityEngine.Animations;
 
 namespace Assets.Scripts.AI.Navigation
 {
@@ -71,6 +73,11 @@ namespace Assets.Scripts.AI.Navigation
             _edgeLength.Clear();
         }
 
+        public void UpdateEdgeLength(INode node, float length)
+        {
+            UpdateEdgeLength(Start, node, length);
+        }
+
         /// <summary>
         /// Sets the path length between two nodes.
         /// Used for when the actual path length is different from the expected path length.
@@ -81,6 +88,8 @@ namespace Assets.Scripts.AI.Navigation
         public void UpdateEdgeLength(INode first, INode second, float length)
         {
             _edgeLength[(first, second)] = length;
+
+            bool test = _edgeLength.TryGetValue((first, second), out float value);
             UpdateNode(first);
             UpdateNode(second);
             EstablishPathing();
@@ -136,7 +145,7 @@ namespace Assets.Scripts.AI.Navigation
                             yield return (successor, distance);
                         }
                         else
-                            yield return (successor, connection.FirstNode.Room.GetDistance(connection.FirstNode, successor));
+                            yield return (successor, Map.Map.EstimateDistance(connection.FirstNode, successor));
                     }
 
 
@@ -152,7 +161,7 @@ namespace Assets.Scripts.AI.Navigation
                                 yield return (successor, distance);
                             }
                             else
-                                yield return (successor, connection.SecondNode.Room.GetDistance(connection.SecondNode, successor));
+                                yield return (successor, Map.Map.EstimateDistance(connection.SecondNode, successor));
                         }
                     }
 
@@ -164,11 +173,11 @@ namespace Assets.Scripts.AI.Navigation
                             if (endpoint is ConnectingNode endConnection)
                             {
                                 yield return (endConnection,
-                                    commonRoom.GetDistance(endConnection.GetRoomNode(commonRoom), connection));
+                                    Map.Map.EstimateDistance(endConnection.GetRoomNode(commonRoom), connection));
                             }
                             else if (endpoint is RoomNode endNode)
                             {
-                                yield return (endNode, commonRoom.GetDistance(endNode, connection));
+                                yield return (endNode, Map.Map.EstimateDistance(endNode, connection));
                             }
                         }
                     }
@@ -177,14 +186,14 @@ namespace Assets.Scripts.AI.Navigation
                     {
                         if (startNode.Room.Connections.Contains(node))
                         {
-                            yield return (startNode, startNode.Room.GetDistance(startNode, connection));
+                            yield return (startNode, Map.Map.EstimateDistance(startNode, connection));
                             if (startNode.Occupant is IInteractable interactable)
                             {
                                 foreach (RoomNode interaction in interactable.InteractionPoints)
                                 {
                                     if (interaction.Room == startNode.Room)
                                     {
-                                        yield return (interaction, startNode.Room.GetDistance(interaction, connection));
+                                        yield return (interaction, Map.Map.EstimateDistance(interaction, connection));
                                     }
                                 }
                             }
@@ -215,7 +224,7 @@ namespace Assets.Scripts.AI.Navigation
                                 yield return (successor, distance);
                             }
                             else
-                                yield return (successor, room.GetDistance(roomNode, successor));
+                                yield return (successor, Map.Map.EstimateDistance(roomNode, successor));
 
                         if (roomNode != Start && Start is RoomNode startNode && roomNode.Room == Start.Room)
                         {
@@ -247,6 +256,19 @@ namespace Assets.Scripts.AI.Navigation
                 default:
                     throw new ArgumentException("Invalid node type.");
             }
+        }
+
+        /// <inheritdoc />
+        protected override void WhenDestinationMoved(object sender, MovingEventArgs eventArgs)
+        {
+            InitializeEndpoints();
+
+            foreach (RoomNode oldEndpoint in eventArgs.PreviousEndpoints)
+            {
+                _valueDictionary.Remove(oldEndpoint);
+            }
+
+            EstablishPathing();
         }
     }
 }

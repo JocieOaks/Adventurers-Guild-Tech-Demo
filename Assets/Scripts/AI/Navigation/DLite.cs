@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Assets.Scripts.AI.Navigation.Goal;
+using Assets.Scripts.AI.Navigation.Destination;
 using Assets.Scripts.Map;
 using Assets.Scripts.Utility;
 using UnityEngine;
@@ -73,7 +73,18 @@ namespace Assets.Scripts.AI.Navigation
         /// <param name="destination">The new <see cref="IDestination"/></param>
         public virtual void SetGoal(IDestination destination)
         {
+            if (Destination is IMovingDestination movingDestination)
+            {
+                movingDestination.DestinationMoved -= WhenDestinationMoved;
+            }
+
             Destination = destination;
+
+            if (Destination is IMovingDestination newMovingDestination)
+            {
+                newMovingDestination.DestinationMoved += WhenDestinationMoved;
+            }
+
             Initialize();
         }
 
@@ -224,6 +235,9 @@ namespace Assets.Scripts.AI.Navigation
         {
             return Map.Map.EstimateDistance(Start, node);
         }
+
+        protected abstract void WhenDestinationMoved(object sender, MovingEventArgs eventArgs);
+
         /// <summary>
         /// Initializes <see cref="DLite{T}"/> for the current <see cref="IDestination"/>.
         /// </summary>
@@ -234,15 +248,21 @@ namespace Assets.Scripts.AI.Navigation
 
             InitializeGraph();
 
+            InitializeEndpoints();
+
+            UpdateStart(default);
+        }
+
+        protected void InitializeEndpoints()
+        {
             foreach (T node in Endpoints())
             {
                 SetRHS(node, 0);
 
                 SetElement(node, _nodeQueue.Push(node, CalculatePriority(node)));
             }
-
-            UpdateStart(default);
         }
+
         /// <summary>
         /// The <see cref="PriorityComparer"/> class is an <see cref="IComparer"/> that selects priority based on two float keys, used by the <see cref="DLite{T}"/> class.
         /// </summary>

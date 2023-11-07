@@ -4,7 +4,7 @@ using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
 using Assets.Scripts.Map.Sprite_Object;
 
-namespace Assets.Scripts.AI.Navigation.Goal
+namespace Assets.Scripts.AI.Navigation.Destination
 {
     /// <summary>
     /// The <see cref="TargetDestination"/> class is an <see cref="IDestination"/> for traveling to a specified <see cref="IInteractable"/>.

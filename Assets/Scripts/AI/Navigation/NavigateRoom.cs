@@ -1,10 +1,10 @@
 ﻿using Assets.Scripts.AI.Actor;
-using Assets.Scripts.AI.Navigation.Goal;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
 using Assets.Scripts.Utility;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.AI.Navigation.Destination;
 using UnityEngine;
 
 namespace Assets.Scripts.AI.Navigation
@@ -58,6 +58,22 @@ namespace Assets.Scripts.AI.Navigation
         protected override IEnumerable<(RoomNode, float)> Successors(RoomNode node)
         {
             return node.NextNodes;
+        }
+
+        /// <inheritdoc />
+        protected override void WhenDestinationMoved(object sender, MovingEventArgs eventArgs)
+        {
+            if(!Destination.EndRooms.Contains(Room))
+                return;
+
+            InitializeEndpoints();
+
+            foreach (RoomNode oldEndpoint in eventArgs.PreviousEndpoints)
+            {
+                UpdateNode(oldEndpoint);
+            }
+
+            EstablishPathing();
         }
 
         /// <inheritdoc/>

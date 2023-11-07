@@ -3,7 +3,7 @@ using Assets.Scripts.AI.Actor;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
 
-namespace Assets.Scripts.AI.Navigation.Goal
+namespace Assets.Scripts.AI.Navigation.Destination
 {
     /// <summary>
     /// The <see cref="IDestination"/> interface specifies a destination for navigation by a <see cref="Pawn"/>.

@@ -164,7 +164,7 @@ MonoBehaviour:
   _build2: {fileID: 903246242}
   _build3: {fileID: 1095093372}
   _quests1: {fileID: 968762575}
-  quests2: {fileID: 835371260}
+  _quests2: {fileID: 0}
   _quests3: {fileID: 2091981404}
   _quests4: {fileID: 59545278}
   _quests5: {fileID: 1297967065}
@@ -3386,10 +3386,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df4f985c66cec6547bb21143d168b04b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _icon: {fileID: 0}
-  _results: {fileID: 0}
-  _gold: {fileID: 0}
-  _prestige: {fileID: 0}
+  _icon: {fileID: 1901910136}
+  _results: {fileID: 1179315280}
+  _gold: {fileID: 1399009178}
+  _prestige: {fileID: 879094181}
 --- !u!114 &540729896
 MonoBehaviour:
   m_ObjectHideFlags: 0

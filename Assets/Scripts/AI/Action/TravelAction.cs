@@ -1,10 +1,10 @@
 ﻿using Assets.Scripts.AI.Actor;
 using Assets.Scripts.AI.Navigation;
-using Assets.Scripts.AI.Navigation.Goal;
 using Assets.Scripts.AI.Step;
 using Assets.Scripts.Map.Node;
 using System;
 using System.Linq;
+using Assets.Scripts.AI.Navigation.Destination;
 using Assets.Scripts.Map.Sprite_Object;
 using Room = Assets.Scripts.Map.Room;
 
@@ -16,7 +16,8 @@ namespace Assets.Scripts.AI.Action
     public class TravelAction : TaskAction
     {
         private RoomNode _nextNode;
-
+        private INode _prevMapNode;
+        private INode _nextMapNode;
         private IDestination _currentDestination;
         private readonly IDestination _primaryDestination;
 
@@ -112,9 +113,15 @@ namespace Assets.Scripts.AI.Action
         /// </summary>
         private void NextStep()
         {
+            INode current;
             if ((_currentDestination?.IsComplete(Pawn.CurrentNode) ?? true) || Pawn.CurrentStep is TraverseStep)
             {
-                INode current = NavigateMap.GetNext();
+                if (Pawn.CurrentStep is not TraverseStep)
+                {
+                    _prevMapNode = _nextMapNode;
+                }
+
+                current = NavigateMap.GetNext();
                 INode next = current;
 
                 if (current.AdjacentToRoomNode(Pawn.CurrentNode))
@@ -123,24 +130,15 @@ namespace Assets.Scripts.AI.Action
                     next = NavigateMap.GetNext();
                 }
 
-                if (current is ConnectingNode connection)
-                {
-                    Room room = connection.GetCommonRoom(next) ??
-                                throw new NullReferenceException(
-                                    "INodes do not share a common room. This should never be hit.");
+                if(SetDestination(next))
+                    return;
+            }
 
-                    if (room != Pawn.CurrentNode.Room)
-                    {
-                        _nextNode = connection.GetOppositeRoomNode(Pawn.CurrentNode);
-                        Pawn.CurrentStep = new TraverseStep(Pawn.CurrentNode, connection, Pawn, Pawn.CurrentStep);
-                        return;
-                    }
-                }
-
-                _currentDestination = _primaryDestination.Endpoints.Contains(next) ? _primaryDestination : new TargetDestination(next);
-
-                NavigateRoom?.SetGoal(_currentDestination);
-
+            current = NavigateMap.GetNext();
+            if (current != _nextMapNode && (_currentDestination != _primaryDestination || !_primaryDestination.Endpoints.Contains(current)))
+            {
+                if(SetDestination(current))
+                    return;
             }
 
             INode node = NavigateRoom?.GetNext();
@@ -149,6 +147,36 @@ namespace Assets.Scripts.AI.Action
                 _nextNode = roomNode;
                 Pawn.CurrentStep = new WalkStep(roomNode.SurfacePosition, Pawn, Pawn.CurrentStep);
             }
+        }
+
+        private bool SetDestination(INode next)
+        {
+            if (_prevMapNode is ConnectingNode connection)
+            {
+                Room room = connection.GetCommonRoom(next) ??
+                            throw new NullReferenceException(
+                                "INodes do not share a common room. This should never be hit.");
+
+                if (room != Pawn.CurrentNode.Room)
+                {
+                    if (!connection.AdjacentToRoomNode(Pawn.CurrentNode))
+                    {
+                        _currentDestination = new TargetDestination(connection);
+                        NavigateRoom?.SetGoal(_currentDestination);
+                    }
+
+                    _nextNode = connection.GetOppositeRoomNode(Pawn.CurrentNode);
+                    Pawn.CurrentStep = new TraverseStep(Pawn.CurrentNode, connection, Pawn, Pawn.CurrentStep);
+                    return true;
+                }
+            }
+
+            _nextMapNode = next;
+
+            _currentDestination = _primaryDestination.Endpoints.Contains(next) ? _primaryDestination : new TargetDestination(next);
+            NavigateRoom?.SetGoal(_currentDestination);
+            NavigateMap.UpdateEdgeLength(next, NavigateRoom!.Score(Pawn.CurrentNode));
+            return false;
         }
         
 

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Assets.Scripts.AI.Navigation.Goal;
+using Assets.Scripts.AI.Navigation.Destination;
 using Assets.Scripts.AI.Step;
 using Assets.Scripts.Map.Node;
 using Newtonsoft.Json;

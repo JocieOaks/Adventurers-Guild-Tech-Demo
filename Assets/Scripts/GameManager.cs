@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.AI.Actor;
-using Assets.Scripts.AI.Navigation.Goal;
+using Assets.Scripts.AI.Navigation.Destination;
 using Assets.Scripts.Data;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;

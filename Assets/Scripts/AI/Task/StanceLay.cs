@@ -2,7 +2,7 @@
 using System.Linq;
 using Assets.Scripts.AI.Action;
 using Assets.Scripts.AI.Actor;
-using Assets.Scripts.AI.Navigation.Goal;
+using Assets.Scripts.AI.Navigation.Destination;
 using Assets.Scripts.AI.Planning;
 using Assets.Scripts.Map.Sprite_Object;
 using Assets.Scripts.Map.Sprite_Object.Furniture;

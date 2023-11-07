@@ -124,7 +124,7 @@ namespace Assets.Scripts.AI.Planning
         {
             yield return new SleepTask();
             yield return new EatTask();
-            //yield return new WanderTask();
+            yield return new WanderTask();
             yield return new StanceLay();
             yield return new StanceSit();
             yield return new StanceStand();

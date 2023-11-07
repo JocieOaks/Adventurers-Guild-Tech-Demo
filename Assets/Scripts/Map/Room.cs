@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using Assets.Scripts.AI.Actor;
-using Assets.Scripts.AI.Navigation.Goal;
+using Assets.Scripts.AI.Navigation.Destination;
 using Assets.Scripts.Map.Node;
 using Assets.Scripts.Utility;
 using UnityEngine;
