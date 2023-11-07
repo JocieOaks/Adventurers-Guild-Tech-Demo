@@ -37,7 +37,8 @@ namespace Assets.Scripts.AI.Task
         /// <inheritdoc/>
         public override IEnumerable<TaskAction> GetActions(Actor.Actor actor)
         {
-            yield return new TravelAction(new TargetDestination(_node), actor.Pawn);
+            yield return new TravelAction(new PawnDestination(GameManager.Instance.Player, 2), actor.Pawn);
+            //yield return new TravelAction(new TargetDestination(_node), actor.Pawn);
         }
 
         /// <inheritdoc/>

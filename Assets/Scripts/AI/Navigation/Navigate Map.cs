@@ -7,7 +7,6 @@ using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
 using Assets.Scripts.Map.Sprite_Object;
 using Assets.Scripts.Utility;
-using UnityEngine.Animations;
 
 namespace Assets.Scripts.AI.Navigation
 {
@@ -88,8 +87,6 @@ namespace Assets.Scripts.AI.Navigation
         public void UpdateEdgeLength(INode first, INode second, float length)
         {
             _edgeLength[(first, second)] = length;
-
-            bool test = _edgeLength.TryGetValue((first, second), out float value);
             UpdateNode(first);
             UpdateNode(second);
             EstablishPathing();

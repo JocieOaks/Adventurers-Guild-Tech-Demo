@@ -122,15 +122,15 @@ namespace Assets.Scripts.AI.Planning
         /// <returns>Iterates over all the <see cref="Task"/>s the <see cref="Actor"/> perform.</returns>
         private static IEnumerable<Task.Task> GetTasks()
         {
-            yield return new SleepTask();
-            yield return new EatTask();
+            //yield return new SleepTask();
+            //yield return new EatTask();
             yield return new WanderTask();
-            yield return new StanceLay();
-            yield return new StanceSit();
-            yield return new StanceStand();
-            yield return new AcquireFoodTask();
+            //yield return new StanceLay();
+            //yield return new StanceSit();
+            //yield return new StanceStand();
+            //yield return new AcquireFoodTask();
             yield return new WaitTask(5);
-            yield return new LeaveConversationTask();
+            //yield return new LeaveConversationTask();
         }
 
         /// <summary>

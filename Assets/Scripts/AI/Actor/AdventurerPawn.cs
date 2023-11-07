@@ -51,7 +51,9 @@ namespace Assets.Scripts.AI.Actor
             get => base.CurrentNode;
             protected set
             {
+                RoomNode previous = base.CurrentNode;
                 base.CurrentNode = value;
+                OnPawnMoved(previous);
                 OnLevelChange();
                 NavigateRoom?.UpdateStart(value);
             }

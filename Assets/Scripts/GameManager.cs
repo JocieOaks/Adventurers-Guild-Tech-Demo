@@ -45,7 +45,7 @@ namespace Assets.Scripts
         private List<QuestData> _allQuests;
         private int _lastAdventurerTick;
         private int _lastQuestTick;
-        [SerializeField][UsedImplicitly] private PlayerPawn _player;
+        [UsedImplicitly] public PlayerPawn Player;
         private WallDisplayMode _playWallMode;
         private float _time;
 
@@ -514,7 +514,7 @@ namespace Assets.Scripts
 
             if (GameMode == GameMode.Play)
             {
-                Camera.transform.position = _player.transform.position + Vector3.back * 10;
+                Camera.transform.position = Player.transform.position + Vector3.back * 10;
             }
 
             NonMonoUpdate?.Invoke();

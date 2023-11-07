@@ -70,6 +70,7 @@ namespace Assets.Scripts.AI.Navigation
 
             foreach (RoomNode oldEndpoint in eventArgs.PreviousEndpoints)
             {
+                SetGScore(oldEndpoint, float.PositiveInfinity);
                 UpdateNode(oldEndpoint);
             }
 

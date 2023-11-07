@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Assets.Scripts.AI.Actor;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
@@ -16,6 +15,7 @@ namespace Assets.Scripts.AI.Navigation.Destination
         public PawnDestination(Pawn pawn, float radius)
         {
             _pawn = pawn;
+            _pawn.PawnMoved += OnDestinationMoved;
             _radius = radius;
         }
 
@@ -42,15 +42,14 @@ namespace Assets.Scripts.AI.Navigation.Destination
         public bool IsComplete(RoomNode position)
         {
             return Map.Map.EstimateDistance(position, _pawn) < _radius;
-
         }
 
         /// <inheritdoc />
         public event EventHandler<MovingEventArgs> DestinationMoved;
 
-        private void OnDestinationMoved()
+        private void OnDestinationMoved(object sender, RoomNode previous)
         {
-            DestinationMoved?.Invoke(this, new MovingEventArgs(Endpoints.ToList()));
+            DestinationMoved?.Invoke(this, new MovingEventArgs(new List<RoomNode>() { previous }));
         }
     }
 }

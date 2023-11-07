@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Assets.Scripts.AI.Navigation.Destination;
 using Assets.Scripts.Map.Node;
 
 namespace Assets.Scripts.AI.Navigation.Destination

@@ -43,7 +43,9 @@ namespace Assets.Scripts.AI.Actor
             get => base.CurrentNode;
             protected set
             {
+                RoomNode previous = base.CurrentNode;
                 base.CurrentNode = value;
+                OnPawnMoved(previous);
                 int level = GameManager.Instance.IsOnLevel(CurrentLevel);
                 if (level < 0)
                     GameManager.Instance.ChangeLevel(false);

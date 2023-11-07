@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.AI.Action;
@@ -79,6 +80,13 @@ namespace Assets.Scripts.AI.Actor
                 else
                     return Direction.Undirected;
             }
+        }
+
+        public event EventHandler<RoomNode> PawnMoved;
+
+        protected void OnPawnMoved(RoomNode previous)
+        {
+            PawnMoved?.Invoke(this, previous);
         }
 
         /// <summary>
