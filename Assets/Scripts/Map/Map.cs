@@ -356,7 +356,9 @@ namespace Assets.Scripts.Map
                 gScore[node] = (score, nodeQueue.Push(node, score + Vector3Int.Distance(node.WorldPosition, endPosition)));
             }
 
-            while (!nodeQueue.Empty && nodeQueue.Count < 50)
+            int loopCount = 0;
+
+            while (!nodeQueue.Empty && loopCount++ < 1000)
             {
                 INode currentNode = nodeQueue.Pop();
                 if (currentNode == end)

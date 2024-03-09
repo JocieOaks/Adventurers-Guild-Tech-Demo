@@ -276,14 +276,11 @@ namespace Assets.Scripts.AI.Navigation
                 (float x1, float x2) = ((float, float))x!;
                 (float y1, float y2) = ((float, float))y!;
 
-                if (Math.Abs(x1 - y1) < Utility.Utility.TOLERANCE)
-                {
-                    if (Math.Abs(x2 - y2) < Utility.Utility.TOLERANCE)
-                        return 0;
-                    return x2 < y2 ? 1 : -1;
-                }
+                if (!(Mathf.Abs(x1 - y1) < Utility.Utility.TOLERANCE) && (float.IsFinite(x1) || float.IsFinite(y1))) return x1 < y1 ? 1 : -1;
 
-                return x1 < y1 ? 1 : -1;
+                if (!(Mathf.Abs(x2 - y2) < Utility.Utility.TOLERANCE) && (float.IsFinite(x2) || float.IsFinite(y2))) return x2 < y2 ? 1 : -1;
+
+                return 0;
             }
         }
     }

@@ -15,9 +15,6 @@ namespace Assets.Scripts.Utility
         private readonly IComparer _comparer;
         private Node _root;
 
-        /// <value>The priority of the root entry in the <see cref="PairingHeap{T1, T2}"/>.</value>
-        public T2 RootPriority => _root.Priority;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PairingHeap{T1, T2}"/> class.
         /// </summary>
@@ -27,20 +24,19 @@ namespace Assets.Scripts.Utility
             _comparer = comparer;
         }
 
+        /// <value>The priority of the root entry in the <see cref="PairingHeap{T1, T2}"/>.</value>
+        public T2 RootPriority => Root.Priority;
+
         /// <value>The root of the <see cref="PairingHeap{T1, T2}"/>.</value>
         private Node Root
         {
-            get
+            get => _root;
+            set
             {
-                if (_root != null)
-                    while (_root.Parent != null)
-                    {
-                        _root = _root.Parent;
-                    }
-
-                return _root;
+                _root = value;
+                if(_root != null)
+                    _root.Parent = null;
             }
-            set => _root = value;
         }
 
         /// <summary>
@@ -49,27 +45,23 @@ namespace Assets.Scripts.Utility
         /// </summary>
         /// <param name="reference">The <see cref="Node"/> being modified, as an <see cref="IReference"/>.</param>
         /// <param name="priority">The new priority for the <see cref="Node"/>.</param>
-        public bool ChangePriority(IReference reference, T2 priority)
+        public void ChangePriority(IReference reference, T2 priority)
         {
-            bool isInHeap = false;
             Node node = (Node)reference;
-            if(node.Parent != null)
-                isInHeap = true;
-            else if (node == _root)
-            {
-                isInHeap = true;
-                Pop();
-            }
+
             node.Parent?.Children.Remove(node);
             node.Parent = null;
-            node.Priority = priority;
-
-            if (Root != null)
-                Meld(node, Root);
+            if (_comparer.Compare(node.Priority, priority) > 0)
+            {
+                node.Priority = priority;
+                Node subRoot = MeldPairs(node.Children);
+                node.Children.Clear();
+                node = Meld(node, subRoot);
+            }
             else
-                Root = node;
+                node.Priority = priority;
 
-            return isInHeap;
+            Root = Root == null ? node : Meld(node, Root);
         }
 
         /// <summary>
@@ -81,14 +73,11 @@ namespace Assets.Scripts.Utility
         }
 
         /// <summary>
-        /// Finds the element associated with the the root of the <see cref="PairingHeap{T1, T2}"/> which is also the element with the best priority.
+        /// Iterates through the <see cref="PairingHeap{T1,T2}"/> to determine the total number of elements.
         /// </summary>
-        /// <returns>Returns the element with the best priority.</returns>
-        public T1 RootElement()
+        public int Count()
         {
-            if (Root == null)
-                return default;
-            return Root.Element;
+            return Root?.Count() ?? 0;
         }
 
         /// <summary>
@@ -100,14 +89,23 @@ namespace Assets.Scripts.Utility
         public IReference Insert(T1 element, T2 priority)
         {
             Node node = new Node(element, priority);
-            if (Root == null)
-            {
-                Root = node;
-            }
-            else
-                Meld(node, Root);
+            Root = Root == null ? node : Meld(node, Root);
 
             return node;
+        }
+
+        /// <summary>
+        /// Combines two heaps with the same types and <see cref="IComparer"/>s.
+        /// </summary>
+        public void Insert(PairingHeap<T1, T2> heap)
+        {
+            if (heap._comparer != _comparer)
+                throw new ArgumentException("New heap does not have the same comparison rules.");
+
+            if (_root == null)
+                _root = heap.Root;
+            else if (heap.Root != null)
+                Meld(Root, heap.Root);
         }
 
         /// <summary>
@@ -116,26 +114,22 @@ namespace Assets.Scripts.Utility
         /// <returns>The element with the best priority in the <see cref="PairingHeap{T1, T2}"/>.</returns>
         public T1 Pop()
         {
-            Node root = Root;
-            List<Node> children = root.Children;
-            while (children.Count > 1)
-            {
-                for (int i = 0; i < children.Count - 1; i++)
-                {
-                    children.Remove(Meld(children[i], children[i + 1]));
-                }
-            }
+            Node prevRoot = Root;
 
-            _root = children.FirstOrDefault();
-            if (_root != null)
-            {
-                _root.Parent = null;
-            }
+            Root = MeldPairs(prevRoot.Children);
 
             //Called because in some cases the root might be reinserted into the list using ChangePriority
-            root.Children.Clear();
+            prevRoot.Children.Clear();
+            return prevRoot.Element;
+        }
 
-            return root.Element;
+        /// <summary>
+        /// Finds the element associated with the the root of the <see cref="PairingHeap{T1, T2}"/> which is also the element with the best priority.
+        /// </summary>
+        /// <returns>Returns the element with the best priority.</returns>
+        public T1 RootElement()
+        {
+            return Root == null ? default : Root.Element;
         }
 
         /// <summary>
@@ -151,22 +145,40 @@ namespace Assets.Scripts.Utility
             {
                 if (node1 == node2)
                     return node1;
+                if (node1 == null)
+                    return node2;
+                if (node2 == null)
+                    return node1;
                 if (_comparer.Compare(node1.Priority, node2.Priority) > 0)
                 {
                     node1.Children.Add(node2);
                     node2.Parent = node1;
-                    return node2;
+                    return node1;
                 }
 
                 node2.Children.Add(node1);
                 node1.Parent = node2;
-                return node1;
+                return node2;
             }
             catch (NullReferenceException exception)
             {
                 Debug.WriteLine(exception);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Recursively melds a list of <see cref="Node"/>s as pairs until a single tree remains.
+        /// </summary>
+        /// <returns>Returns the root of the tree formed from pairing the list of <see cref="Node"/>s.</returns>
+        private Node MeldPairs(IReadOnlyList<Node> children, int startingIndex = 0)
+        {
+            if (children == null || children.Count <= startingIndex)
+                return null;
+            if (children.Count == startingIndex + 1)
+                return children[startingIndex];
+            return Meld(Meld(children[startingIndex], children[startingIndex + 1]),
+                MeldPairs(children, startingIndex + 2));
         }
 
         /// <summary>
@@ -197,6 +209,14 @@ namespace Assets.Scripts.Utility
 
             /// <value>The value of type <see cref="T2"/> determining the <see cref="Node"/>'s priority within the <see cref="PairingHeap{T1, T2}"/>.</value>
             public T2 Priority { get; set; }
+
+            /// <summary>
+            /// Finds total number of <see cref="Node"/>s including this <see cref="Node"/> and it's children.
+            /// </summary>
+            public int Count()
+            {
+                return 1 + Children.Sum(node => node.Count());
+            }
         }
     }
 }

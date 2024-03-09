@@ -65,7 +65,7 @@ namespace Assets.Scripts.AI.Planning
             }
             else
             {
-                if (_priorityQueue.Count <= 0) return;
+                if (_priorityQueue.Empty) return;
                 PlanNode current = _priorityQueue.Pop();
 
                 if (current.Depth >= 4) return;

@@ -21,11 +21,20 @@ namespace Assets.Scripts.Utility
             _heap = new PairingHeap<T1, T2>(comparer);
         }
 
-        /// <value>The number of elements in the <see cref="PriorityQueue{T1, T2}"/>.</value>
-        public int Count { get; private set; }
 
         /// <value>Returns true if the <see cref="PriorityQueue{T1, T2}"/> has no elements.</value>
         public bool Empty => EqualityComparer<T1>.Default.Equals(_heap.RootElement(), default);
+
+        /// <value>The priority of the entry with the highest priority in the <see cref="PriorityQueue{T1, T2}"/>.</value>
+        public T2 TopPriority => _heap.RootPriority;
+
+        /// <summary>
+        /// Adds the elements of another <see cref="PriorityQueue{T1,T2}"/> to this queue.
+        /// </summary>
+        public void Append(PriorityQueue<T1, T2> queue)
+        {
+            _heap.Insert(queue._heap);
+        }
 
         /// <summary>
         /// Change the priority of a particular heap node.
@@ -34,8 +43,7 @@ namespace Assets.Scripts.Utility
         /// <param name="priority">The new priority for the node.</param>
         public void ChangePriority(IReference node, T2 priority)
         {
-            if (!_heap.ChangePriority(node, priority))
-                Count++;
+            _heap.ChangePriority(node, priority);
         }
 
         /// <summary>
@@ -44,7 +52,14 @@ namespace Assets.Scripts.Utility
         public void Clear()
         {
             _heap.Clear();
-            Count = 0;
+        }
+
+        /// <summary>
+        /// Iterates through the <see cref="PriorityQueue{T1,T2}"/> to determine the total number of elements.
+        /// </summary>
+        public int Count()
+        {
+            return _heap.Count();
         }
 
         /// <summary>
@@ -53,7 +68,6 @@ namespace Assets.Scripts.Utility
         /// <returns>Returns the element with the best priority.</returns>
         public T1 Pop()
         {
-            Count--;
             return _heap.Pop();
         }
 
@@ -65,12 +79,8 @@ namespace Assets.Scripts.Utility
         /// <returns>Returns an <see cref="IReference"/> to the entry in the <see cref="PriorityQueue{T1, T2}"/>. Used to make changes in priority to the entry without needing to search the queue.</returns>
         public IReference Push(T1 element, T2 priority)
         {
-            Count++;
             return _heap.Insert(element, priority);
         }
-
-        /// <value>The priority of the entry with the highest priority in the <see cref="PriorityQueue{T1, T2}"/>.</value>
-        public T2 TopPriority => _heap.RootPriority;
 
         /// <summary>
         /// The <see cref="MaxComparer"/> class is an <see cref="IComparer"/> where a greater value when using <see cref="IComparer.Compare(object, object)"/> has higher priority.
