@@ -6,7 +6,7 @@ using System.Linq;
 using Assets.Scripts.AI.Actor;
 using Assets.Scripts.AI.Navigation.Destination;
 using Assets.Scripts.Map.Node;
-using Assets.Scripts.Utility;
+using PriorityQueue;
 using UnityEngine;
 
 namespace Assets.Scripts.Map
@@ -123,7 +123,7 @@ namespace Assets.Scripts.Map
     /// <returns>Returns true if the two <see cref="RoomNode"/>s should be part of the same <see cref="Room"/>.</returns>
     public void CheckContiguous(RoomNode node1, RoomNode node2)
     {
-        PriorityQueue<RoomNode, float> nodeQueue = new(PriorityQueue<RoomNode, float>.MinComparer.Instance);
+        PriorityQueue<RoomNode, float> nodeQueue = new(PriorityQueue<RoomNode, float>.Min);
         RegisterForUpdate();
 
             RoomNode[,] immediatePredecessor = new RoomNode[Width, Length];

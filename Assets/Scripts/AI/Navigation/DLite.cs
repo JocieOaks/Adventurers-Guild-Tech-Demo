@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.AI.Navigation.Destination;
 using Assets.Scripts.Map;
-using Assets.Scripts.Utility;
+using PriorityQueue;
 using UnityEngine;
 
 namespace Assets.Scripts.AI.Navigation

@@ -1,10 +1,10 @@
 ﻿using Assets.Scripts.AI.Actor;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
-using Assets.Scripts.Utility;
 using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.AI.Navigation.Destination;
+using PriorityQueue;
 using UnityEngine;
 
 namespace Assets.Scripts.AI.Navigation

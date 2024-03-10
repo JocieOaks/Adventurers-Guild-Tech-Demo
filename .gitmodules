@@ -1,0 +1,3 @@
+[submodule "Assets/Scripts/Utility/PriorityQueue"]
+	path = Assets/Scripts/Utility/PriorityQueue
+	url = https://github.com/JocieOaks/Priority-Queue.git

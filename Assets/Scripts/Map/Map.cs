@@ -4,8 +4,8 @@ using Assets.Scripts.Data;
 using Assets.Scripts.Data.Serializable;
 using Assets.Scripts.Map.Node;
 using Assets.Scripts.Map.Sprite_Object;
-using Assets.Scripts.Utility;
 using JetBrains.Annotations;
+using PriorityQueue;
 using UnityEngine;
 
 namespace Assets.Scripts.Map
@@ -342,7 +342,7 @@ namespace Assets.Scripts.Map
 
         Dictionary<INode, (float score, IReference queueNode)> gScore = new();
 
-        PriorityQueue<INode, float> nodeQueue = new(PriorityQueue<INode, float>.MinComparer.Instance);
+        PriorityQueue<INode, float> nodeQueue = new(PriorityQueue<INode, float>.Min);
 
             if (startingRoom == endingRoom)
             {

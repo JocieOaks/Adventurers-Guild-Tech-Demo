@@ -6,7 +6,7 @@ using Assets.Scripts.AI.Navigation.Destination;
 using Assets.Scripts.Map;
 using Assets.Scripts.Map.Node;
 using Assets.Scripts.Map.Sprite_Object;
-using Assets.Scripts.Utility;
+using PriorityQueue;
 
 namespace Assets.Scripts.AI.Navigation
 {
